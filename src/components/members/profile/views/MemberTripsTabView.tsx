@@ -33,7 +33,7 @@ import {
   saveMemberStoredSignatureAction,
   syncMemberSignatureFromTripsAction,
 } from "@/lib/actions/trip-signatures";
-import { calculateTripTransportTotals } from "@/lib/business-trip-calc";
+import { getDriverDistanceKmForTrip } from "@/lib/business-trip-calc";
 import {
   getTripDecisionNumber,
   getTripOrderNumber,
@@ -359,14 +359,13 @@ export function MemberTripsTabView() {
           </p>
         </BentoCard>
         {(() => {
-          const fuelTrips = trips.filter(
-            (t) => t.coachId === memberId && t.transportType === "fuel_only"
+          const drivenTrips = trips.filter(
+            (t) => getDriverDistanceKmForTrip(t, memberId) > 0
           );
-          if (fuelTrips.length === 0 && !member.isCoach) return null;
+          if (drivenTrips.length === 0 && !member.isCoach) return null;
           const totalKm = Math.round(
-            fuelTrips.reduce(
-              (sum, t) =>
-                sum + calculateTripTransportTotals(t).effectiveDistanceKm,
+            trips.reduce(
+              (sum, t) => sum + getDriverDistanceKmForTrip(t, memberId),
               0
             )
           );

@@ -19,6 +19,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -33,11 +34,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -54,12 +54,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useAuth } from "@/context/auth-context";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
@@ -75,7 +69,7 @@ import {
 } from "@/lib/utils";
 import { Member } from "@/types";
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 10;
 const STANDARD_AGE_GROUPS = [
   "U9",
   "U11",
@@ -508,118 +502,99 @@ export function MembersTableComponent({
   };
 
   return (
-    <TooltipProvider delayDuration={200}>
+    <>
       <div className="space-y-3.5">
         {/* 1. Интерактивни KPI карти (Филтрират с 1 клик и заменят дублиращите се бутони) */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {/* Карта: Всички */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => handleStatusFilterChange("all")}
-                className={cn(
-                  "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
-                  statusFilter === "all"
-                    ? "border-zinc-950 bg-white ring-2 ring-zinc-950/10 shadow-xs dark:border-white dark:bg-zinc-900 dark:ring-white/10"
-                    : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-                )}
-              >
-                <div className="shrink-0 rounded-xl bg-zinc-100 p-2 text-zinc-900 transition-colors group-hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white">
-                  <Users className="size-4 sm:size-4.5" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
-                    {kpiTitle}
-                  </p>
-                  <p className="text-lg font-bold text-zinc-900 sm:text-2xl dark:text-white tabular-nums">
-                    {stats.total}
-                  </p>
-                </div>
-                {statusFilter === "all" && (
-                  <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
-                    Активен
-                  </span>
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Кликнете за показване на всички профили без филтър по статус.
-            </TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            title="Кликнете за показване на всички профили без филтър по статус."
+            onClick={() => handleStatusFilterChange("all")}
+            className={cn(
+              "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
+              statusFilter === "all"
+                ? "border-zinc-950 bg-white ring-2 ring-zinc-950/10 shadow-xs dark:border-white dark:bg-zinc-900 dark:ring-white/10"
+                : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+            )}
+          >
+            <div className="shrink-0 rounded-xl bg-zinc-100 p-2 text-zinc-900 transition-colors group-hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white">
+              <Users className="size-4 sm:size-4.5" strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
+                {kpiTitle}
+              </p>
+              <p className="text-lg font-bold text-zinc-900 sm:text-2xl dark:text-white tabular-nums">
+                {stats.total}
+              </p>
+            </div>
+            {statusFilter === "all" && (
+              <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-zinc-500 uppercase tracking-widest">
+                Активен
+              </span>
+            )}
+          </button>
 
           {/* Карта: Активни */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => handleStatusFilterChange("active")}
-                className={cn(
-                  "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
-                  statusFilter === "active"
-                    ? "border-emerald-600 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs dark:border-emerald-500 dark:bg-emerald-950/20"
-                    : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-                )}
-              >
-                <div className="shrink-0 rounded-xl bg-emerald-500/10 p-2 text-emerald-600 transition-colors group-hover:bg-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400">
-                  <UserCheck className="size-4 sm:size-4.5" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
-                    Активни
-                  </p>
-                  <p className="text-lg font-bold text-emerald-600 sm:text-2xl tabular-nums dark:text-emerald-400">
-                    {stats.active}
-                  </p>
-                </div>
-                {statusFilter === "active" && (
-                  <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
-                    Филтър
-                  </span>
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Кликнете за филтриране само на активните членове с валидни карти.
-            </TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            title="Кликнете за филтриране само на активните членове с валидни карти."
+            onClick={() => handleStatusFilterChange("active")}
+            className={cn(
+              "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
+              statusFilter === "active"
+                ? "border-emerald-600 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs dark:border-emerald-500 dark:bg-emerald-950/20"
+                : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+            )}
+          >
+            <div className="shrink-0 rounded-xl bg-emerald-500/10 p-2 text-emerald-600 transition-colors group-hover:bg-emerald-500/20 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <UserCheck className="size-4 sm:size-4.5" strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
+                Активни
+              </p>
+              <p className="text-lg font-bold text-emerald-600 sm:text-2xl tabular-nums dark:text-emerald-400">
+                {stats.active}
+              </p>
+            </div>
+            {statusFilter === "active" && (
+              <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
+                Филтър
+              </span>
+            )}
+          </button>
 
           {/* Карта: Неактивни */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={() => handleStatusFilterChange("inactive")}
-                className={cn(
-                  "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
-                  statusFilter === "inactive"
-                    ? "border-rose-600 bg-rose-50/40 ring-2 ring-rose-500/20 shadow-xs dark:border-rose-500 dark:bg-rose-950/20"
-                    : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
-                )}
-              >
-                <div className="shrink-0 rounded-xl bg-rose-500/10 p-2 text-rose-600 transition-colors group-hover:bg-rose-500/20 dark:bg-rose-950/40 dark:text-rose-400">
-                  <UserMinus className="size-4 sm:size-4.5" strokeWidth={1.5} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
-                    Неактивни
-                  </p>
-                  <p className="text-lg font-bold text-rose-600 sm:text-2xl tabular-nums dark:text-rose-400">
-                    {stats.inactive}
-                  </p>
-                </div>
-                {statusFilter === "inactive" && (
-                  <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-rose-600 uppercase tracking-widest">
-                    Филтър
-                  </span>
-                )}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Кликнете за преглед само на неактивните профили с изтекли
-              абонаменти.
-            </TooltipContent>
-          </Tooltip>
+          <button
+            type="button"
+            title="Кликнете за преглед само на неактивните профили с изтекли абонаменти."
+            onClick={() => handleStatusFilterChange("inactive")}
+            className={cn(
+              "group relative flex items-center gap-2.5 rounded-2xl border p-2.5 sm:p-3.5 text-left transition-all duration-200 outline-none",
+              statusFilter === "inactive"
+                ? "border-rose-600 bg-rose-50/40 ring-2 ring-rose-500/20 shadow-xs dark:border-rose-500 dark:bg-rose-950/20"
+                : "border-zinc-200/80 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+            )}
+          >
+            <div className="shrink-0 rounded-xl bg-rose-500/10 p-2 text-rose-600 transition-colors group-hover:bg-rose-500/20 dark:bg-rose-950/40 dark:text-rose-400">
+              <UserMinus className="size-4 sm:size-4.5" strokeWidth={1.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[10px] font-semibold tracking-wider text-zinc-500 uppercase sm:text-[11px] dark:text-zinc-400">
+                Неактивни
+              </p>
+              <p className="text-lg font-bold text-rose-600 sm:text-2xl tabular-nums dark:text-rose-400">
+                {stats.inactive}
+              </p>
+            </div>
+            {statusFilter === "inactive" && (
+              <span className="hidden sm:inline-block absolute top-2 right-2.5 text-[9px] font-bold text-rose-600 uppercase tracking-widest">
+                Филтър
+              </span>
+            )}
+          </button>
         </div>
 
         {/* 2. Bento Картодържач с Toolbar и Таблица */}
@@ -699,22 +674,16 @@ export function MembersTableComponent({
 
               {/* Действия вдясно: Бутон за експорт */}
               <div className="flex shrink-0 items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleExport}
-                      className="h-9 rounded-xl border-zinc-200 px-3 text-[11px] font-medium tracking-wider uppercase hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-                    >
-                      <Download className="mr-1.5 size-3.5 text-zinc-500" />
-                      <span>Експорт CSV</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-xs">
-                    Изтегля текущия филтриран списък като Excel / CSV файл.
-                  </TooltipContent>
-                </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title="Изтегля текущия филтриран списък като Excel / CSV файл."
+                  onClick={handleExport}
+                  className="h-9 rounded-xl border-zinc-200 px-3 text-[11px] font-medium tracking-wider uppercase hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                >
+                  <Download className="mr-1.5 size-3.5 text-zinc-500" />
+                  <span>Експорт CSV</span>
+                </Button>
               </div>
             </div>
 
@@ -730,72 +699,48 @@ export function MembersTableComponent({
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        disabled={isUpdatingStatus}
-                        onClick={() => handleBulkStatusUpdate("active")}
-                        className="h-7.5 rounded-lg bg-emerald-600 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-emerald-500"
-                      >
-                        <CheckCircle className="mr-1 size-3" />
-                        Активирай
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Задава статус „Активен“ на всички маркирани профили.
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size="sm"
+                    title="Задава статус „Активен“ на всички маркирани профили."
+                    disabled={isUpdatingStatus}
+                    onClick={() => handleBulkStatusUpdate("active")}
+                    className="h-7.5 rounded-lg bg-emerald-600 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-emerald-500"
+                  >
+                    <CheckCircle className="mr-1 size-3" />
+                    Активирай
+                  </Button>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        disabled={isUpdatingStatus}
-                        onClick={() => handleBulkStatusUpdate("inactive")}
-                        className="h-7.5 rounded-lg bg-zinc-800 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-rose-300 hover:bg-rose-950/60 dark:bg-zinc-200 dark:text-rose-700"
-                      >
-                        <XCircle className="mr-1 size-3" />
-                        Деактивирай
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Задава статус „Неактивен“ на всички маркирани профили.
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size="sm"
+                    title="Задава статус „Неактивен“ на всички маркирани профили."
+                    disabled={isUpdatingStatus}
+                    onClick={() => handleBulkStatusUpdate("inactive")}
+                    className="h-7.5 rounded-lg bg-zinc-800 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-rose-300 hover:bg-rose-950/60 dark:bg-zinc-200 dark:text-rose-700"
+                  >
+                    <XCircle className="mr-1 size-3" />
+                    Деактивирай
+                  </Button>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        disabled={isUpdatingStatus || isBulkDeleting}
-                        onClick={() => setIsBulkDeleteOpen(true)}
-                        className="h-7.5 rounded-lg bg-rose-600 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-rose-500"
-                      >
-                        <Trash2 className="mr-1 size-3" />
-                        Изтрий избраните
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Изтрива всички маркирани профили след потвърждение.
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    size="sm"
+                    title="Изтрива всички маркирани профили след потвърждение."
+                    disabled={isUpdatingStatus || isBulkDeleting}
+                    onClick={() => setIsBulkDeleteOpen(true)}
+                    className="h-7.5 rounded-lg bg-rose-600 px-2.5 text-[10px] font-semibold uppercase tracking-wider text-white hover:bg-rose-500"
+                  >
+                    <Trash2 className="mr-1 size-3" />
+                    Изтрий избраните
+                  </Button>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedIds([])}
-                        className="h-7.5 rounded-lg px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-400 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-200"
-                      >
-                        Отказ
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Изчиства маркирането.
-                    </TooltipContent>
-                  </Tooltip>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    title="Изчиства маркирането."
+                    onClick={() => setSelectedIds([])}
+                    className="h-7.5 rounded-lg px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-400 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-200"
+                  >
+                    Отказ
+                  </Button>
                 </div>
               </div>
             )}
@@ -807,43 +752,43 @@ export function MembersTableComponent({
               <TableHeader className="bg-zinc-50/60 dark:bg-zinc-900/60">
                 <TableRow className="border-zinc-100 hover:bg-transparent dark:border-zinc-900">
                   <TableHead className="w-10 px-3 py-2.5">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center">
-                          <Checkbox
-                            checked={
-                              selectedIds.length === paginatedMembers.length &&
-                              paginatedMembers.length > 0
-                            }
-                            onCheckedChange={toggleSelectAll}
-                            className="rounded-md border-zinc-300 dark:border-zinc-700"
-                            aria-label="Избери всички на текущата страница"
-                          />
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        Избира всички редове на тази страница.
-                      </TooltipContent>
-                    </Tooltip>
+                    <span className="sr-only">Избор</span>
+                    <div
+                      className="flex items-center"
+                      title="Избира всички редове на тази страница."
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedIds.length === paginatedMembers.length &&
+                          paginatedMembers.length > 0
+                        }
+                        onChange={toggleSelectAll}
+                        className="size-4 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
+                        aria-label="Избери всички на текущата страница"
+                      />
+                    </div>
                   </TableHead>
-                  <TableHead className="min-w-52 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                  <TableHead className="min-w-52 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-600 dark:text-zinc-400 uppercase">
                     Член / Име
                   </TableHead>
-                  <TableHead className="px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                  <TableHead className="px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-600 dark:text-zinc-400 uppercase">
                     Контакт (Имейл / Тел.)
                   </TableHead>
-                  <TableHead className="w-36 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                  <TableHead className="w-36 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-600 dark:text-zinc-400 uppercase">
                     {showCategoryBadge
                       ? "Категория & Възраст"
                       : "Възрастова група"}
                   </TableHead>
-                  <TableHead className="hidden w-32 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-400 uppercase lg:table-cell">
+                  <TableHead className="hidden w-32 px-3 py-2.5 text-[10px] font-semibold tracking-widest text-zinc-600 dark:text-zinc-400 uppercase lg:table-cell">
                     Регистрация
                   </TableHead>
-                  <TableHead className="w-28 px-4 py-2.5 text-right text-[10px] font-semibold tracking-widest text-zinc-400 uppercase">
+                  <TableHead className="w-28 px-4 py-2.5 text-right text-[10px] font-semibold tracking-widest text-zinc-600 dark:text-zinc-400 uppercase">
                     Статус
                   </TableHead>
-                  <TableHead className="w-24 px-2 py-2.5 text-right"></TableHead>
+                  <TableHead className="w-24 px-2 py-2.5 text-right">
+                    <span className="sr-only">Действия</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -870,38 +815,39 @@ export function MembersTableComponent({
                           className="px-3 py-2"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <Checkbox
+                          <input
+                            type="checkbox"
                             checked={selectedIds.includes(member.id)}
-                            onCheckedChange={() => toggleSelect(member.id)}
-                            className="rounded-md border-zinc-300 dark:border-zinc-700"
+                            onChange={() => toggleSelect(member.id)}
+                            className="size-4 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
                             aria-label={`Избери ${member.firstName} ${member.lastName}`}
                           />
                         </TableCell>
                         <TableCell className="px-3 py-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-2.5">
-                                <Avatar className="size-8 shrink-0 rounded-lg border border-zinc-200/80 dark:border-zinc-800">
-                                  <AvatarImage
-                                    src={getValidAvatarUrl(member.avatarUrl)}
-                                    alt={`${member.firstName} ${member.lastName}`}
-                                    className="object-cover"
-                                  />
-                                  <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-semibold text-zinc-600 transition-all duration-300 group-hover:bg-zinc-950 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400">
-                                    {(member.firstName || "")[0]}
-                                    {(member.lastName || "")[0]}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="font-semibold text-xs whitespace-nowrap text-zinc-900 transition-colors group-hover:text-primary sm:text-[13px] dark:text-white">
-                                  {member.firstName} {member.lastName}
-                                </span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                              Кликнете за отваряне на пълното досие на
-                              състезателя.
-                            </TooltipContent>
-                          </Tooltip>
+                          <div
+                            className="flex items-center gap-2.5"
+                            title="Кликнете за отваряне на пълното досие на състезателя."
+                          >
+                            <Avatar className="size-8 shrink-0 rounded-lg border border-zinc-200/80 dark:border-zinc-800">
+                              {getValidAvatarUrl(member.avatarUrl) ? (
+                                <Image
+                                  src={getValidAvatarUrl(member.avatarUrl)!}
+                                  alt={`${member.firstName} ${member.lastName}`}
+                                  width={32}
+                                  height={32}
+                                  className="size-full object-cover"
+                                />
+                              ) : (
+                                <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-semibold text-zinc-600 transition-all duration-300 group-hover:bg-zinc-950 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400">
+                                  {(member.firstName || "")[0]}
+                                  {(member.lastName || "")[0]}
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                            <span className="font-semibold text-xs whitespace-nowrap text-zinc-900 transition-colors group-hover:text-primary sm:text-[13px] dark:text-white">
+                              {member.firstName} {member.lastName}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="px-3 py-2">
                           <div className="space-y-0.5">
@@ -988,83 +934,56 @@ export function MembersTableComponent({
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) =>
-                                    handleCopyMemberLink(e, member.id)
-                                  }
-                                  aria-label={`Копирай линк за ${member.firstName} ${member.lastName}`}
-                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                                >
-                                  {copiedId === member.id ? (
-                                    <Check
-                                      className="size-3.5 text-emerald-600"
-                                      strokeWidth={1.5}
-                                    />
-                                  ) : (
-                                    <Link2
-                                      className="size-3.5"
-                                      strokeWidth={1.5}
-                                    />
-                                  )}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left" className="text-xs">
-                                Копирай директен линк към този ред в регистъра.
-                              </TooltipContent>
-                            </Tooltip>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Копирай директен линк към този ред в регистъра."
+                              onClick={(e) =>
+                                handleCopyMemberLink(e, member.id)
+                              }
+                              aria-label={`Копирай линк за ${member.firstName} ${member.lastName}`}
+                              className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                            >
+                              {copiedId === member.id ? (
+                                <Check
+                                  className="size-3.5 text-emerald-600"
+                                  strokeWidth={1.5}
+                                />
+                              ) : (
+                                <Link2 className="size-3.5" strokeWidth={1.5} />
+                              )}
+                            </Button>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    router.push(`/members/${member.id}/edit`);
-                                  }}
-                                  aria-label={`Редактирай ${member.firstName} ${member.lastName}`}
-                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
-                                >
-                                  <Pencil
-                                    className="size-3.5"
-                                    strokeWidth={1.5}
-                                  />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left" className="text-xs">
-                                Редактирай профила
-                              </TooltipContent>
-                            </Tooltip>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Редактирай профила"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/members/${member.id}/edit`);
+                              }}
+                              aria-label={`Редактирай ${member.firstName} ${member.lastName}`}
+                              className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                            >
+                              <Pencil className="size-3.5" strokeWidth={1.5} />
+                            </Button>
 
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={(e) =>
-                                    handleRequestDeleteMember(
-                                      e,
-                                      member.id,
-                                      `${member.firstName} ${member.lastName}`
-                                    )
-                                  }
-                                  aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
-                                  className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                                >
-                                  <Trash2
-                                    className="size-3.5"
-                                    strokeWidth={1.5}
-                                  />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent side="left" className="text-xs">
-                                Изтрива записа след потвърждение.
-                              </TooltipContent>
-                            </Tooltip>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="Изтрива записа след потвърждение."
+                              onClick={(e) =>
+                                handleRequestDeleteMember(
+                                  e,
+                                  member.id,
+                                  `${member.firstName} ${member.lastName}`
+                                )
+                              }
+                              aria-label={`Изтрий ${member.firstName} ${member.lastName}`}
+                              className="size-7.5 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                            >
+                              <Trash2 className="size-3.5" strokeWidth={1.5} />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1116,23 +1035,29 @@ export function MembersTableComponent({
                         }}
                         className="mr-0.5 shrink-0"
                       >
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           checked={selectedIds.includes(member.id)}
-                          onCheckedChange={() => toggleSelect(member.id)}
-                          className="rounded-md border-zinc-300 dark:border-zinc-700"
+                          onChange={() => toggleSelect(member.id)}
+                          className="size-4 cursor-pointer rounded border-zinc-300 accent-zinc-950 dark:border-zinc-700 dark:accent-white"
                           aria-label={`Избери ${member.firstName} ${member.lastName}`}
                         />
                       </div>
                       <Avatar className="size-8.5 shrink-0 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                        <AvatarImage
-                          src={getValidAvatarUrl(member.avatarUrl)}
-                          alt={`${member.firstName} ${member.lastName}`}
-                          className="object-cover"
-                        />
-                        <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-                          {(member.firstName || "")[0]}
-                          {(member.lastName || "")[0]}
-                        </AvatarFallback>
+                        {getValidAvatarUrl(member.avatarUrl) ? (
+                          <Image
+                            src={getValidAvatarUrl(member.avatarUrl)!}
+                            alt={`${member.firstName} ${member.lastName}`}
+                            width={34}
+                            height={34}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <AvatarFallback className="flex items-center justify-center rounded-lg bg-zinc-100 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                            {(member.firstName || "")[0]}
+                            {(member.lastName || "")[0]}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-semibold text-zinc-900 truncate dark:text-white">
@@ -1279,47 +1204,35 @@ export function MembersTableComponent({
                 профила
               </p>
               <div className="order-1 flex w-full items-center justify-between gap-2 sm:order-2 sm:w-auto sm:justify-end">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      aria-label="Предишна страница"
-                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
-                    >
-                      <ChevronLeft className="size-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    Предишна страница
-                  </TooltipContent>
-                </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title="Предишна страница"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Предишна страница"
+                  className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                >
+                  <ChevronLeft className="size-3.5" />
+                </Button>
 
                 <div className="min-w-15 rounded-lg border border-zinc-200/80 bg-white px-3 py-1.5 text-center text-[10px] font-bold tracking-wider uppercase shadow-none dark:border-zinc-800 dark:bg-zinc-800">
                   {currentPage} / {totalPages}
                 </div>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      disabled={currentPage === totalPages}
-                      aria-label="Следваща страница"
-                      className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
-                    >
-                      <ChevronRight className="size-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    Следваща страница
-                  </TooltipContent>
-                </Tooltip>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title="Следваща страница"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                  aria-label="Следваща страница"
+                  className="size-8.5 rounded-lg border-zinc-200 bg-white p-0 shadow-none hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+                >
+                  <ChevronRight className="size-3.5" />
+                </Button>
               </div>
             </div>
           )}
@@ -1327,73 +1240,78 @@ export function MembersTableComponent({
       </div>
 
       {/* Потвърждение за единично изтриване */}
-      <AlertDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open && !isDeletingSingle) setDeleteTarget(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Изтриване на член</AlertDialogTitle>
-            <AlertDialogDescription>
-              Наистина ли искате да изтриете{" "}
-              <strong>{deleteTarget?.name}</strong>? Това действие е необратимо.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingSingle}>
-              Отказ
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDeleteMember();
-              }}
-              disabled={isDeletingSingle}
-              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
-            >
-              {isDeletingSingle ? "Изтриване..." : "Изтрий"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {Boolean(deleteTarget) && (
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && !isDeletingSingle) setDeleteTarget(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Изтриване на член</AlertDialogTitle>
+              <AlertDialogDescription>
+                Наистина ли искате да изтриете{" "}
+                <strong>{deleteTarget?.name}</strong>? Това действие е
+                необратимо.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingSingle}>
+                Отказ
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmDeleteMember();
+                }}
+                disabled={isDeletingSingle}
+                className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+              >
+                {isDeletingSingle ? "Изтриване..." : "Изтрий"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
       {/* Потвърждение за масово изтриване */}
-      <AlertDialog
-        open={isBulkDeleteOpen}
-        onOpenChange={(open) => {
-          if (!open && !isBulkDeleting) setIsBulkDeleteOpen(false);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Масово изтриване на профили</AlertDialogTitle>
-            <AlertDialogDescription>
-              Сигурни ли сте, че искате да изтриете избраните{" "}
-              <strong>{selectedIds.length}</strong> профила? Това действие е
-              необратимо.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBulkDeleting}>
-              Отказ
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmBulkDelete();
-              }}
-              disabled={isBulkDeleting}
-              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
-            >
-              {isBulkDeleting
-                ? "Изтриване..."
-                : `Изтрий (${selectedIds.length})`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </TooltipProvider>
+      {isBulkDeleteOpen && (
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && !isBulkDeleting) setIsBulkDeleteOpen(false);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Масово изтриване на профили</AlertDialogTitle>
+              <AlertDialogDescription>
+                Сигурни ли сте, че искате да изтриете избраните{" "}
+                <strong>{selectedIds.length}</strong> профила? Това действие е
+                необратимо.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isBulkDeleting}>
+                Отказ
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmBulkDelete();
+                }}
+                disabled={isBulkDeleting}
+                className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+              >
+                {isBulkDeleting
+                  ? "Изтриване..."
+                  : `Изтрий (${selectedIds.length})`}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

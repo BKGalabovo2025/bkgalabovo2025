@@ -1,10 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
 import { isClubMemberProfile } from "@/components/members/list/member-list-sections";
-import { MembersTableComponent } from "@/components/members/list/MembersTableComponent";
 import { Member } from "@/types";
+
+const MembersTableComponent = dynamic(() =>
+  import("@/components/members/list/MembersTableComponent").then(
+    (m) => m.MembersTableComponent
+  )
+);
 
 interface MembersClubViewProps {
   initialMembers: Member[];
@@ -16,7 +22,7 @@ export function MembersClubView({ initialMembers }: MembersClubViewProps) {
   }, [initialMembers]);
 
   return (
-    <div className="animate-in fade-in duration-300">
+    <div>
       <MembersTableComponent
         initialMembers={clubMembers}
         showCategoryBadge={false}

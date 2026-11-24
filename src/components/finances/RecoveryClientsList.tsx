@@ -41,7 +41,7 @@ import { useAuth } from "@/context/auth-context";
 import { deleteMemberAction } from "@/lib/actions/members";
 import { Member } from "@/types";
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 9;
 
 interface RecoveryClientsListProps {
   members?: Member[];
@@ -143,7 +143,7 @@ export function RecoveryClientsList({
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in sm:space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       {/* Stats */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
         <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none sm:p-4.5 dark:border-zinc-800 dark:bg-zinc-950">
@@ -151,7 +151,7 @@ export function RecoveryClientsList({
             <Activity className="size-5" strokeWidth={1.5} />
           </div>
           <div className="space-y-0.5">
-            <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
+            <p className="text-[10px] font-medium tracking-widest text-zinc-600 dark:text-zinc-400 uppercase sm:text-[11px]">
               Клиенти на зоната
             </p>
             <p className="text-xl font-light text-indigo-600 sm:text-2xl dark:text-indigo-400">
@@ -164,10 +164,10 @@ export function RecoveryClientsList({
             <FileText className="size-5" strokeWidth={1.5} />
           </div>
           <div className="space-y-0.5">
-            <p className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase sm:text-[11px]">
+            <p className="text-[10px] font-medium tracking-widest text-zinc-600 dark:text-zinc-400 uppercase sm:text-[11px]">
               Относно Клиенти Възстановяване
             </p>
-            <p className="text-xs leading-relaxed font-light text-zinc-500">
+            <p className="text-xs leading-relaxed font-light text-zinc-600 dark:text-zinc-400">
               Това са клиенти, които имат профил във Възстановителната зона. Те
               могат да бъдат и външни лица, и клубни членове. Тук се съхранява
               тяхното досие със здравна информация и история на процедурите.
@@ -181,9 +181,9 @@ export function RecoveryClientsList({
         <div className="flex flex-col gap-3 border-b border-zinc-100 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:p-4 dark:border-zinc-900">
           <div className="flex items-center gap-2.5">
             <Activity className="size-4 text-indigo-500" strokeWidth={1.5} />
-            <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+            <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
               Регистрирани Клиенти
-            </h3>
+            </h2>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative w-full sm:w-56">
@@ -249,10 +249,10 @@ export function RecoveryClientsList({
             <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/20">
               <Activity className="size-6 text-indigo-300" strokeWidth={1} />
             </div>
-            <p className="mb-2 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
+            <p className="mb-2 text-[11px] font-medium tracking-widest text-zinc-600 dark:text-zinc-400 uppercase">
               Няма регистрирани клиенти
             </p>
-            <p className="mx-auto max-w-sm text-xs leading-relaxed font-light text-zinc-400">
+            <p className="mx-auto max-w-sm text-xs leading-relaxed font-light text-zinc-600 dark:text-zinc-400">
               {recoveryClients.length === 0
                 ? "Все още няма добавени клиенти за зоната. Използвайте бутона горе, за да създадете първия профил."
                 : "Няма клиенти, отговарящи на зададените критерии за търсене."}
@@ -277,7 +277,7 @@ export function RecoveryClientsList({
                         <p className="text-sm font-medium text-zinc-900 dark:text-white">
                           {client.firstName} {client.lastName}
                         </p>
-                        <p className="mt-0.5 text-[10px] font-light text-zinc-400">
+                        <p className="mt-0.5 text-[10px] font-light text-zinc-600 dark:text-zinc-400">
                           {client.phone || client.email || "Няма контакти"}
                         </p>
                       </div>
@@ -286,7 +286,7 @@ export function RecoveryClientsList({
                       Зона
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 border-t border-zinc-50 pt-3 text-zinc-400 dark:border-zinc-800/50">
+                  <div className="flex items-center gap-2 border-t border-zinc-50 pt-3 text-zinc-600 dark:text-zinc-400 dark:border-zinc-800/50">
                     <Calendar
                       className="size-3 text-zinc-300 dark:text-zinc-600"
                       strokeWidth={1.5}
@@ -373,35 +373,38 @@ export function RecoveryClientsList({
         )}
       </div>
 
-      <AlertDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open && !isDeleting) setDeleteTarget(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Изтриване на клиент</AlertDialogTitle>
-            <AlertDialogDescription>
-              Сигурни ли сте, че искате да изтриете клиент{" "}
-              <strong>{deleteTarget?.name}</strong>? Това действие е необратимо.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отказ</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDeleteMember();
-              }}
-              disabled={isDeleting}
-              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
-            >
-              {isDeleting ? "Изтриване..." : "Изтрий"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {Boolean(deleteTarget) && (
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && !isDeleting) setDeleteTarget(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Изтриване на клиент</AlertDialogTitle>
+              <AlertDialogDescription>
+                Сигурни ли сте, че искате да изтриете клиент{" "}
+                <strong>{deleteTarget?.name}</strong>? Това действие е
+                необратимо.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Отказ</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmDeleteMember();
+                }}
+                disabled={isDeleting}
+                className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+              >
+                {isDeleting ? "Изтриване..." : "Изтрий"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }

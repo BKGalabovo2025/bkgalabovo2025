@@ -12,6 +12,7 @@ import {
   buildTripRouteDescription,
   buildTripRouteLabel,
   calculateTripTransportTotals,
+  calculateTripVehiclesBreakdown,
   formatDestPlace,
   getEffectiveTripRates,
   isTripCoverageWithoutAccom,
@@ -376,8 +377,6 @@ export function BusinessTripPdfTemplates({
     ? `${eventLabel} - ${cleanTitle}, ${dateRangeStr} в ${trip.destination}`
     : `${cleanTitle}, ${dateRangeStr} в ${trip.destination}`;
 
-  const totalLiters =
-    distKm > 0 && fuelNorm > 0 ? (distKm / 100) * fuelNorm : 0;
   const fuelExpenses = expenses.filter((e) => e.expenseType === "fuel");
   const avgPricePerLiterEUR =
     fuelExpenses.length > 0
@@ -387,8 +386,27 @@ export function BusinessTripPdfTemplates({
   const roundedPricePerLiterBGN =
     Math.round(eurToBgn(avgPricePerLiterEUR) * 100) / 100;
   const avgPricePerLiterBGN = eurToBgn(avgPricePerLiterEUR);
+  const vehiclesBreakdown = calculateTripVehiclesBreakdown(
+    trip,
+    avgPricePerLiterEUR,
+    coachName
+  );
+  const hasMultipleVehicles = vehiclesBreakdown.length > 1;
+  const totalFleetDistKm = vehiclesBreakdown.reduce(
+    (sum, v) => sum + v.distanceKm,
+    0
+  );
+  const totalLitersExact = vehiclesBreakdown.reduce(
+    (sum, v) =>
+      sum +
+      (v.distanceKm > 0 && v.fuelNorm > 0
+        ? (v.distanceKm / 100) * v.fuelNorm
+        : 0),
+    0
+  );
+  const totalLiters = Math.round(totalLitersExact * 100) / 100;
   const finalFuelBGN =
-    Math.round(totalLiters * roundedPricePerLiterBGN * 100) / 100;
+    Math.round(totalLitersExact * roundedPricePerLiterBGN * 100) / 100;
   const finalFuelEUR =
     finalFuelBGN > 0 ? Math.round((finalFuelBGN / 1.95583) * 100) / 100 : 0;
 
@@ -625,6 +643,28 @@ export function BusinessTripPdfTemplates({
 
   const renderDecisionTransportText = () => {
     if (hasFuel) {
+      if (hasMultipleVehicles) {
+        const carsDesc = vehiclesBreakdown
+          .map(
+            (v) =>
+              `${v.index}) лек автомобил, марка ${v.brand}, рег. № ${v.regNumber}, водач ${v.driverName} (${v.driverRole}, разходна норма ${v.fuelNorm > 0 ? v.fuelNorm : "0"} л/100 км, пробег ${v.distanceKm > 0 ? `${v.distanceKm} км` : "по отчет"})`
+          )
+          .join("; ");
+        return (
+          <span style={{ marginLeft: "15pt", display: "inline-block" }}>
+            Съгласно Наредбата за командировките в страната разрешава пътуването
+            да се извърши с{" "}
+            <strong>{vehiclesBreakdown.length} лични МПС</strong>: {carsDesc}.
+            Общият разход за изразходвано гориво се отчита по официалните
+            разходни норми на съответните МПС за маршрута <em>{routeLabel}</em>{" "}
+            (общо {totalFleetDistKm > 0 ? `${totalFleetDistKm} км` : "по отчет"}
+            ) и се възстановява срещу представен пътен лист (Отчет за гориво) и
+            разходооправдателен документ (включително при обща фактура /
+            фискален бон на името на клуба).
+            {routeDescription ? ` ${routeDescription}` : ""}
+          </span>
+        );
+      }
       return (
         <span style={{ marginLeft: "15pt", display: "inline-block" }}>
           Съгласно Наредбата за командировките в страната разрешава пътуването
@@ -671,6 +711,29 @@ export function BusinessTripPdfTemplates({
 
   const renderOrderTransportText = () => {
     if (hasFuel) {
+      if (hasMultipleVehicles) {
+        const carsDesc = vehiclesBreakdown
+          .map(
+            (v) =>
+              `${v.index}) лек автомобил, марка ${v.brand}, рег. № ${v.regNumber}, водач ${v.driverName} (${v.driverRole}, норма ${v.fuelNorm > 0 ? v.fuelNorm : "0"} л/100 км, ${v.distanceKm > 0 ? `${v.distanceKm} км` : "по отчет"})`
+          )
+          .join("; ");
+        return (
+          <p style={{ marginBottom: "4pt" }}>
+            {snPlanned("transport")}. Транспорт:{" "}
+            <strong>
+              Разрешавам пътуването да се извърши с {vehiclesBreakdown.length}{" "}
+              лични МПС
+            </strong>
+            : {carsDesc}. Общият разход за гориво се отчита по официални
+            разходни норми за маршрута <em>{routeLabel}</em> (общо{" "}
+            {totalFleetDistKm > 0 ? `${totalFleetDistKm} км` : "по отчет"}) и се
+            възстановява срещу представен пътен лист и разходооправдателен
+            документ (включително при обща фактура / касов бон за заредено
+            гориво на името на клуба).
+          </p>
+        );
+      }
       return (
         <p style={{ marginBottom: "4pt" }}>
           {snPlanned("transport")}. Транспорт:{" "}
@@ -2759,17 +2822,41 @@ export function BusinessTripPdfTemplates({
             <strong>{coachRole}</strong>
           </p>
           <p style={{ marginBottom: "8pt", lineHeight: "1.4" }}>
-            За разход на{" "}
-            <strong>
-              {trip.vehicle?.fuelType ||
-                "бензин А-.......... / дизелово гориво, газ"}
-            </strong>{" "}
-            за личен лек автомобил, марка/ модел{" "}
-            <strong>{trip.vehicle?.brand || "неопределена"}</strong>
-            ,&nbsp; рег. №{" "}
-            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, водач{" "}
-            <strong>{coachName}</strong>, използван за служебни цели —{" "}
-            <strong>{titleWithLabel}</strong>
+            {hasMultipleVehicles ? (
+              <>
+                За разход на гориво за{" "}
+                <strong>
+                  {vehiclesBreakdown.length} лични леки автомобила
+                </strong>
+                :{" "}
+                {vehiclesBreakdown.map((v, vIdx) => (
+                  <React.Fragment key={v.index}>
+                    {vIdx > 0 ? "; " : ""}
+                    <strong>
+                      {v.index}) {v.brand}
+                    </strong>{" "}
+                    (рег. № <strong>{v.regNumber}</strong>, {v.fuelType}, водач{" "}
+                    <strong>{v.driverName}</strong>)
+                  </React.Fragment>
+                ))}
+                , използвани за служебни цели —{" "}
+                <strong>{titleWithLabel}</strong>
+              </>
+            ) : (
+              <>
+                За разход на{" "}
+                <strong>
+                  {trip.vehicle?.fuelType ||
+                    "бензин А-.......... / дизелово гориво, газ"}
+                </strong>{" "}
+                за личен лек автомобил, марка/ модел{" "}
+                <strong>{trip.vehicle?.brand || "неопределена"}</strong>
+                ,&nbsp; рег. №{" "}
+                <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>,
+                водач <strong>{coachName}</strong>, използван за служебни цели —{" "}
+                <strong>{titleWithLabel}</strong>
+              </>
+            )}
             {coachOriginRoute ? (
               <>
                 {" "}
@@ -2818,117 +2905,138 @@ export function BusinessTripPdfTemplates({
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ ...TD, textAlign: "center" }}>1.</td>
-                <td style={TD}>
-                  {trip.title.replace(/^[Кк]омандировка:\s*/u, "")}
-                  <br />
-                  <span style={{ fontSize: "8pt", color: "#000" }}>
-                    {routeLabel}
-                    {isDailyCommute && actualTrips > 0 && singleKm > 0 && (
+              {vehiclesBreakdown.map((v) => (
+                <tr key={v.index}>
+                  <td style={{ ...TD, textAlign: "center" }}>{v.index}.</td>
+                  <td style={TD}>
+                    {trip.title.replace(/^[Кк]омандировка:\s*/u, "")}
+                    {hasMultipleVehicles && (
                       <>
                         <br />
-                        <strong style={{ color: "#000" }}>
-                          {actualTrips === 1
-                            ? "Еднодневно пътуване:"
-                            : "Ежедневно пътуване:"}{" "}
-                          {actualTrips} {actualTrips === 1 ? "курс" : "курса"}{" "}
-                          (отиване и връщане) по {singleKm} км = {distKm} км
-                        </strong>
+                        <span
+                          style={{
+                            fontSize: "8pt",
+                            fontWeight: "600",
+                            color: "#000",
+                          }}
+                        >
+                          МПС {v.index}: {v.brand} ({v.regNumber}) — водач{" "}
+                          {v.driverName}
+                        </span>
                       </>
                     )}
-                  </span>
-                </td>
-                <td
-                  style={{
-                    ...TD,
-                    textAlign: "center",
-                    fontWeight: isDailyCommute ? "bold" : "normal",
-                  }}
-                >
-                  {distKm > 0 ? distKm : ""}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {fuelNorm > 0 ? fuelNorm : ""}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {totalLiters > 0 ? totalLiters.toFixed(2) : ""}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {avgPricePerLiterEUR > 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "1pt",
-                      }}
-                    >
-                      <span
+                    <br />
+                    <span style={{ fontSize: "8pt", color: "#000" }}>
+                      {routeLabel}
+                      {v.index === 1 &&
+                        isDailyCommute &&
+                        actualTrips > 0 &&
+                        singleKm > 0 && (
+                          <>
+                            <br />
+                            <strong style={{ color: "#000" }}>
+                              {actualTrips === 1
+                                ? "Еднодневно пътуване:"
+                                : "Ежедневно пътуване:"}{" "}
+                              {actualTrips}{" "}
+                              {actualTrips === 1 ? "курс" : "курса"} (отиване и
+                              връщане) по {singleKm} км = {v.distanceKm} км
+                            </strong>
+                          </>
+                        )}
+                    </span>
+                  </td>
+                  <td
+                    style={{
+                      ...TD,
+                      textAlign: "center",
+                      fontWeight: isDailyCommute ? "bold" : "normal",
+                    }}
+                  >
+                    {v.distanceKm > 0 ? v.distanceKm : ""}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {v.fuelNorm > 0 ? v.fuelNorm : ""}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {v.calcFuelLiters > 0 ? v.calcFuelLiters.toFixed(2) : ""}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {avgPricePerLiterEUR > 0 ? (
+                      <div
                         style={{
-                          fontWeight: "600",
-                          color: "#000",
-                          fontSize: "7.5pt",
-                          whiteSpace: "nowrap",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "1pt",
                         }}
                       >
-                        {avgPricePerLiterEUR.toFixed(2)} €
-                      </span>
-                      <span
+                        <span
+                          style={{
+                            fontWeight: "600",
+                            color: "#000",
+                            fontSize: "7.5pt",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {avgPricePerLiterEUR.toFixed(2)} €
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "6.5pt",
+                            color: "#222",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ({avgPricePerLiterBGN.toFixed(2)} лв.)
+                        </span>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                  <td style={{ ...TD, textAlign: "center" }}>
+                    {v.calcFuelEUR > 0 ? (
+                      <div
                         style={{
-                          fontSize: "6.5pt",
-                          color: "#222",
-                          whiteSpace: "nowrap",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "1pt",
                         }}
                       >
-                        ({avgPricePerLiterBGN.toFixed(2)} лв.)
-                      </span>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </td>
-                <td style={{ ...TD, textAlign: "center" }}>
-                  {finalFuelEUR > 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: "1pt",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontWeight: "700",
-                          color: "#000",
-                          fontSize: "7.5pt",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {finalFuelEUR.toFixed(2)} €
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "6.5pt",
-                          color: "#222",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        ({finalFuelBGN.toFixed(2)} лв.)
-                      </span>
-                    </div>
-                  ) : (
-                    ""
-                  )}
-                </td>
-              </tr>
+                        <span
+                          style={{
+                            fontWeight: "700",
+                            color: "#000",
+                            fontSize: "7.5pt",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {v.calcFuelEUR.toFixed(2)} €
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "6.5pt",
+                            color: "#222",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ({v.calcFuelBGN.toFixed(2)} лв.)
+                        </span>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </td>
+                </tr>
+              ))}
               <tr style={{ fontWeight: "bold", backgroundColor: "#f8fafc" }}>
                 <td colSpan={2} style={{ ...TD, textAlign: "center" }}>
                   ВСИЧКО:
                 </td>
                 <td style={{ ...TD, textAlign: "center" }}>
-                  {distKm > 0 ? distKm : ""}
+                  {totalFleetDistKm > 0 ? totalFleetDistKm : ""}
                 </td>
                 <td style={TD}>&nbsp;</td>
                 <td style={{ ...TD, textAlign: "center" }}>
@@ -3043,49 +3151,72 @@ export function BusinessTripPdfTemplates({
 
             <div
               style={{
-                flex: 1,
-                maxWidth: "240pt",
-                border: "1px solid #000",
-                borderRadius: "8px",
-                padding: "6pt 10pt",
-                textAlign: "center",
-                backgroundColor: "#f8fafc",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8pt",
+                justifyContent: "flex-end",
               }}
             >
-              <p
-                style={{
-                  fontWeight: "700",
-                  fontSize: "8.5pt",
-                  margin: 0,
-                  color: "#000",
-                  textTransform: "uppercase",
-                }}
-              >
-                Подпис (Отчел)
-              </p>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  height: "36pt",
-                }}
-              >
-                {effectiveCoachSig ? (
-                  <img
-                    src={effectiveCoachSig}
-                    alt="signature"
-                    style={{ height: "32pt", objectFit: "contain" }}
-                  />
-                ) : (
-                  <span style={{ color: "#000" }}>
-                    ..................................
-                  </span>
-                )}
-              </div>
-              <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
-                / {coachName} /
-              </p>
+              {vehiclesBreakdown.map((v) => {
+                const sig =
+                  v.index === 1
+                    ? effectiveCoachSig
+                    : (v.driverId &&
+                        (trip.signatures?.athletes?.[v.driverId] ||
+                          membersDict[v.driverId]?.signature)) ||
+                      undefined;
+                return (
+                  <div
+                    key={v.index}
+                    style={{
+                      minWidth: hasMultipleVehicles ? "155pt" : "210pt",
+                      maxWidth: "240pt",
+                      border: "1px solid #000",
+                      borderRadius: "8px",
+                      padding: "6pt 10pt",
+                      textAlign: "center",
+                      backgroundColor: "#f8fafc",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontWeight: "700",
+                        fontSize: "8.5pt",
+                        margin: 0,
+                        color: "#000",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {hasMultipleVehicles
+                        ? `Подпис (Водач МПС ${v.index})`
+                        : "Подпис (Отчел)"}
+                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "36pt",
+                      }}
+                    >
+                      {sig ? (
+                        <img
+                          src={sig}
+                          alt="signature"
+                          style={{ height: "32pt", objectFit: "contain" }}
+                        />
+                      ) : (
+                        <span style={{ color: "#000" }}>
+                          ..................................
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: "8pt", margin: 0, color: "#000" }}>
+                      / {v.driverName} /
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

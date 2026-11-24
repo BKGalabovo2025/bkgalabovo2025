@@ -183,10 +183,28 @@ export async function getFamiliesFeedAction(siteId?: string) {
     }
 
     const adminDb = getAdminDb();
-    const snap = await adminDb.collection("families").get();
-    const families = snap.docs
+    const rawFamilies = await serverCache.get(
+      "families:all",
+      async () => {
+        const snap = await adminDb.collection("families").get();
+        return snap.docs.map((d) => ({
+          id: d.id,
+          memberIds: [],
+          ...d.data(),
+        })) as Array<{
+          id: string;
+          siteId?: string;
+          name?: string;
+          memberIds: string[];
+          [key: string]: unknown;
+        }>;
+      },
+      3 * 60 * 1000
+    );
+
+    const families = rawFamilies
       .filter((d) => {
-        const docSiteId = d.data()?.siteId as string | undefined;
+        const docSiteId = d.siteId;
         if (
           docSiteId &&
           allowedSites &&
@@ -200,12 +218,7 @@ export async function getFamiliesFeedAction(siteId?: string) {
         }
         return true;
       })
-      .map((d) =>
-        serializeFirestoreData({
-          id: d.id,
-          ...d.data(),
-        })
-      );
+      .map((d) => serializeFirestoreData(d));
     return { success: true, families };
   } catch (error) {
     console.error("getFamiliesFeedAction Error:", error);

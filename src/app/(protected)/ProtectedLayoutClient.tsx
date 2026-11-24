@@ -1,12 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-import LoginPage from "@/app/login/page";
-import { ParentNotificationsBell } from "@/components/layout/ParentNotificationsBell";
 import { AppSidebar } from "@/components/layout/sidebar";
+
+const ParentNotificationsBell = dynamic(
+  () =>
+    import("@/components/layout/ParentNotificationsBell").then(
+      (m) => m.ParentNotificationsBell
+    ),
+  { ssr: false }
+);
 import { UserNav } from "@/components/layout/user-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -61,7 +68,6 @@ function GlobalHeader() {
               <button
                 key={site.id}
                 onClick={() => handleBranchSwitch(site.id)}
-                aria-label={`${site.title} ${site.subtitle}${isActive ? " — активен" : " — избери"}`}
                 aria-pressed={isActive}
                 className={`group flex items-center gap-1.5 sm:gap-2 rounded-xl p-1 sm:p-1.5 transition-all duration-300 ${
                   isActive
@@ -87,6 +93,11 @@ function GlobalHeader() {
                   </div>
                 </div>
 
+                {!isActive && (
+                  <span className="sr-only">
+                    {site.title} {site.subtitle}
+                  </span>
+                )}
                 {isActive && (
                   <div className="hidden sm:flex flex-col overflow-hidden pr-2 duration-300 animate-in fade-in slide-in-from-left-2">
                     <span className="truncate text-[10px] leading-tight font-bold tracking-wide text-zinc-900 uppercase dark:text-white">
@@ -137,25 +148,6 @@ export default function ProtectedLayoutClient({
     }
   }, [user, router, activeBranch, pathname]);
 
-  const [hasClientSession, setHasClientSession] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (
-        localStorage.getItem("firebase:hasAuth") === "1" ||
-        document.cookie.split(";").some((c) => c.trim().startsWith("session="))
-      ) {
-        setHasClientSession(true);
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }, []);
-
-  if (!user && !hasClientSession) {
-    return <LoginPage />;
-  }
-
   return (
     <SidebarProvider open={isSidebarOpen} onOpenChange={setSidebarOpen}>
       <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50/50 font-sans dark:bg-zinc-950/50">
@@ -175,7 +167,7 @@ export default function ProtectedLayoutClient({
           >
             <div
               key={`content-${activeBranch}`}
-              className="mx-auto max-w-full 2xl:max-w-7xl px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5 lg:px-6 lg:py-4 duration-500 animate-in fade-in"
+              className="mx-auto max-w-full 2xl:max-w-7xl px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5 lg:px-6 lg:py-4"
             >
               {children}
             </div>

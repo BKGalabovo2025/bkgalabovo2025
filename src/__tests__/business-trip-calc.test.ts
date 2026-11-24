@@ -7,8 +7,10 @@ import {
   calculateTripExpensesSummary,
   calculateTripStatementTotals,
   calculateTripTransportTotals,
+  calculateTripVehiclesBreakdown,
   COACH_ORIGIN_ONE_WAY_KM,
   COACH_ORIGIN_ROUND_TRIP_KM,
+  getDriverDistanceKmForTrip,
   getEffectiveTripRates,
   isCoachMiraGeorgieva,
   isTripCoverageWithoutAccom,
@@ -1117,6 +1119,100 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       const reportFree = generateDefaultReportText(freeTrip, {}, false);
       expect(protocolFree).not.toContain("Спортна зала „Енергетик“");
       expect(reportFree).not.toContain("Спортна зала „Енергетик“");
+    });
+  });
+
+  describe("Multi-vehicle trips (2nd and 3rd personal cars with shared fuel invoice)", () => {
+    it("sums fuel liters and costs across 3 vehicles using one shared fuel price per liter", () => {
+      const multiTrip: BusinessTrip = {
+        id: "trip-multi-1",
+        siteId: "bkgalabovo",
+        title: "Държавно първенство - мъже и жени",
+        destination: "Първомай",
+        startDate: "2026-11-21T08:00:00.000Z",
+        endDate: "2026-11-22T18:00:00.000Z",
+        coachId: "coach-1",
+        coachName: "Мира Георгиева",
+        participantsIds: [
+          "ath-1",
+          "ath-2",
+          "ath-3",
+          "ath-4",
+          "ath-5",
+          "ath-6",
+          "ath-7",
+        ],
+        transportType: "fuel_only",
+        expensesCoverage: "transport_food_sleep",
+        vehicle: {
+          brand: "Toyota",
+          regNumber: "X1111AA",
+          fuelNorm: 6,
+          distanceKm: 200, // 12 л
+        },
+        additionalVehicles: [
+          {
+            driverId: "ath-1",
+            driverName: "Иван Петров",
+            driverRole: "Водач / Състезател",
+            brand: "VW Golf",
+            regNumber: "CT2222BB",
+            fuelNorm: 7,
+            distanceKm: 150, // 10.5 л
+          },
+          {
+            driverId: "ath-2",
+            driverName: "Георги Стоев",
+            driverRole: "Водач / Състезател",
+            brand: "Ford Focus",
+            regNumber: "CT3333CC",
+            fuelNorm: 8,
+            // без въведен собствен distanceKm -> наследява 200 км -> 16 л
+          },
+        ],
+        financials: {
+          perDiemRateEUR: 22,
+          accommodationRateEUR: 25,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const breakdown = calculateTripVehiclesBreakdown(
+        multiTrip,
+        1.5,
+        "Мира Георгиева"
+      );
+      expect(breakdown).toHaveLength(3);
+      expect(breakdown[0].calcFuelLiters).toBe(12);
+      expect(breakdown[1].calcFuelLiters).toBe(10.5);
+      expect(breakdown[2].distanceKm).toBe(200);
+      expect(breakdown[2].calcFuelLiters).toBe(16);
+
+      const transport = calculateTripTransportTotals(multiTrip, 1.5);
+      expect(transport.vehiclesCount).toBe(3);
+      expect(transport.effectiveDistanceKm).toBe(200);
+      expect(transport.totalFleetDistanceKm).toBe(550);
+      expect(transport.calcFuelLiters).toBe(38.5);
+
+      const summary = calculateTripExpensesSummary(multiTrip, [
+        {
+          id: "shared-fuel-1",
+          tripId: "trip-multi-1",
+          siteId: "bkgalabovo",
+          expenseType: "fuel",
+          amountEUR: 1.5,
+          documentNumber: "0000123456",
+          documentDate: "2026-11-21",
+        },
+      ]);
+      expect(summary.calcFuelLiters).toBe(38.5);
+      expect(summary.calcFuelEUR).toBeGreaterThan(57);
+
+      expect(getDriverDistanceKmForTrip(multiTrip, "coach-1")).toBe(200);
+      expect(getDriverDistanceKmForTrip(multiTrip, "ath-1")).toBe(150);
+      expect(getDriverDistanceKmForTrip(multiTrip, "ath-2")).toBe(200);
+      expect(getDriverDistanceKmForTrip(multiTrip, "ath-3")).toBe(0);
     });
   });
 });

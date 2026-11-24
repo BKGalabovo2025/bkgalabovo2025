@@ -349,9 +349,23 @@ export function generateDefaultProtocolText(
       ? " (в качеството ѝ на състезател)"
       : " (в качеството му на състезател)"
     : "";
+  const activeExtras = (trip.additionalVehicles ?? []).filter(
+    (av) =>
+      Boolean(av.brand?.trim()) ||
+      Boolean(av.regNumber?.trim()) ||
+      Boolean(av.driverName?.trim())
+  );
   const fuelLegalClause =
     trip.transportType === "fuel_only"
-      ? " (включително ползване на лично МПС по официални разходни норми)"
+      ? activeExtras.length > 0
+        ? ` (включително ползване на ${1 + activeExtras.length} лични МПС: ${[
+            `1) ${trip.vehicle?.brand || "МПС"} (${trip.vehicle?.regNumber || "—"}, водач ${coachName})`,
+            ...activeExtras.map(
+              (av, idx) =>
+                `${idx + 2}) ${av.brand || "МПС"} (${av.regNumber || "—"}, водач ${av.driverName || "допълнителен водач"})`
+            ),
+          ].join("; ")}, по официални разходни норми)`
+        : " (включително ползване на лично МПС по официални разходни норми)"
       : "";
 
   return cleanProtocolText(

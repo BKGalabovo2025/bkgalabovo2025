@@ -34,6 +34,8 @@ import {
   calculateTripTransportTotals,
   EUR_TO_BGN_RATE,
   getEffectiveTripRates,
+  getTripTotalTravelersCount,
+  needsMultiVehicleNotice,
 } from "@/lib/business-trip-calc";
 import { checkTripCompleteness } from "@/lib/business-trip-checklist";
 import { formatDateShort } from "@/lib/date-utils";
@@ -180,6 +182,35 @@ export function TripOverviewView() {
               className={`mr-1.5 size-3.5 ${isSyncingEvent ? "animate-spin" : ""}`}
             />
             {isSyncingEvent ? "Синхронизиране..." : "Синхронизирай от графика"}
+          </Button>
+        </div>
+      )}
+
+      {needsMultiVehicleNotice(trip) && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-300/80 bg-amber-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-800/70 dark:bg-amber-950/30">
+          <div className="flex items-start gap-2.5">
+            <Car className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="text-xs text-amber-900 dark:text-amber-200">
+              <p className="font-bold">
+                Пътуват {getTripTotalTravelersCount(trip)} души с лично МПС, но
+                е отбелязан само 1 автомобил
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-800/90 dark:text-amber-300/90">
+                Ако сте пътували с 2-ра или 3-та кола, добавете автомобила и
+                водача му — Протоколът, Решението, Заповедта, Пътният лист и
+                Докладът ще се обновят автоматично.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => openDialog("edit")}
+            className="shrink-0 rounded-xl border-amber-400 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/60"
+          >
+            <Car className="mr-1.5 size-3.5" />
+            Добави 2-ри / 3-ти автомобил
           </Button>
         </div>
       )}

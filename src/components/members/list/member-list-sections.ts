@@ -73,3 +73,27 @@ export function getActiveMemberListSectionId(
   const match = MEMBER_LIST_SECTIONS.find((s) => s.pathSuffix === segment);
   return match ? match.id : null;
 }
+
+/**
+ * Премахва тежки Base64 полета (напр. електронни подписи, документи, големи data-URI),
+ * които не се използват в списъчните таблици, за да не раздуват RSC/HTML payload-а.
+ */
+export function stripHeavyFieldsForMemberList(members: Member[]): Member[] {
+  return members.map((m) => {
+    const clean = { ...m } as Member & Record<string, unknown>;
+    delete clean.signature;
+    delete clean.signatures;
+    delete clean.documents;
+    delete clean.signedDocuments;
+    delete clean.declarations;
+    delete clean.history;
+    if (
+      typeof clean.avatarUrl === "string" &&
+      clean.avatarUrl.startsWith("data:") &&
+      clean.avatarUrl.length > 512
+    ) {
+      delete clean.avatarUrl;
+    }
+    return clean as Member;
+  });
+}

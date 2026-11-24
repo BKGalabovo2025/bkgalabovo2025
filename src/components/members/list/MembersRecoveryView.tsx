@@ -11,7 +11,7 @@ export function MembersRecoveryView({
   initialMembers,
 }: MembersRecoveryViewProps) {
   return (
-    <div className="space-y-4 animate-in fade-in duration-300">
+    <div className="space-y-4">
       <RecoveryClientsList members={initialMembers} />
     </div>
   );

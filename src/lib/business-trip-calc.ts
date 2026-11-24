@@ -273,9 +273,27 @@ export interface TripTransportCalculation {
   plannedTripsCount: number;
   actualTripsCount: number;
   effectiveDistanceKm: number;
+  totalFleetDistanceKm: number;
+  vehiclesCount: number;
   calcFuelLiters: number;
   calcFuelEUR: number;
   calcPublicTransportEUR: number;
+}
+
+export interface VehicleFuelBreakdownItem {
+  index: number;
+  label: string;
+  driverId?: string;
+  driverName: string;
+  driverRole: string;
+  brand: string;
+  regNumber: string;
+  fuelType: string;
+  fuelNorm: number;
+  distanceKm: number;
+  calcFuelLiters: number;
+  calcFuelEUR: number;
+  calcFuelBGN: number;
 }
 
 /**
@@ -373,11 +391,39 @@ export function calculateTripTransportTotals(
     ? Math.round(actualTripsCount * singleRoundTripKm * 10) / 10
     : (vehicle?.distanceKm ?? singleRoundTripKm);
 
-  const fuelNorm = vehicle?.fuelNorm ?? 0;
-  const calcFuelLiters =
-    effectiveDistanceKm > 0 && fuelNorm > 0
-      ? Math.round((effectiveDistanceKm / 100) * fuelNorm * 100) / 100
+  const primaryFuelNorm = vehicle?.fuelNorm ?? 0;
+  const primaryFuelLiters =
+    effectiveDistanceKm > 0 && primaryFuelNorm > 0
+      ? (effectiveDistanceKm / 100) * primaryFuelNorm
       : 0;
+
+  const extraVehicles = (trip.additionalVehicles ?? []).filter(
+    (av) =>
+      Boolean(av.brand?.trim()) ||
+      Boolean(av.regNumber?.trim()) ||
+      (av.fuelNorm ?? 0) > 0 ||
+      Boolean(av.driverId) ||
+      Boolean(av.driverName?.trim())
+  );
+
+  let extraDistanceKm = 0;
+  let extraFuelLiters = 0;
+  for (const av of extraVehicles) {
+    const avDist =
+      av.distanceKm != null && av.distanceKm > 0
+        ? av.distanceKm
+        : effectiveDistanceKm;
+    const avNorm = av.fuelNorm ?? 0;
+    extraDistanceKm += avDist;
+    if (avDist > 0 && avNorm > 0) {
+      extraFuelLiters += (avDist / 100) * avNorm;
+    }
+  }
+
+  const totalFleetDistanceKm =
+    Math.round((effectiveDistanceKm + extraDistanceKm) * 10) / 10;
+  const calcFuelLiters =
+    Math.round((primaryFuelLiters + extraFuelLiters) * 100) / 100;
 
   const calcFuelEUR =
     calcFuelLiters > 0
@@ -402,10 +448,150 @@ export function calculateTripTransportTotals(
     plannedTripsCount,
     actualTripsCount,
     effectiveDistanceKm,
+    totalFleetDistanceKm,
+    vehiclesCount: 1 + extraVehicles.length,
     calcFuelLiters,
     calcFuelEUR,
     calcPublicTransportEUR,
   };
+}
+
+/**
+ * Връща детайлна разбивка на горивото и пробега за всеки автомобил (1-ви, 2-ри, 3-ти),
+ * използвана в Пътния лист, Заповедта, Доклада и счетоводните обобщения.
+ */
+export function calculateTripVehiclesBreakdown(
+  trip: BusinessTrip,
+  fuelPricePerLiterEUR = 0,
+  coachNameOverride?: string
+): VehicleFuelBreakdownItem[] {
+  const transportCalc = calculateTripTransportTotals(
+    trip,
+    fuelPricePerLiterEUR
+  );
+  const primaryDist = transportCalc.effectiveDistanceKm;
+  const roundedPricePerLiterBGN =
+    Math.round(fuelPricePerLiterEUR * EUR_TO_BGN_RATE * 100) / 100;
+
+  const computeCost = (liters: number) => {
+    const exactLiters = Math.round(liters * 100) / 100;
+    const bgn = Math.round(liters * roundedPricePerLiterBGN * 100) / 100;
+    const eur =
+      bgn > 0
+        ? Math.round((bgn / EUR_TO_BGN_RATE) * 100) / 100
+        : Math.round(liters * fuelPricePerLiterEUR * 100) / 100;
+    return { calcFuelLiters: exactLiters, calcFuelBGN: bgn, calcFuelEUR: eur };
+  };
+
+  const primaryNorm = trip.vehicle?.fuelNorm ?? 0;
+  const primaryLiters =
+    primaryDist > 0 && primaryNorm > 0 ? (primaryDist / 100) * primaryNorm : 0;
+
+  const items: VehicleFuelBreakdownItem[] = [
+    {
+      index: 1,
+      label:
+        (trip.additionalVehicles?.length ?? 0) > 0
+          ? "Автомобил 1 (Основен)"
+          : "Основен автомобил",
+      driverId: trip.coachId,
+      driverName: coachNameOverride || trip.coachName || "Ръководител / Водач",
+      driverRole: trip.coachRole || "Ръководител / Водач",
+      brand: trip.vehicle?.brand || "—",
+      regNumber: trip.vehicle?.regNumber || "—",
+      fuelType: trip.vehicle?.fuelType || "бензин/дизел",
+      fuelNorm: primaryNorm,
+      distanceKm: primaryDist,
+      ...computeCost(primaryLiters),
+    },
+  ];
+
+  const extras = trip.additionalVehicles ?? [];
+  extras.forEach((av, idx) => {
+    const hasData =
+      Boolean(av.brand?.trim()) ||
+      Boolean(av.regNumber?.trim()) ||
+      (av.fuelNorm ?? 0) > 0 ||
+      Boolean(av.driverId) ||
+      Boolean(av.driverName?.trim());
+    if (!hasData) return;
+
+    const avDist =
+      av.distanceKm != null && av.distanceKm > 0 ? av.distanceKm : primaryDist;
+    const avNorm = av.fuelNorm ?? 0;
+    const avLiters = avDist > 0 && avNorm > 0 ? (avDist / 100) * avNorm : 0;
+    items.push({
+      index: idx + 2,
+      label: `Автомобил ${idx + 2}`,
+      driverId: av.driverId,
+      driverName: av.driverName || "Допълнителен водач",
+      driverRole: av.driverRole || "Водач на МПС",
+      brand: av.brand || "—",
+      regNumber: av.regNumber || "—",
+      fuelType: av.fuelType || trip.vehicle?.fuelType || "бензин/дизел",
+      fuelNorm: avNorm,
+      distanceKm: avDist,
+      ...computeCost(avLiters),
+    });
+  });
+
+  return items;
+}
+
+/**
+ * Връща изминатите служебни километри на конкретен член като водач в дадена командировка
+ * (както като основен треньор/водач, така и като водач на 2-ри или 3-ти автомобил).
+ */
+export function getDriverDistanceKmForTrip(
+  trip: BusinessTrip,
+  memberId: string
+): number {
+  if (trip.transportType !== "fuel_only") return 0;
+  const transportCalc = calculateTripTransportTotals(trip);
+  let totalKm = 0;
+  if (trip.coachId === memberId) {
+    totalKm += transportCalc.effectiveDistanceKm;
+  }
+  for (const av of trip.additionalVehicles ?? []) {
+    if (av.driverId === memberId) {
+      totalKm +=
+        av.distanceKm != null && av.distanceKm > 0
+          ? av.distanceKm
+          : transportCalc.effectiveDistanceKm;
+    }
+  }
+  return Math.round(totalKm * 10) / 10;
+}
+
+/**
+ * Връща общия брой пътуващи лица в командировката (уникални състезатели + ръководител).
+ */
+export function getTripTotalTravelersCount(trip: BusinessTrip): number {
+  const uniqueIds = new Set<string>(
+    (trip.participantsIds || []).filter((id) => id && id !== "coach")
+  );
+  if (trip.coachId) {
+    uniqueIds.add(trip.coachId);
+  }
+  return uniqueIds.size;
+}
+
+/**
+ * Връща true, когато командировката е с лично МПС (fuel_only), пътуват повече от 6 души
+ * и все още не е добавен 2-ри или 3-ти автомобил.
+ */
+export function needsMultiVehicleNotice(trip: BusinessTrip): boolean {
+  if (trip.transportType !== "fuel_only") return false;
+  if (getTripTotalTravelersCount(trip) <= 6) return false;
+  const activeExtras = (trip.additionalVehicles ?? []).filter(
+    (av) =>
+      Boolean(av.brand?.trim()) ||
+      Boolean(av.regNumber?.trim()) ||
+      (av.fuelNorm ?? 0) > 0 ||
+      Boolean(av.driverId) ||
+      Boolean(av.driverName?.trim())
+  );
+  return activeExtras.length === 0;
 }
 
 export interface TripExpensesSummary {
@@ -457,19 +643,24 @@ export function calculateTripExpensesSummary(
     avgFuelPricePerLiterEUR
   );
 
-  // Същата формула за гориво като в Пътния лист и Ведомостта (PDF)
-  const distKm =
-    transportCalc.effectiveDistanceKm > 0
-      ? transportCalc.effectiveDistanceKm
-      : (trip.vehicle?.distanceKm ?? 0);
-  const fuelNorm = trip.vehicle?.fuelNorm ?? 0;
-  const totalLiters =
-    distKm > 0 && fuelNorm > 0 ? (distKm / 100) * fuelNorm : 0;
+  // Същата формула за гориво като в Пътния лист и Ведомостта (PDF), сумирана за всички МПС (1..3)
+  const vehiclesBreakdown = calculateTripVehiclesBreakdown(
+    trip,
+    avgFuelPricePerLiterEUR
+  );
+  const totalLitersExact = vehiclesBreakdown.reduce(
+    (sum, v) =>
+      sum +
+      (v.distanceKm > 0 && v.fuelNorm > 0
+        ? (v.distanceKm / 100) * v.fuelNorm
+        : 0),
+    0
+  );
 
   const roundedPricePerLiterBGN =
     Math.round(avgFuelPricePerLiterEUR * EUR_TO_BGN_RATE * 100) / 100;
   const calcFuelBGN =
-    Math.round(totalLiters * roundedPricePerLiterBGN * 100) / 100;
+    Math.round(totalLitersExact * roundedPricePerLiterBGN * 100) / 100;
   const calcFuelEUR =
     calcFuelBGN > 0
       ? Math.round((calcFuelBGN / EUR_TO_BGN_RATE) * 100) / 100
@@ -522,7 +713,7 @@ export function calculateTripExpensesSummary(
     nonFuelExpensesBGN,
     hasFuelReceipts: fuelExpenses.length > 0,
     avgFuelPricePerLiterEUR,
-    calcFuelLiters: Math.round(totalLiters * 100) / 100,
+    calcFuelLiters: Math.round(totalLitersExact * 100) / 100,
     calcFuelEUR,
     calcFuelBGN,
     effectiveFuelEUR,

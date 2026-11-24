@@ -400,7 +400,33 @@ export function buildStaySectionText(
     const routeText = isCoachOrigin
       ? buildTripRouteLabel(trip, coachMember, destStr).replaceAll(" — ", " – ")
       : `гр. Гълъбово – ${destStr} – гр. Гълъбово`;
-    if (isDailyCommute) {
+    const extraCars = (trip.additionalVehicles ?? []).filter(
+      (av) =>
+        Boolean(av.brand?.trim()) ||
+        Boolean(av.regNumber?.trim()) ||
+        Boolean(av.driverName?.trim())
+    );
+    if (trip.transportType === "fuel_only" && extraCars.length > 0) {
+      const totalCars = 1 + extraCars.length;
+      const fleetTotalKm =
+        totalEffectiveKm +
+        extraCars.reduce(
+          (s, av) =>
+            s +
+            (av.distanceKm != null && av.distanceKm > 0
+              ? av.distanceKm
+              : totalEffectiveKm),
+          0
+        );
+      const carsSummary = [
+        `1) ${trip.vehicle?.brand || "МПС"} (${trip.vehicle?.regNumber || "—"}, водач ${coachName})`,
+        ...extraCars.map(
+          (av, idx) =>
+            `${idx + 2}) ${av.brand || "МПС"} (${av.regNumber || "—"}, водач ${av.driverName || "—"})`
+        ),
+      ].join("; ");
+      transportLine = `• Транспорт с ${totalCars} лични МПС: Осъществено е пътуване по маршрут ${routeText} с ${carsSummary} (общо ${fleetTotalKm} км по пътен лист и обща разходна норма).`;
+    } else if (isDailyCommute) {
       const commuteTypeWord =
         actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
       transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут ${routeText} (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;

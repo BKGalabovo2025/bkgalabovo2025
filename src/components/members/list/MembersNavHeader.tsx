@@ -9,12 +9,6 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
@@ -151,130 +145,106 @@ export function MembersNavHeader({ counts }: MembersNavHeaderProps) {
   };
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="space-y-3 pb-1">
-        {/* Заглавна лента с висока плътност */}
-        <PageHeader
-          title={
-            <div className="flex flex-wrap items-center gap-2">
-              <span>
-                {isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
-              </span>
-              <Badge
-                variant="outline"
+    <div className="space-y-3 pb-1">
+      {/* Заглавна лента с висока плътност */}
+      <PageHeader
+        title={
+          <div className="flex flex-wrap items-center gap-2">
+            <span>
+              {isRecoveryBranch ? "Членове на зоната" : "Членове на клуба"}
+            </span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "h-5 text-[10px] font-semibold tracking-wider uppercase",
+                isRecoveryBranch
+                  ? "border-indigo-200 bg-indigo-50/70 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
+                  : "border-emerald-200 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+              )}
+            >
+              {isRecoveryBranch ? "Recovery Zone by ZM" : "Бадминтон Клуб"}
+            </Badge>
+          </div>
+        }
+        description={
+          isRecoveryBranch
+            ? "Управление на клиентски профили, възстановителни пакети и процедури."
+            : "Управление на спортисти, възрастови групи, членски карти и статуси."
+        }
+        breadcrumbs={breadcrumbs}
+      >
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            title="Автоматично проверява валидността на членските такси и обновява статуса (активен/неактивен)."
+            onClick={handleSyncStatuses}
+            disabled={isSyncing}
+            className="h-9 flex-1 sm:flex-initial rounded-xl border-zinc-200 px-3 text-[11px] font-medium uppercase tracking-wider hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+          >
+            <RefreshCw
+              className={cn(
+                "mr-1.5 size-3.5 text-zinc-500",
+                isSyncing && "animate-spin text-primary"
+              )}
+            />
+            <span>Синхронизация</span>
+          </Button>
+
+          <Button
+            size="sm"
+            title="Създава нов профил на спортист, любител или клиент в базата данни."
+            onClick={() => router.push("/members/new")}
+            className="h-9 flex-1 sm:flex-initial rounded-xl bg-zinc-950 px-3.5 text-[11px] font-medium uppercase tracking-wider text-white shadow-none hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+          >
+            <PlusCircle className="mr-1.5 size-3.5" />
+            <span>Нов член</span>
+          </Button>
+        </div>
+      </PageHeader>
+
+      {/* Навигационни подстраници (Sticky Tab Bar) с динамични живи броячи */}
+      <div className="sticky top-0 z-20 -mx-1 p-1 bg-background/80 backdrop-blur-md transition-all">
+        <div className="no-scrollbar flex h-auto w-full flex-nowrap gap-1 overflow-x-auto rounded-xl border border-zinc-200/80 bg-zinc-100/70 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800 dark:bg-zinc-900/70">
+          {NAV_TABS.map((tab) => {
+            const isActive =
+              activeSectionId === tab.id ||
+              (tab.exact
+                ? pathname === tab.href
+                : pathname === tab.href || pathname.startsWith(`${tab.href}/`));
+            const Icon = tab.icon;
+
+            return (
+              <Link
+                key={tab.href}
+                href={buildSectionHref(tab.href)}
+                title={tab.description}
                 className={cn(
-                  "h-5 text-[10px] font-semibold tracking-wider uppercase",
-                  isRecoveryBranch
-                    ? "border-indigo-200 bg-indigo-50/70 text-indigo-700 dark:border-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300"
-                    : "border-emerald-200 bg-emerald-50/70 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold tracking-wider whitespace-nowrap uppercase transition-all duration-200",
+                  isActive
+                    ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
+                    : "text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200"
                 )}
               >
-                {isRecoveryBranch ? "Recovery Zone by ZM" : "Бадминтон Клуб"}
-              </Badge>
-            </div>
-          }
-          description={
-            isRecoveryBranch
-              ? "Управление на клиентски профили, възстановителни пакети и процедури."
-              : "Управление на спортисти, възрастови групи, членски карти и статуси."
-          }
-          breadcrumbs={breadcrumbs}
-        >
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            {/* Бутон за синхронизация с пояснителен Tooltip */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSyncStatuses}
-                  disabled={isSyncing}
-                  className="h-9 flex-1 sm:flex-initial rounded-xl border-zinc-200 px-3 text-[11px] font-medium uppercase tracking-wider hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900"
-                >
-                  <RefreshCw
+                <Icon className="size-3.5" />
+                <span>{tab.label}</span>
+                {typeof tab.count === "number" && (
+                  <span
                     className={cn(
-                      "mr-1.5 size-3.5 text-zinc-500",
-                      isSyncing && "animate-spin text-primary"
+                      "ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold tabular-nums",
+                      isActive
+                        ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-700 dark:text-white"
+                        : "bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
                     )}
-                  />
-                  <span>Синхронизация</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs text-xs">
-                Автоматично проверява валидността на членските такси и обновява
-                статуса (активен/неактивен).
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Бутон за нов член с пояснителен Tooltip */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  onClick={() => router.push("/members/new")}
-                  className="h-9 flex-1 sm:flex-initial rounded-xl bg-zinc-950 px-3.5 text-[11px] font-medium uppercase tracking-wider text-white shadow-none hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                >
-                  <PlusCircle className="mr-1.5 size-3.5" />
-                  <span>Нов член</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-xs text-xs">
-                Създава нов профил на спортист, любител или клиент в базата
-                данни.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </PageHeader>
-
-        {/* Навигационни подстраници (Sticky Tab Bar) с динамични живи броячи */}
-        <div className="sticky top-0 z-20 -mx-1 p-1 bg-background/80 backdrop-blur-md transition-all">
-          <div className="no-scrollbar flex h-auto w-full flex-nowrap gap-1 overflow-x-auto rounded-xl border border-zinc-200/80 bg-zinc-100/70 p-1 sm:inline-flex sm:w-fit dark:border-zinc-800 dark:bg-zinc-900/70">
-            {NAV_TABS.map((tab) => {
-              const isActive =
-                activeSectionId === tab.id ||
-                (tab.exact
-                  ? pathname === tab.href
-                  : pathname === tab.href ||
-                    pathname.startsWith(`${tab.href}/`));
-              const Icon = tab.icon;
-
-              return (
-                <Tooltip key={tab.href}>
-                  <TooltipTrigger asChild>
-                    <Link
-                      href={buildSectionHref(tab.href)}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold tracking-wider whitespace-nowrap uppercase transition-all duration-200",
-                        isActive
-                          ? "bg-white text-zinc-950 shadow-xs dark:bg-zinc-800 dark:text-white"
-                          : "text-zinc-500 hover:bg-zinc-200/60 hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-200"
-                      )}
-                    >
-                      <Icon className="size-3.5" />
-                      <span>{tab.label}</span>
-                      {typeof tab.count === "number" && (
-                        <span
-                          className={cn(
-                            "ml-1 rounded-full px-1.5 py-0.2 text-[9px] font-bold tabular-nums",
-                            isActive
-                              ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-700 dark:text-white"
-                              : "bg-zinc-200/70 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
-                          )}
-                        >
-                          {tab.count}
-                        </span>
-                      )}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs text-xs">
-                    {tab.description}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </div>
-    </TooltipProvider>
+    </div>
   );
 }

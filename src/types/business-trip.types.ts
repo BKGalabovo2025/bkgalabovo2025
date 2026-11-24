@@ -81,6 +81,20 @@ const VehicleInfoSchema = z.object({
 });
 
 /**
+ * Допълнителен автомобил (2-ри / 3-ти автомобил при > 6 състезатели или по преценка)
+ */
+export const AdditionalVehicleSchema = z.object({
+  driverId: z.string().optional(),
+  driverName: z.string().optional(),
+  driverRole: z.string().optional(),
+  brand: z.string().optional(),
+  regNumber: z.string().optional(),
+  fuelNorm: z.number().min(0).optional(),
+  distanceKm: z.number().min(0).optional(),
+  fuelType: z.string().optional(),
+});
+
+/**
  * Финансови параметри (Законови ставки за дневни и квартирни в EUR)
  */
 const TripFinancialsSchema = z.object({
@@ -133,6 +147,7 @@ export const BusinessTripSchema = z.object({
   transportType: TransportTypeEnum,
   expensesCoverage: z.string().optional(),
   vehicle: VehicleInfoSchema.optional(),
+  additionalVehicles: z.array(AdditionalVehicleSchema).max(2).optional(),
   /** Цена на двупосочен билет за 1 човек на ден (в EUR) при обществен транспорт */
   publicTransportDailyFareEUR: z.number().min(0).optional(),
   /** Брой дни/пътувания с обществен транспорт */
@@ -235,6 +250,7 @@ export const TripExpenseSchema = z.object({
 // ---------------------------------------------------------
 
 export type BusinessTrip = z.infer<typeof BusinessTripSchema>;
+export type AdditionalVehicle = z.infer<typeof AdditionalVehicleSchema>;
 export type TripExpense = z.infer<typeof TripExpenseSchema>;
 export type TripProtocolAttachment = z.infer<
   typeof TripProtocolAttachmentSchema

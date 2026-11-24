@@ -5,6 +5,10 @@
  * Използва се в BusinessTripManagerDialog за показване на напомняния.
  */
 
+import {
+  getTripTotalTravelersCount,
+  needsMultiVehicleNotice,
+} from "@/lib/business-trip-calc";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 
 export type CheckSeverity = "error" | "warning" | "info";
@@ -110,6 +114,47 @@ function checkFuelTransport(ctx: CheckContext): TripCheckItem[] {
       category: "finance",
       message: "Лично МПС: Не е въведено разстояние по маршрута (км)",
       hint: "Въведете разстоянието по маршрута (напр. Гълъбово – София = 200 км).",
+    });
+  }
+  const extraCars = trip.additionalVehicles ?? [];
+  extraCars.forEach((av, idx) => {
+    const carLabel = `Автомобил ${idx + 2}`;
+    if (!av.brand?.trim() || !av.regNumber?.trim()) {
+      issues.push({
+        id: `fuel_extra_missing_vehicle_${idx + 2}`,
+        severity: "error",
+        category: "legal",
+        message: `${carLabel}: Липсва марка или рег. №`,
+        hint: `Попълнете марката и регистрационния номер на ${carLabel}.`,
+      });
+    }
+    if (!av.driverName?.trim() && !av.driverId) {
+      issues.push({
+        id: `fuel_extra_missing_driver_${idx + 2}`,
+        severity: "warning",
+        category: "legal",
+        message: `${carLabel}: Не е избран водач`,
+        hint: `Изберете водач (треньор или състезател) за ${carLabel}.`,
+      });
+    }
+    if (!av.fuelNorm || av.fuelNorm <= 0) {
+      issues.push({
+        id: `fuel_extra_missing_norm_${idx + 2}`,
+        severity: "warning",
+        category: "legal",
+        message: `${carLabel}: Не е въведена разходна норма (л/100 км)`,
+        hint: `Въведете разходната норма за ${carLabel} за Пътния лист.`,
+      });
+    }
+  });
+  if (needsMultiVehicleNotice(trip)) {
+    const travelersCount = getTripTotalTravelersCount(trip);
+    issues.push({
+      id: "fuel_suggest_extra_car",
+      severity: "info",
+      category: "data",
+      message: `Пътуват ${travelersCount} души (> 6) с 1 автомобил`,
+      hint: "При нужда добавете 2-ри (и 3-ти) автомобил от „Редакция на командировката“.",
     });
   }
   if (!hasFuelExpense && needsTransport) {

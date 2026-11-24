@@ -35,19 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useAuth } from "@/context/auth-context";
 import { deleteMemberAction } from "@/lib/actions/members";
 import { Member } from "@/types";
 
 import { isGuestProfile } from "./member-list-sections";
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 9;
 
 interface MembersGuestsViewProps {
   initialMembers: Member[];
@@ -144,8 +138,8 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
   };
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="space-y-4 animate-in fade-in duration-300">
+    <>
+      <div className="space-y-4">
         {/* Информационна лента */}
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <BentoCard className="flex items-center gap-3.5 rounded-2xl border border-zinc-200/80 bg-white p-3.5 sm:p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
@@ -153,7 +147,7 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
               <UserCog className="size-5" strokeWidth={1.5} />
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase sm:text-[11px]">
+              <p className="text-[10px] font-semibold tracking-wider text-zinc-600 dark:text-zinc-400 uppercase sm:text-[11px]">
                 Външни клиенти
               </p>
               <p className="text-xl font-bold text-amber-600 sm:text-2xl tabular-nums dark:text-amber-400">
@@ -167,10 +161,10 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
               <UserPlus className="size-5" strokeWidth={1.5} />
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-semibold tracking-wider text-zinc-400 uppercase sm:text-[11px]">
+              <p className="text-[10px] font-semibold tracking-wider text-zinc-600 dark:text-zinc-400 uppercase sm:text-[11px]">
                 Какво представляват Външните клиенти?
               </p>
-              <p className="text-xs leading-relaxed font-light text-zinc-500">
+              <p className="text-xs leading-relaxed font-light text-zinc-600 dark:text-zinc-400">
                 Това са лица, ползващи залата за свободни игри или събития, без
                 да са картотекирани клубни членове. Имат собствени досиета и
                 история на посещенията.
@@ -184,9 +178,9 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
           <div className="flex flex-col gap-3 border-b border-zinc-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 dark:border-zinc-900">
             <div className="flex items-center gap-2.5">
               <UserCog className="size-4 text-amber-500" strokeWidth={1.5} />
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-white">
                 Регистрирани Външни клиенти
-              </h3>
+              </h2>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative w-full sm:w-56">
@@ -238,19 +232,13 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
                 </SelectContent>
               </Select>
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => router.push("/members/new?type=guest")}
-                    className="h-8.5 rounded-xl bg-amber-500 px-3.5 text-[10px] font-semibold tracking-wider text-white uppercase shadow-none hover:bg-amber-600"
-                  >
-                    <UserPlus className="mr-1.5 size-3.5" /> Нов Гост
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="text-xs">
-                  Регистрира нов външен клиент или гост без клубна такса.
-                </TooltipContent>
-              </Tooltip>
+              <Button
+                title="Регистрира нов външен клиент или гост без клубна такса."
+                onClick={() => router.push("/members/new?type=guest")}
+                className="h-8.5 rounded-xl bg-amber-700 px-3.5 text-[10px] font-semibold tracking-wider text-white uppercase shadow-none hover:bg-amber-800"
+              >
+                <UserPlus className="mr-1.5 size-3.5" /> Нов Гост
+              </Button>
             </div>
           </div>
 
@@ -259,7 +247,7 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
               <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-amber-50 dark:bg-amber-950/20">
                 <UserCog className="size-7 text-amber-400" strokeWidth={1.5} />
               </div>
-              <p className="mb-2 text-[11px] font-semibold tracking-wider text-zinc-400 uppercase">
+              <p className="mb-2 text-[11px] font-semibold tracking-wider text-zinc-600 dark:text-zinc-400 uppercase">
                 Няма регистрирани външни клиенти
               </p>
               <p className="mx-auto max-w-sm text-xs leading-relaxed font-normal text-zinc-500">
@@ -272,69 +260,64 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
             <>
               <div className="grid grid-cols-1 gap-3.5 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
                 {paginatedGuests.map((guest) => (
-                  <Tooltip key={guest.id}>
-                    <TooltipTrigger asChild>
-                      <div
-                        onClick={() => router.push(`/members/${guest.id}`)}
-                        className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-4 transition-all duration-200 hover:border-amber-200 hover:shadow-md hover:shadow-amber-500/5 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:border-amber-900/50"
-                      >
-                        <div className="mb-3.5 flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-sm font-semibold text-amber-600 transition-colors group-hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-400">
-                              {(guest.firstName || "")[0]}
-                              {(guest.lastName || "")[0]}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-zinc-900 transition-colors group-hover:text-amber-600 dark:text-white dark:group-hover:text-amber-400">
-                                {guest.firstName} {guest.lastName}
-                              </p>
-                              <p className="mt-0.5 truncate text-[10px] font-normal text-zinc-400">
-                                {guest.phone ||
-                                  guest.email ||
-                                  "Няма въведен контакт"}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge className="shrink-0 rounded-full border-none bg-amber-100 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-amber-800 uppercase shadow-none dark:bg-amber-950/40 dark:text-amber-400">
-                            Гост
-                          </Badge>
+                  <div
+                    key={guest.id}
+                    title="Кликнете за отваряне на досието на госта."
+                    onClick={() => router.push(`/members/${guest.id}`)}
+                    className="group cursor-pointer rounded-2xl border border-zinc-100 bg-white p-4 transition-all duration-200 hover:border-amber-200 hover:shadow-md hover:shadow-amber-500/5 dark:border-zinc-900 dark:bg-zinc-950 dark:hover:border-amber-900/50"
+                  >
+                    <div className="mb-3.5 flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-sm font-semibold text-amber-800 transition-colors group-hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-300">
+                          {(guest.firstName || "")[0]}
+                          {(guest.lastName || "")[0]}
                         </div>
-                        <div className="flex items-center justify-between border-t border-zinc-100/80 pt-2.5 text-zinc-400 dark:border-zinc-900">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar
-                              className="size-3 text-zinc-400"
-                              strokeWidth={1.5}
-                            />
-                            <span className="text-[9px] font-medium tracking-wider uppercase tabular-nums">
-                              {guest.registrationDate
-                                ? new Date(
-                                    guest.registrationDate
-                                  ).toLocaleDateString("bg-BG")
-                                : "—"}
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) =>
-                              handleRequestDeleteGuest(
-                                e,
-                                guest.id,
-                                `${guest.firstName} ${guest.lastName}`
-                              )
-                            }
-                            aria-label={`Изтрий ${guest.firstName} ${guest.lastName}`}
-                            className="size-7 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                          >
-                            <Trash2 className="size-3.5" strokeWidth={1.5} />
-                          </Button>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-zinc-900 transition-colors group-hover:text-amber-600 dark:text-white dark:group-hover:text-amber-400">
+                            {guest.firstName} {guest.lastName}
+                          </p>
+                          <p className="mt-0.5 truncate text-[10px] font-normal text-zinc-600 dark:text-zinc-400">
+                            {guest.phone ||
+                              guest.email ||
+                              "Няма въведен контакт"}
+                          </p>
                         </div>
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      Кликнете за отваряне на досието на госта.
-                    </TooltipContent>
-                  </Tooltip>
+                      <Badge className="shrink-0 rounded-full border-none bg-amber-100 px-2.5 py-0.5 text-[9px] font-semibold tracking-wider text-amber-800 uppercase shadow-none dark:bg-amber-950/40 dark:text-amber-400">
+                        Гост
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-zinc-100/80 pt-2.5 text-zinc-600 dark:text-zinc-400 dark:border-zinc-900">
+                      <div className="flex items-center gap-1.5">
+                        <Calendar
+                          className="size-3 text-zinc-400"
+                          strokeWidth={1.5}
+                        />
+                        <span className="text-[9px] font-medium tracking-wider uppercase tabular-nums">
+                          {guest.registrationDate
+                            ? new Date(
+                                guest.registrationDate
+                              ).toLocaleDateString("bg-BG")
+                            : "—"}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) =>
+                          handleRequestDeleteGuest(
+                            e,
+                            guest.id,
+                            `${guest.firstName} ${guest.lastName}`
+                          )
+                        }
+                        aria-label={`Изтрий ${guest.firstName} ${guest.lastName}`}
+                        className="size-7 rounded-lg text-zinc-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
+                      >
+                        <Trash2 className="size-3.5" strokeWidth={1.5} />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
 
@@ -392,35 +375,38 @@ export function MembersGuestsView({ initialMembers }: MembersGuestsViewProps) {
         </BentoCard>
       </div>
 
-      <AlertDialog
-        open={Boolean(deleteTarget)}
-        onOpenChange={(open) => {
-          if (!open && !isDeleting) setDeleteTarget(null);
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Изтриване на гост</AlertDialogTitle>
-            <AlertDialogDescription>
-              Сигурни ли сте, че искате да изтриете гост{" "}
-              <strong>{deleteTarget?.name}</strong>? Това действие е необратимо.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отказ</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDeleteGuest();
-              }}
-              disabled={isDeleting}
-              className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
-            >
-              {isDeleting ? "Изтриване..." : "Изтрий"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </TooltipProvider>
+      {Boolean(deleteTarget) && (
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open && !isDeleting) setDeleteTarget(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Изтриване на гост</AlertDialogTitle>
+              <AlertDialogDescription>
+                Сигурни ли сте, че искате да изтриете гост{" "}
+                <strong>{deleteTarget?.name}</strong>? Това действие е
+                необратимо.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Отказ</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.preventDefault();
+                  confirmDeleteGuest();
+                }}
+                disabled={isDeleting}
+                className="bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-600"
+              >
+                {isDeleting ? "Изтриване..." : "Изтрий"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

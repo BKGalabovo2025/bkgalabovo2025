@@ -3,9 +3,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { differenceInCalendarDays } from "date-fns";
-import { AlertTriangle, Car, FileText, MapPin, Save } from "lucide-react";
+import {
+  AlertTriangle,
+  Car,
+  FileText,
+  MapPin,
+  Plus,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -160,6 +168,7 @@ export function CreateBusinessTripDialog({
           usMeetingSecretary: initialData.usMeetingSecretary || "",
           protocolText: initialData.protocolText || "",
           reportText: initialData.reportText || "",
+          additionalVehicles: initialData.additionalVehicles || [],
           attachMatchProtocols: initialData.attachMatchProtocols ?? false,
           expensesCoverage:
             initialData.expensesCoverage || getInitialExpensesCoverage(),
@@ -196,6 +205,7 @@ export function CreateBusinessTripDialog({
           vehicle: {
             distanceKm: 0,
           },
+          additionalVehicles: [],
           status: "draft",
           orderDate: new Date().toISOString(),
           usDecision: "",
@@ -218,6 +228,14 @@ export function CreateBusinessTripDialog({
   // Наблюдаваме промяната във "Покрити разходи", за да преизчислим дневните пари
   const coverage = form.watch("expensesCoverage");
   const transportType = form.watch("transportType");
+  const {
+    fields: additionalVehicleFields,
+    append: appendAdditionalVehicle,
+    remove: removeAdditionalVehicle,
+  } = useFieldArray({
+    control: form.control as any,
+    name: "additionalVehicles",
+  });
   const prevCoverageRef = useRef<string | undefined>(
     initialData?.expensesCoverage || getInitialExpensesCoverage()
   );
@@ -329,6 +347,19 @@ export function CreateBusinessTripDialog({
         usProtocolNumber: values.usProtocolNumber?.trim() || undefined,
         usDecisionNotes: values.usDecisionNotes?.trim() || undefined,
         reportText: values.reportText?.trim() || undefined,
+        additionalVehicles:
+          values.transportType === "fuel_only" &&
+          Array.isArray(values.additionalVehicles) &&
+          values.additionalVehicles.length > 0
+            ? values.additionalVehicles.filter(
+                (av: any) =>
+                  av?.brand?.trim() ||
+                  av?.regNumber?.trim() ||
+                  Number(av?.fuelNorm) > 0 ||
+                  av?.driverId ||
+                  av?.driverName?.trim()
+              )
+            : [],
         attachMatchProtocols: Boolean(values.attachMatchProtocols),
         financials: {
           ...values.financials,
@@ -1483,6 +1514,274 @@ export function CreateBusinessTripDialog({
                         </FormItem>
                       )}
                     />
+
+                    {/* Допълнителни автомобили (2-ри / 3-ти автомобил) */}
+                    <div className="col-span-2 mt-2 space-y-3 border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                            Допълнителни автомобили (2-ри / 3-ти МПС)
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                            При повече участници или обща фактура за гориво
+                            добавете втори/трети автомобил и неговия водач.
+                          </p>
+                        </div>
+                        {additionalVehicleFields.length < 2 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              appendAdditionalVehicle({
+                                driverId: "",
+                                driverName: "",
+                                driverRole: "Водач / Състезател",
+                                brand: "",
+                                regNumber: "",
+                                fuelNorm: 0,
+                                distanceKm:
+                                  Number(
+                                    form.getValues("vehicle.distanceKm")
+                                  ) || 0,
+                                fuelType:
+                                  form.getValues("vehicle.fuelType") ||
+                                  "бензин А-95",
+                              })
+                            }
+                            className="h-8 gap-1.5 rounded-lg border-blue-200 bg-blue-50/70 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300"
+                          >
+                            <Plus className="size-3.5" />
+                            Добави{" "}
+                            {additionalVehicleFields.length === 0
+                              ? "2-ри"
+                              : "3-ти"}{" "}
+                            автомобил
+                          </Button>
+                        )}
+                      </div>
+
+                      {effectiveParticipantsList.length > 6 &&
+                        additionalVehicleFields.length === 0 && (
+                          <div className="flex items-start gap-2 rounded-lg border border-amber-300/70 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
+                            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                            <span>
+                              В групата има{" "}
+                              <strong>
+                                {effectiveParticipantsList.length} състезатели
+                              </strong>{" "}
+                              (повече от 6). Препоръчително е да добавите 2-ри
+                              (и при нужда 3-ти) автомобил и водач, за да се
+                              отразят в Заповедта, Пътния лист и Доклада.
+                            </span>
+                          </div>
+                        )}
+
+                      {additionalVehicleFields.map((avField, avIndex) => {
+                        const driverOptionsList = Object.values(membersDict)
+                          .filter((m) => m.id !== form.watch("coachId"))
+                          .sort((a, b) =>
+                            `${a.firstName} ${a.lastName}`.localeCompare(
+                              `${b.firstName} ${b.lastName}`,
+                              "bg"
+                            )
+                          );
+
+                        return (
+                          <div
+                            key={avField.id}
+                            className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50/60 p-3 dark:border-zinc-800 dark:bg-zinc-900/50"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                                Автомобил {avIndex + 2}
+                              </span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeAdditionalVehicle(avIndex)}
+                                className="h-7 gap-1 px-2 text-xs text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                              >
+                                <Trash2 className="size-3.5" />
+                                Премахни
+                              </Button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.driverId`}
+                                render={({ field: dField }: any) => (
+                                  <FormItem className="sm:col-span-2">
+                                    <FormLabel>
+                                      Водач / отговорник (треньор или
+                                      състезател)
+                                    </FormLabel>
+                                    <Select
+                                      value={dField.value || ""}
+                                      onValueChange={(val) => {
+                                        dField.onChange(val);
+                                        const m = membersDict[val];
+                                        if (m) {
+                                          form.setValue(
+                                            `additionalVehicles.${avIndex}.driverName`,
+                                            `${m.firstName} ${m.lastName}`
+                                          );
+                                          form.setValue(
+                                            `additionalVehicles.${avIndex}.driverRole`,
+                                            m.isCoach
+                                              ? "Водач / Треньор"
+                                              : "Водач / Състезател"
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Изберете водач от картотеката" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {driverOptionsList.map((m) => (
+                                          <SelectItem key={m.id} value={m.id}>
+                                            {m.firstName} {m.lastName}{" "}
+                                            {m.isCoach
+                                              ? "(Треньор)"
+                                              : currentParticipantsIds.includes(
+                                                    m.id
+                                                  )
+                                                ? "(Състезател в отбора)"
+                                                : "(Член)"}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.brand`}
+                                render={({ field: bField }: any) => (
+                                  <FormItem>
+                                    <FormLabel>Марка МПС</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Напр. VW Golf"
+                                        {...bField}
+                                        value={bField.value || ""}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.regNumber`}
+                                render={({ field: rField }: any) => (
+                                  <FormItem>
+                                    <FormLabel>Рег. номер</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Напр. CT1234AB"
+                                        {...rField}
+                                        value={rField.value || ""}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.fuelNorm`}
+                                render={({ field: fnField }: any) => (
+                                  <FormItem>
+                                    <FormLabel>Разход (л/100км)</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        step="0.1"
+                                        placeholder="Напр. 6.5"
+                                        {...fnField}
+                                        value={fnField.value ?? ""}
+                                        onChange={(e) =>
+                                          fnField.onChange(
+                                            Number(e.target.value)
+                                          )
+                                        }
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.distanceKm`}
+                                render={({ field: kmField }: any) => (
+                                  <FormItem>
+                                    <FormLabel>Пробег (км общо)</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        step="1"
+                                        placeholder="Напр. 140"
+                                        {...kmField}
+                                        value={kmField.value ?? ""}
+                                        onChange={(e) =>
+                                          kmField.onChange(
+                                            Number(e.target.value)
+                                          )
+                                        }
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={form.control as any}
+                                name={`additionalVehicles.${avIndex}.fuelType`}
+                                render={({ field: ftField }: any) => (
+                                  <FormItem className="sm:col-span-2">
+                                    <FormLabel>Вид гориво</FormLabel>
+                                    <Select
+                                      onValueChange={ftField.onChange}
+                                      value={ftField.value || ""}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Изберете" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="бензин А-95">
+                                          бензин А-95
+                                        </SelectItem>
+                                        <SelectItem value="дизелово гориво">
+                                          дизелово гориво
+                                        </SelectItem>
+                                        <SelectItem value="газ">
+                                          газ (LPG)
+                                        </SelectItem>
+                                        <SelectItem value="метан">
+                                          метан (CNG)
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
               </div>

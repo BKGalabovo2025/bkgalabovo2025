@@ -68,6 +68,8 @@ import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import {
   calculateTripStatementTotals,
   calculateTripTransportTotals,
+  getTripTotalTravelersCount,
+  needsMultiVehicleNotice,
 } from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
 import {
@@ -1951,6 +1953,40 @@ export default function AccountingClient({
       {/* ── 5-Metric Ribbon (Compact Single Row on Laptop, 2-Col on Mobile) ── */}
       <AccountingKpiRibbon kpis={kpis} />
 
+      {(() => {
+        const multiCarNoticeTrips = trips.filter(needsMultiVehicleNotice);
+        if (multiCarNoticeTrips.length === 0) return null;
+        return (
+          <div className="flex flex-col gap-2 rounded-xl border border-amber-300/80 bg-amber-50/70 px-3.5 py-2.5 text-xs text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
+            <div className="flex items-center gap-2 font-semibold">
+              <AlertTriangle className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>
+                Командировки с над 6 души и лично МПС, но отбелязан само 1
+                автомобил ({multiCarNoticeTrips.length}):
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pl-6">
+              {multiCarNoticeTrips.map((t) => (
+                <Link
+                  key={t.id}
+                  href={`/accounting/trips/${t.id}`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-white px-2 py-0.5 text-[11px] font-medium text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-zinc-900 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                  title="Отворете командировката, за да добавите 2-ри/3-ти автомобил при нужда"
+                >
+                  <span>
+                    {t.orderNumber ? `№${t.orderNumber}` : "Чернова"} •{" "}
+                    {t.title.replace(/^[Кк]омандировка:\s*/u, "")}
+                  </span>
+                  <span className="font-bold text-amber-700 dark:text-amber-300">
+                    ({getTripTotalTravelersCount(t)} души)
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Compact Table ── */}
       <div className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
         <div className="flex items-center justify-between border-b border-zinc-100 px-3.5 py-2 dark:border-zinc-800">
@@ -2138,6 +2174,15 @@ export default function AccountingClient({
                               className="border-amber-200 bg-amber-50 px-1 py-0 text-[9px] font-medium text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300"
                             >
                               ⏱️ {trip.actualDays} дни
+                            </Badge>
+                          )}
+                          {needsMultiVehicleNotice(trip) && (
+                            <Badge
+                              variant="outline"
+                              title={`Пътуват ${getTripTotalTravelersCount(trip)} души с лично МПС, но е въведен само 1 автомобил — проверете дали е нужен 2-ри/3-ти.`}
+                              className="border-amber-300 bg-amber-50 px-1 py-0 text-[9px] font-semibold text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+                            >
+                              🚗 &gt;6 души · 1 МПС
                             </Badge>
                           )}
                         </div>

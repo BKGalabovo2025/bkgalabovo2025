@@ -14,6 +14,7 @@ import {
 } from "@/components/members/list/MembersNavHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import { getAllMembersServer } from "@/services/member-service.server";
 
 export default async function MembersListLayout({
@@ -29,19 +30,23 @@ export default async function MembersListLayout({
 
     const [members, familiesCount] = await Promise.all([
       getAllMembersServer(),
-      (async () => {
-        try {
-          const adminDb = getAdminDb();
-          const snap = await adminDb
-            .collection("families")
-            .where("siteId", "==", activeBranch)
-            .count()
-            .get();
-          return snap.data().count;
-        } catch {
-          return 0;
-        }
-      })(),
+      serverCache.get(
+        `families:count:${activeBranch}`,
+        async () => {
+          try {
+            const adminDb = getAdminDb();
+            const snap = await adminDb
+              .collection("families")
+              .where("siteId", "==", activeBranch)
+              .count()
+              .get();
+            return snap.data().count;
+          } catch {
+            return 0;
+          }
+        },
+        3 * 60 * 1000
+      ),
     ]);
 
     counts = {

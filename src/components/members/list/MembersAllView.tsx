@@ -1,7 +1,14 @@
 "use client";
 
-import { MembersTableComponent } from "@/components/members/list/MembersTableComponent";
+import dynamic from "next/dynamic";
+
 import { Member } from "@/types";
+
+const MembersTableComponent = dynamic(() =>
+  import("@/components/members/list/MembersTableComponent").then(
+    (m) => m.MembersTableComponent
+  )
+);
 
 interface MembersAllViewProps {
   initialMembers: Member[];
@@ -9,7 +16,7 @@ interface MembersAllViewProps {
 
 export function MembersAllView({ initialMembers }: MembersAllViewProps) {
   return (
-    <div className="animate-in fade-in duration-300">
+    <div>
       <MembersTableComponent
         initialMembers={initialMembers}
         showCategoryBadge={true}

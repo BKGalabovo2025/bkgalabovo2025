@@ -3,6 +3,10 @@ export const dynamic = "force-dynamic";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import {
+  isGuestProfile,
+  stripHeavyFieldsForMemberList,
+} from "@/components/members/list/member-list-sections";
 import { MembersGuestsView } from "@/components/members/list/MembersGuestsView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAllMembersServer } from "@/services/member-service.server";
@@ -19,14 +23,16 @@ export default async function GuestsPage() {
   let error = null;
 
   try {
-    members = await getAllMembersServer();
+    members = stripHeavyFieldsForMemberList(
+      (await getAllMembersServer()).filter(isGuestProfile)
+    );
   } catch (err) {
     console.error("Error fetching guest members:", err);
     error = "Неуспешно зареждане на външните клиенти. Моля, опитайте по-късно.";
   }
 
   return (
-    <div className="space-y-4 pb-8 duration-500 animate-in fade-in">
+    <div className="space-y-4 pb-8">
       {error ? (
         <div className="rounded-3xl border border-rose-100 bg-rose-50 p-6 text-center dark:border-rose-900/50 dark:bg-rose-950/20">
           <p className="font-medium text-rose-600 dark:text-rose-400">
