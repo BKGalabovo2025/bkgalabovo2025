@@ -72,6 +72,12 @@ const VehicleInfoSchema = z.object({
   actualTripsCount: z.number().min(0).optional(),
   /** Изрична бележка за броя пътувания (напр. "2 курса поради отпадане на ден 2") */
   commuteNote: z.string().optional(),
+  /** Дали маршрутът с лично МПС включва начална/крайна точка от града на треньора (Хасково ↔ Гълъбово СЗ „Енергетик“) */
+  includeCoachOriginLeg: z.boolean().optional(),
+  /** Начален/краен град на треньора при лично МПС (по подразбиране гр. Хасково) */
+  coachOriginCity: z.string().optional(),
+  /** Пункт за качване/слизане на състезателите (по подразбиране гр. Гълъбово, СЗ „Енергетик“) */
+  pickupPoint: z.string().optional(),
 });
 
 /**

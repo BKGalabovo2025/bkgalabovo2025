@@ -186,7 +186,9 @@ export function TripOrderView() {
                   ? `Личен автомобил (${trip.vehicle?.brand || "—"}, ${trip.vehicle?.regNumber || "—"})`
                   : trip.transportType === "club_paid"
                     ? "Клубен транспорт"
-                    : "Обществен транспорт"}
+                    : trip.transportType === "free"
+                      ? "Безплатен (осигурен)"
+                      : "Обществен транспорт"}
               </p>
             </div>
             <div>

@@ -33,6 +33,7 @@ import {
   saveMemberStoredSignatureAction,
   syncMemberSignatureFromTripsAction,
 } from "@/lib/actions/trip-signatures";
+import { calculateTripTransportTotals } from "@/lib/business-trip-calc";
 import {
   getTripDecisionNumber,
   getTripOrderNumber,
@@ -237,7 +238,9 @@ export function MemberTripsTabView() {
 
   const asAthleteTrips = trips.filter(
     (t) =>
-      Array.isArray(t.participantsIds) && t.participantsIds.includes(memberId)
+      (Array.isArray(t.participantsIds) &&
+        t.participantsIds.includes(memberId)) ||
+      (t.coachId === memberId && Boolean(t.coachIsAthlete))
   );
   const asCoachTrips = trips.filter((t) => t.coachId === memberId);
   const signedTrip = asAthleteTrips.find(
@@ -355,6 +358,35 @@ export function MemberTripsTabView() {
             {signedCount} / {asAthleteTrips.length}
           </p>
         </BentoCard>
+        {(() => {
+          const fuelTrips = trips.filter(
+            (t) => t.coachId === memberId && t.transportType === "fuel_only"
+          );
+          if (fuelTrips.length === 0 && !member.isCoach) return null;
+          const totalKm = Math.round(
+            fuelTrips.reduce(
+              (sum, t) =>
+                sum + calculateTripTransportTotals(t).effectiveDistanceKm,
+              0
+            )
+          );
+          const completedCount = trips.filter(
+            (t) => t.status === "completed"
+          ).length;
+          return (
+            <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
+              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Служебни км (лично МПС)
+              </span>
+              <p className="mt-2 text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {totalKm} км
+              </p>
+              <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                {completedCount} отчетени командировки
+              </p>
+            </BentoCard>
+          );
+        })()}
       </div>
 
       {/* Official Stored Signature Panel */}

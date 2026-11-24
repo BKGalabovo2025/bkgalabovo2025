@@ -1,7 +1,12 @@
 import { differenceInCalendarDays } from "date-fns";
 
 import { getSiteConfig } from "@/config/sites";
-import { isTripCoverageWithoutAccom } from "@/lib/business-trip-calc";
+import {
+  buildTripRouteLabel,
+  formatDestPlace,
+  isTripCoverageWithoutAccom,
+  usesCoachOriginRoute,
+} from "@/lib/business-trip-calc";
 import {
   getTripDecisionNumber,
   getTripOrderNumber,
@@ -388,12 +393,19 @@ export function buildStaySectionText(
     trip.transportType === "fuel_only" ||
     trip.transportType === "club_paid"
   ) {
+    const coachMember = trip.coachId ? membersDict?.[trip.coachId] : undefined;
+    const isCoachOrigin =
+      trip.transportType === "fuel_only" &&
+      usesCoachOriginRoute(trip, coachMember);
+    const routeText = isCoachOrigin
+      ? buildTripRouteLabel(trip, coachMember, destStr).replaceAll(" — ", " – ")
+      : `гр. Гълъбово – ${destStr} – гр. Гълъбово`;
     if (isDailyCommute) {
       const commuteTypeWord =
         actualTrips === 1 ? "еднодневно пътуване" : "ежедневно пътуване";
-      transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
+      transportLine = `• Транспорт с МПС (${commuteTypeWord} без нощувка): Осъществени са ${actualTrips} ${tripWord} (отиване и връщане) по маршрут ${routeText} (1 курс = ${singleKm} км, общо ${totalEffectiveKm} км по пътен лист).`;
     } else {
-      transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут гр. Гълъбово – ${destStr} – гр. Гълъбово (общо ${totalEffectiveKm} км по пътен лист).`;
+      transportLine = `• Транспорт с МПС: Осъществено е двупосочно пътуване по маршрут ${routeText} (общо ${totalEffectiveKm} км по пътен лист).`;
     }
   } else if (trip.transportType === "public") {
     if (isDailyCommute) {
@@ -413,7 +425,11 @@ export function buildStaySectionText(
 
   // Финансово обезпечаване
   const perDiemRate = trip.financials?.perDiemRateEUR ?? 11;
-  const financeLine = `• Финансово обезпечаване: На командированите лица са начислени и изплатени полагащите се командировъчни пари (дневни в размер на ${perDiemRate.toFixed(2)} € на ден на лице съгласно Наредбата за командировките в страната), подробно отразени във Финансовата ведомост.`;
+  const hasPerDiemFinance =
+    trip.expensesCoverage !== "transport_only" && perDiemRate > 0;
+  const financeLine = hasPerDiemFinance
+    ? `• Финансово обезпечаване: На командированите лица са начислени и изплатени полагащите се командировъчни пари (дневни в размер на ${perDiemRate.toFixed(2)} € на ден на лице съгласно Наредбата за командировките в страната), подробно отразени във Финансовата ведомост.`
+    : `• Финансово обезпечаване: Не са начислявани дневни пари (съгласно определените условия в Заповедта за командировка).`;
 
   return [stayText, transportLine, financeLine].filter(Boolean).join("\n");
 }
@@ -493,7 +509,7 @@ export function generateDefaultReportText(
 
   const startStr = fmtDate(trip.startDate);
   const endStr = fmtDate(trip.endDate);
-  const destCity = trip.destination || "гр. Хасково";
+  const destCity = formatDestPlace(trip.destination);
   const organizer =
     (event as { organizer?: string } | undefined)?.organizer ||
     trip.organizer ||
@@ -501,7 +517,7 @@ export function generateDefaultReportText(
   const hostClub =
     (event as { hostClub?: string } | undefined)?.hostClub ||
     trip.hostClub ||
-    `БК ${trip.destination || "домакин"}`;
+    "местния клуб домакин";
   const orderNum = getTripOrderNumber(trip);
   const orderDate = fmtDate(trip.orderDate || trip.startDate);
   const decisionNum = getTripDecisionNumber(trip);
@@ -521,7 +537,7 @@ export function generateDefaultReportText(
 В периода от ${startStr} г. до ${endStr} г. представителният отбор на ${formatOrgName(site.name)} взе официално участие в състезанието ${trip.title}, проведено в ${destCity}. Турнирът се организира от ${organizer} с клуб домакин ${hostClub}. Участието се осъществи въз основа на Заповед за командировка № ${orderNum} от ${orderDate} г. и Решение на УС № ${decisionNum} от ${decisionDate} г.${protocolNum ? `${protocolNum}.` : ""} Отборът бе ръководен от ${coachName} (${coachRole}) с делегация от ${athletesCount} командировани състезатели: ${athletesStr}.
 
 2. СПОРТНО-ТЕХНИЧЕСКИ РЕЗУЛТАТИ И ПРЕДСТАВЯНЕ:
-Състезателите на клуба взеха участие в утвърдените турнирни дисциплини съгласно Държавния спортен календар на БФ Бадминтон. Отборът демонстрира отлична състезателна подготовка, висок спортен дух, отборен синхрон и стриктна дисциплина на и извън корта. Всички срещи се проведоха при спазване на състезателния правилник и указанията на треньора. Поставените цели за турнира и спортно-техническото представяне са изпълнени успешно.
+Състезателите на клуба взеха участие в утвърдените турнирни дисциплини съгласно официалната Наредба (регламент) на ${organizer}. Отборът демонстрира отлична състезателна подготовка, висок спортен дух, отборен синхрон и стриктна дисциплина на и извън корта. Всички срещи се проведоха при спазване на състезателния правилник и указанията на треньора. Поставените цели за турнира и спортно-техническото представяне са изпълнени успешно, а постигнатите резултати са отразени в официалното класиране.
 
 3. ТРАНСПОРТ, ПРЕСТОЙ И МАТЕРИАЛНО-ФИНАНСОВО ОБЕЗПЕЧАВАНЕ:
 ${staySection}

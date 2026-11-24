@@ -440,6 +440,26 @@ export const useEvents = () => {
 
   const deleteEvent = useCallback(
     async (eventId: string) => {
+      try {
+        const { businessTripService } =
+          await import("@/services/business-trip-service");
+        const linkedTrips = await businessTripService.getTripsByEventId(
+          eventId,
+          activeBranch || "bkgalabovo"
+        );
+        if (linkedTrips.length > 0) {
+          const orderNum = linkedTrips[0].orderNumber;
+          toast.error("Събитието е обвързано с командировка", {
+            description: orderNum
+              ? `Има издадена Заповед № ${orderNum} в модул „Счетоводство“. Първо изтрийте командировката.`
+              : "Има създадена командировка в модул „Счетоводство“. Първо изтрийте командировката.",
+          });
+          return;
+        }
+      } catch {
+        // If check fails (e.g. non-admin), server action still guards deletion
+      }
+
       const db = getDb();
       let originalToday: ScheduleEvent[] = [];
       let originalUpcoming: ScheduleEvent[] = [];
@@ -500,7 +520,7 @@ export const useEvents = () => {
         throw err;
       }
     },
-    [getFreshToken]
+    [getFreshToken, activeBranch]
   );
 
   const updateAttendees = useCallback(

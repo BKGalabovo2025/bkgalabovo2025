@@ -89,10 +89,17 @@ export async function executeBackup(siteId = getSiteConfig().id) {
 
   for (const colName of collectionsToExport) {
     try {
-      const snapshot = await adminDb
+      let snapshot = await adminDb
         .collection(colName)
         .where("siteId", "==", siteId)
         .get();
+
+      if (
+        snapshot.empty &&
+        (colName === "club_settings" || colName === "settings")
+      ) {
+        snapshot = await adminDb.collection(colName).get();
+      }
 
       const docs = snapshot.docs.map((doc) => ({
         _id: doc.id,

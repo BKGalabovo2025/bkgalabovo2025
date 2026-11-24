@@ -4,15 +4,9 @@
 
 import { endOfMonth, format, parseISO, startOfMonth } from "date-fns";
 import { bg } from "date-fns/locale";
-import { getDocs } from "firebase/firestore";
 import {
   AlertTriangle,
   BarChart3,
-  Bed,
-  Calculator,
-  Calendar,
-  CalendarPlus,
-  Car,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
@@ -21,13 +15,10 @@ import {
   FileDown,
   FileSpreadsheet,
   Mail,
-  Pizza,
   Plus,
   RotateCcw,
   Search,
   SlidersHorizontal,
-  Ticket,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -35,6 +26,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import type { AccountingSectionId } from "@/components/accounting/accounting-sections";
+import { AccountingKpiRibbon } from "@/components/accounting/AccountingKpiRibbon";
 import { AccountingNav } from "@/components/accounting/AccountingNav";
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
@@ -78,14 +70,11 @@ import {
   calculateTripTransportTotals,
 } from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
-import { getEventsQuery } from "@/lib/firebase-collections";
 import {
   generatePdfFromElement,
   getPdfBlobFromElement,
 } from "@/lib/html-to-pdf";
 import { businessTripService } from "@/services/business-trip-service";
-import { getAllMembers } from "@/services/member-service";
-import { docToScheduleEvent } from "@/services/schedule-service";
 import { useAppStore } from "@/store/use-app-store";
 import {
   BusinessTrip,
@@ -653,6 +642,10 @@ export default function AccountingClient({
     total: number;
   } | null>(null);
   const [isRenumbering, setIsRenumbering] = useState(false);
+  const [nowMs, setNowMs] = useState(0);
+  useEffect(() => {
+    setNowMs(Date.now());
+  }, []);
   const { user } = useAuth();
 
   // Modal states
@@ -660,9 +653,6 @@ export default function AccountingClient({
     null
   );
   const [isTripManagerOpen, setIsTripManagerOpen] = useState(false);
-  const [isSelectEventOpen, setIsSelectEventOpen] = useState(false);
-  const [isRenumberPreviewOpen, setIsRenumberPreviewOpen] = useState(false);
-  const [eventSearchQuery, setEventSearchQuery] = useState("");
 
   // Филтри – живеят в URL (?month=YYYY-MM&status=...), секцията е маршрут.
   const monthParam = searchParams.get("month");
@@ -700,80 +690,134 @@ export default function AccountingClient({
   const setStatusFilter = (val: string) =>
     updateParams({ status: val === "all" ? null : val });
   const onlyIncomplete = searchParams.get("incomplete") === "1";
+  const rawMissing = searchParams.get("missing");
+  const missingFilter: "all" | "signatures" | "invoices" | "report" =
+    rawMissing === "signatures" ||
+    rawMissing === "invoices" ||
+    rawMissing === "report"
+      ? rawMissing
+      : "all";
   const toggleOnlyIncomplete = () =>
-    updateParams({ incomplete: onlyIncomplete ? null : "1" });
+    updateParams({
+      incomplete: onlyIncomplete ? null : "1",
+      missing: onlyIncomplete ? null : rawMissing,
+    });
+  const setMissingFilter = (
+    val: "all" | "signatures" | "invoices" | "report"
+  ) =>
+    updateParams({
+      missing: val === "all" ? null : val,
+      incomplete: val === "all" ? (onlyIncomplete ? "1" : null) : "1",
+    });
   const periodMode: "month" | "year" =
     searchParams.get("view") === "year" ? "year" : "month";
   const setPeriodMode = (mode: "month" | "year") =>
     updateParams({ view: mode === "year" ? "year" : null });
   const deepLinkHandled = useRef(false);
-  const [tripSearchQuery, setTripSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const tripSearchQuery = searchParams.get("q") || "";
+  const setTripSearchQuery = (q: string) =>
+    updateParams({ q: q || null, page: null });
+  const isRenumberPreviewOpen = searchParams.get("action") === "renumber";
+  const setIsRenumberPreviewOpen = useCallback(
+    (open: boolean) => updateParams({ action: open ? "renumber" : null }),
+    [updateParams]
+  );
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
+  const setCurrentPage = useCallback(
+    (pageOrFn: number | ((p: number) => number)) => {
+      const next =
+        typeof pageOrFn === "function" ? pageOrFn(currentPage) : pageOrFn;
+      const target = next > 1 ? String(next) : null;
+      if ((searchParams.get("page") || null) !== target) {
+        updateParams({ page: target });
+      }
+    },
+    [currentPage, searchParams, updateParams]
+  );
 
   const { activeBranch } = useAppStore();
   const siteId = activeBranch || "bkgalabovo";
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       setLoading(true);
       try {
-        const fetchedTrips = await businessTripService.getTrips(siteId);
+        const { getAccountingBootstrapAction } =
+          await import("@/lib/actions/business-trips");
+        const res = await getAccountingBootstrapAction(siteId);
+        if (cancelled) return;
+        if (!res.success || !res.data) {
+          throw new Error(res.error || "Неуспешно зареждане");
+        }
+        const {
+          trips: fetchedTrips,
+          expenses: fetchedExpenses,
+          members: fetchedMembers,
+          events: evts,
+        } = res.data;
+
         setTrips(fetchedTrips);
 
-        const fetchedMembers = await getAllMembers();
         const dict: Record<string, Member> = {};
         fetchedMembers.forEach((m) => {
-          dict[m.id!] = m;
+          if (m.id) dict[m.id] = m;
         });
         setMembersDict(dict);
 
-        // Fetch events so we can map trips to their events for editing
-        const snapshot = await getDocs(getEventsQuery());
-        const evts = snapshot.docs
-          .map(docToScheduleEvent)
-          .filter(Boolean) as ScheduleEvent[];
         setEvents(evts);
 
-        // Fetch all expenses for all trips... this might be heavy, but it's an admin view.
-        // We can optimize by fetching only for filtered trips later.
         const expensesMap: Record<string, TripExpense[]> = {};
-        for (const trip of fetchedTrips) {
-          if (trip.id) {
-            expensesMap[trip.id] = await businessTripService.getExpensesByTrip(
-              trip.id,
-              trip.siteId || siteId
-            );
+        fetchedTrips.forEach((trip) => {
+          if (trip.id) expensesMap[trip.id] = [];
+        });
+        fetchedExpenses.forEach((exp) => {
+          if (exp.tripId) {
+            if (!expensesMap[exp.tripId]) expensesMap[exp.tripId] = [];
+            expensesMap[exp.tripId].push(exp);
           }
-        }
+        });
         setExpenses(expensesMap);
       } catch (error) {
         console.error(error);
-        toast.error("Грешка при зареждане на данните");
+        if (!cancelled) {
+          toast.error("Грешка при зареждане на данните");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, [siteId]);
 
   const loadData = async () => {
     // Only refresh trips and expenses to reflect edits/deletions quickly
     try {
-      const fetchedTrips = await businessTripService.getTrips(siteId);
+      const [fetchedTrips, fetchedExpenses] = await Promise.all([
+        businessTripService.getTrips(siteId),
+        businessTripService.getExpensesBySite(siteId),
+      ]);
       setTrips(fetchedTrips);
 
       const expensesMap: Record<string, TripExpense[]> = {};
-      for (const trip of fetchedTrips) {
-        if (trip.id) {
-          expensesMap[trip.id] = await businessTripService.getExpensesByTrip(
-            trip.id,
-            trip.siteId || siteId
-          );
+      fetchedTrips.forEach((trip) => {
+        if (trip.id) expensesMap[trip.id] = [];
+      });
+      fetchedExpenses.forEach((exp) => {
+        if (exp.tripId) {
+          if (!expensesMap[exp.tripId]) expensesMap[exp.tripId] = [];
+          expensesMap[exp.tripId].push(exp);
         }
-      }
+      });
       setExpenses(expensesMap);
     } catch (e) {
       console.error("Error refreshing data after edit", e);
+      toast.error("Грешка при обновяване на счетоводните данни.");
     }
   };
 
@@ -823,18 +867,17 @@ export default function AccountingClient({
     }
   }, [loading, wantsModal, effectiveManageId, trips, events]);
 
-  // Дълбок линк за отваряне на "Създаване / Управление на командировка" (?action=new-trip или ?newTrip=true)
+  // Дълбок линк (?action=new-trip) пренасочва към единния екран /accounting/trips/new
   const wantsNewTrip =
     searchParams.get("action") === "new-trip" ||
     searchParams.get("action") === "new" ||
     searchParams.get("newTrip") === "true";
 
   useEffect(() => {
-    if (!loading && wantsNewTrip && !isSelectEventOpen) {
-      setEventSearchQuery("");
-      setIsSelectEventOpen(true);
+    if (wantsNewTrip) {
+      router.replace("/accounting/trips/new");
     }
-  }, [loading, wantsNewTrip, isSelectEventOpen]);
+  }, [wantsNewTrip, router]);
 
   const handleManageTrip = (trip: BusinessTrip) => {
     const ev =
@@ -912,13 +955,26 @@ export default function AccountingClient({
   }, [baseFilteredTrips, expenses, membersDict]);
 
   const filteredTrips = useMemo(() => {
-    if (!onlyIncomplete) return baseFilteredTrips;
-    return baseFilteredTrips.filter(
-      (trip) =>
-        !getTripReadiness(trip, expenses[trip.id!] || [], membersDict)
-          .isComplete
-    );
-  }, [baseFilteredTrips, onlyIncomplete, expenses, membersDict]);
+    if (!onlyIncomplete && missingFilter === "all") return baseFilteredTrips;
+    return baseFilteredTrips.filter((trip) => {
+      const readiness = getTripReadiness(
+        trip,
+        expenses[trip.id!] || [],
+        membersDict
+      );
+      if (readiness.isComplete) return false;
+      if (missingFilter === "signatures") {
+        return !readiness.hasSignatures;
+      }
+      if (missingFilter === "invoices") {
+        return !readiness.hasExpenses;
+      }
+      if (missingFilter === "report") {
+        return !readiness.hasReport;
+      }
+      return true;
+    });
+  }, [baseFilteredTrips, onlyIncomplete, missingFilter, expenses, membersDict]);
 
   const chronologicalPreview = useMemo(() => {
     return [...trips]
@@ -976,8 +1032,17 @@ export default function AccountingClient({
     }
   };
 
+  const prevFiltersKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    setCurrentPage(1);
+    const key = `${format(selectedMonth, "yyyy-MM")}|${periodMode}|${activityFilter}|${statusFilter}|${tripSearchQuery}|${onlyIncomplete}`;
+    if (prevFiltersKeyRef.current === null) {
+      prevFiltersKeyRef.current = key;
+      return;
+    }
+    if (prevFiltersKeyRef.current !== key) {
+      prevFiltersKeyRef.current = key;
+      setCurrentPage(1);
+    }
   }, [
     selectedMonth,
     periodMode,
@@ -985,6 +1050,7 @@ export default function AccountingClient({
     statusFilter,
     tripSearchQuery,
     onlyIncomplete,
+    setCurrentPage,
   ]);
 
   // Автоматично преминаване към страницата на командировката в списъка при deep link
@@ -997,7 +1063,7 @@ export default function AccountingClient({
         setCurrentPage(targetPage);
       }
     }
-  }, [targetDeepLinkId, filteredTrips, currentPage]);
+  }, [targetDeepLinkId, filteredTrips, currentPage, setCurrentPage]);
 
   const totalPages = Math.max(
     1,
@@ -1007,49 +1073,6 @@ export default function AccountingClient({
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredTrips.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredTrips, currentPage]);
-
-  const existingTripEventIds = useMemo(() => {
-    return new Set(trips.map((t) => t.eventId).filter(Boolean));
-  }, [trips]);
-
-  const selectableEvents = useMemo(() => {
-    return events
-      .filter((ev) => {
-        // Exclude events of type "training"
-        if (ev.type === "training") return false;
-
-        const isCompetitionOrCamp =
-          ev.type === "competition" ||
-          ev.type === "camp" ||
-          Boolean((ev as { isTournament?: boolean }).isTournament) ||
-          Boolean(ev.tournamentUrl) ||
-          Boolean(ev.tournamentId);
-
-        // If not explicitly marked as competition/camp, exclude if title indicates routine training
-        if (!isCompetitionOrCamp) {
-          const titleLower = (ev.title || "").trim().toLowerCase();
-          if (
-            titleLower.includes("тренировк") ||
-            titleLower === "training" ||
-            titleLower.startsWith("training ")
-          ) {
-            return false;
-          }
-        }
-
-        if (!eventSearchQuery.trim()) return true;
-        const q = eventSearchQuery.trim().toLowerCase();
-        return (
-          ev.title.toLowerCase().includes(q) ||
-          (ev.location && ev.location.toLowerCase().includes(q)) ||
-          (ev.description && ev.description.toLowerCase().includes(q))
-        );
-      })
-      .sort(
-        (a, b) =>
-          new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-      );
-  }, [events, eventSearchQuery]);
 
   // Calculate KPIs
   const kpis = useMemo(() => {
@@ -1163,7 +1186,7 @@ export default function AccountingClient({
     updateParams({ month: null });
   };
 
-  const handleExportExcel = async () => {
+  const buildExcelBuffer = async () => {
     const ExcelJS = (await import("exceljs")).default;
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Отчет Разходи");
@@ -1215,34 +1238,52 @@ export default function AccountingClient({
       });
     });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Otchet_${format(
-      selectedMonth,
-      periodMode === "year" ? "yyyy" : "MM_yyyy"
-    )}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+    return await workbook.xlsx.writeBuffer();
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      const buffer = await buildExcelBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Otchet_${format(
+        selectedMonth,
+        periodMode === "year" ? "yyyy" : "MM_yyyy"
+      )}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Excel отчетът беше експортиран успешно!");
+    } catch (err) {
+      console.error("Excel export failed:", err);
+      toast.error("Възникна грешка при експортиране към Excel.");
+    }
   };
 
   const handlePrintProtocol = async () => {
     setIsGeneratingPdf(true);
     toast.info("Генериране на PDF протокол...");
     setTimeout(async () => {
-      const el = document.getElementById("pdf-protocol-template");
-      if (el) {
-        await generatePdfFromElement(
-          el,
-          `Protokol_${format(selectedMonth, "MM_yyyy")}.pdf`
-        );
-        toast.success("Протоколът е генериран успешно!");
+      try {
+        const el = document.getElementById("pdf-protocol-template");
+        if (el) {
+          await generatePdfFromElement(
+            el,
+            `Protokol_${format(selectedMonth, "MM_yyyy")}.pdf`
+          );
+          toast.success("Протоколът е генериран успешно!");
+        } else {
+          toast.error("Шаблонът на протокола не бе намерен.");
+        }
+      } catch (err) {
+        console.error("Protocol PDF error:", err);
+        toast.error("Грешка при генериране на PDF протокола.");
+      } finally {
+        setIsGeneratingPdf(false);
       }
-      setIsGeneratingPdf(false);
     }, 100);
   };
 
@@ -1323,14 +1364,14 @@ export default function AccountingClient({
         );
         if (statementEl) {
           const blob = await getPdfBlobFromElement(statementEl, "landscape");
-          tripFolder.file(`02_Ведомост_${safeTitle}.pdf`, blob);
+          tripFolder.file(`03_Ведомост_${safeTitle}.pdf`, blob);
         }
 
         // Attendance
         const attEl = document.getElementById(`pdf-attendance-template-${tId}`);
         if (attEl) {
           const blob = await getPdfBlobFromElement(attEl, "portrait");
-          tripFolder.file(`03_Присъствен_лист_${safeTitle}.pdf`, blob);
+          tripFolder.file(`04_Присъствен_лист_${safeTitle}.pdf`, blob);
         }
 
         // Fuel (if exists)
@@ -1339,14 +1380,14 @@ export default function AccountingClient({
         );
         if (fuelEl) {
           const blob = await getPdfBlobFromElement(fuelEl, "landscape");
-          tripFolder.file(`04_Пътен_лист_${safeTitle}.pdf`, blob);
+          tripFolder.file(`05_Пътен_лист_${safeTitle}.pdf`, blob);
         }
 
         // Report (Доклад за извършената работа)
         const reportEl = document.getElementById(`pdf-report-template-${tId}`);
         if (reportEl) {
           const blob = await getPdfBlobFromElement(reportEl, "portrait");
-          tripFolder.file(`05_Доклад_отчет_${safeTitle}.pdf`, blob);
+          tripFolder.file(`06_Доклад_отчет_${safeTitle}.pdf`, blob);
         }
 
         // Attachments
@@ -1368,7 +1409,11 @@ export default function AccountingClient({
                 exp.documentNumber || null,
                 exp.attachmentUrl
               );
-              const filename = `05_Фактура_${exp.expenseType}_${exp.documentNumber || j + 1}.${ext}`;
+              const safeDocNum = String(exp.documentNumber || j + 1).replace(
+                /[/\\:*?"<>|]/g,
+                "_"
+              );
+              const filename = `07_Фактура_${exp.expenseType}_${safeDocNum}.${ext}`;
               tripFolder.file(filename, blob);
 
               if (exp.id) {
@@ -1429,6 +1474,16 @@ export default function AccountingClient({
         toast.error("Не бяха намерени документи за архивиране.");
         setIsZipping(false);
         return;
+      }
+
+      try {
+        const excelBuffer = await buildExcelBuffer();
+        zip.file(
+          `00_Счетоводен_Опис_${format(selectedMonth, periodMode === "year" ? "yyyy" : "MM_yyyy")}.xlsx`,
+          excelBuffer
+        );
+      } catch (excelErr) {
+        console.warn("Could not attach Excel summary to ZIP:", excelErr);
       }
 
       const content = await zip.generateAsync({
@@ -1590,16 +1645,14 @@ export default function AccountingClient({
       >
         <div className="grid w-full grid-cols-2 items-center gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:gap-2">
           <Button
+            asChild
             size="sm"
-            onClick={() => {
-              setEventSearchQuery("");
-              setIsSelectEventOpen(true);
-              updateParams({ action: "new-trip" });
-            }}
             className="col-span-2 h-8 justify-center rounded-lg bg-emerald-600 px-2.5 text-xs text-white shadow-xs hover:bg-emerald-700 sm:col-span-1"
           >
-            <Plus className="mr-1.5 size-3.5" />
-            Нова командировка
+            <Link href="/accounting/trips/new">
+              <Plus className="mr-1.5 size-3.5" />
+              Нова командировка
+            </Link>
           </Button>
           <Button
             variant="outline"
@@ -1689,6 +1742,30 @@ export default function AccountingClient({
               <span>{numberingIssuesCount} без/дубл. №</span>
             </Button>
           )}
+          {(() => {
+            if (!nowMs || onlyIncomplete) return null;
+            const threeDaysAgoMs = nowMs - 3 * 24 * 60 * 60 * 1000;
+            const overdueCount = trips.filter(
+              (t) =>
+                t.status !== "completed" &&
+                t.endDate &&
+                new Date(t.endDate).getTime() < threeDaysAgoMs
+            ).length;
+            if (overdueCount === 0) return null;
+            return (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={toggleOnlyIncomplete}
+                className="col-span-2 h-8 justify-center gap-1.5 rounded-lg border-rose-300 bg-rose-50/80 px-2.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-950/70 sm:col-span-1"
+                title="Командировки с изминал 3-дневен срок за отчитане по НКС. Кликнете за филтриране."
+              >
+                <AlertTriangle className="size-3.5 shrink-0" />
+                <span>{overdueCount} просрочени за отчет</span>
+              </Button>
+            );
+          })()}
         </div>
       </PageHeader>
 
@@ -1701,9 +1778,12 @@ export default function AccountingClient({
             size="sm"
             className="h-8 rounded-xl border-zinc-200/80 bg-white px-2.5 text-xs font-medium text-zinc-700 hover:border-blue-300 hover:text-blue-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-blue-700 dark:hover:text-blue-400"
           >
-            <Link href="/reports">
+            <Link
+              href="/reports"
+              title="Към годишния финансов отчет и приходите"
+            >
               <BarChart3 className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
-              Приходи и справки
+              Годишен отчет &amp; Справки
             </Link>
           </Button>
           <Button
@@ -1837,112 +1917,39 @@ export default function AccountingClient({
               </span>
             )}
           </Button>
+          {onlyIncomplete && (
+            <div className="flex flex-wrap items-center gap-1">
+              {(
+                [
+                  { id: "signatures", label: "Без подписи" },
+                  { id: "invoices", label: "Без фактури" },
+                  { id: "report", label: "Без доклад" },
+                ] as const
+              ).map((chip) => (
+                <button
+                  key={chip.id}
+                  type="button"
+                  onClick={() =>
+                    setMissingFilter(
+                      missingFilter === chip.id ? "all" : chip.id
+                    )
+                  }
+                  className={
+                    missingFilter === chip.id
+                      ? "h-7 rounded-lg bg-amber-500/20 px-2 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-400 dark:bg-amber-950/60 dark:text-amber-200 dark:ring-amber-700"
+                      : "h-7 rounded-lg border border-zinc-200 bg-white px-2 text-[11px] font-medium text-zinc-600 hover:border-amber-300 hover:text-amber-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-amber-700 dark:hover:text-amber-300"
+                  }
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ── 5-Metric Ribbon (Compact Single Row on Laptop, 2-Col on Mobile) ── */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        {/* Общо Разходи */}
-        <div className="col-span-2 flex flex-col justify-between rounded-xl border border-blue-200/70 bg-linear-to-br from-blue-50/70 to-indigo-50/40 p-2.5 shadow-2xs dark:border-blue-900/40 dark:from-blue-950/20 dark:to-indigo-950/20 sm:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-blue-700 dark:text-blue-300">
-              Общо Разходи
-            </span>
-            <div className="rounded-md bg-blue-100 p-1 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300">
-              <Calculator className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base font-bold tracking-tight text-blue-950 dark:text-blue-100">
-              €{kpis.totalEur.toFixed(2)}
-            </p>
-            <p className="text-[10px] font-medium text-blue-600/90 dark:text-blue-400">
-              {kpis.totalBgn.toFixed(2)} лв.
-            </p>
-          </div>
-        </div>
-
-        {/* Транспорт & Гориво */}
-        <div className="flex flex-col justify-between rounded-xl border border-orange-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Транспорт &amp; Гориво
-            </span>
-            <div className="rounded-md bg-orange-100 p-1 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300">
-              <Car className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
-              €{kpis.totalFuelAndTransport.toFixed(2)}
-            </p>
-            <p className="text-[10px] text-orange-600 dark:text-orange-400">
-              {kpis.totalKM} км •{" "}
-              {convertEurToBgn(kpis.totalFuelAndTransport).toFixed(2)} лв.
-            </p>
-          </div>
-        </div>
-
-        {/* Нощувки / Квартирни */}
-        <div className="flex flex-col justify-between rounded-xl border border-purple-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Нощувки
-            </span>
-            <div className="rounded-md bg-purple-100 p-1 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300">
-              <Bed className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
-              €{kpis.totalAccommodation.toFixed(2)}
-            </p>
-            <p className="text-[10px] text-purple-600 dark:text-purple-400">
-              {convertEurToBgn(kpis.totalAccommodation).toFixed(2)} лв.
-            </p>
-          </div>
-        </div>
-
-        {/* Дневни & Храна */}
-        <div className="flex flex-col justify-between rounded-xl border border-emerald-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Дневни &amp; Храна
-            </span>
-            <div className="rounded-md bg-emerald-100 p-1 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-              <Pizza className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
-              €{kpis.totalPerDiem.toFixed(2)}
-            </p>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400">
-              {convertEurToBgn(kpis.totalPerDiem).toFixed(2)} лв.
-            </p>
-          </div>
-        </div>
-
-        {/* Такси турнир */}
-        <div className="flex flex-col justify-between rounded-xl border border-pink-200/70 bg-white p-2.5 shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              Такси турнир
-            </span>
-            <div className="rounded-md bg-pink-100 p-1 text-pink-700 dark:bg-pink-900/50 dark:text-pink-300">
-              <Ticket className="size-3.5" />
-            </div>
-          </div>
-          <div className="mt-1">
-            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white">
-              €{kpis.totalEntryFees.toFixed(2)}
-            </p>
-            <p className="text-[10px] text-pink-600 dark:text-pink-400">
-              {convertEurToBgn(kpis.totalEntryFees).toFixed(2)} лв.
-            </p>
-          </div>
-        </div>
-      </div>
+      <AccountingKpiRibbon kpis={kpis} />
 
       {/* ── Compact Table ── */}
       <div className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-2xs dark:border-zinc-800 dark:bg-zinc-900/80">
@@ -2626,7 +2633,16 @@ export default function AccountingClient({
                               fontWeight: "600",
                             }}
                           >
-                            €{total.toFixed(2)}
+                            <div>€{total.toFixed(2)}</div>
+                            <div
+                              style={{
+                                fontSize: "9px",
+                                fontWeight: "400",
+                                color: "#555",
+                              }}
+                            >
+                              {convertEurToBgn(total).toFixed(2)} лв.
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2764,164 +2780,36 @@ export default function AccountingClient({
         })()}
       </div>
 
-      {/* Dialog for selecting an event to create/manage business trip */}
-      <Dialog
-        open={isSelectEventOpen}
-        onOpenChange={(open) => {
-          setIsSelectEventOpen(open);
-          if (!open) {
-            updateParams({ action: null, newTrip: null });
-          }
-        }}
-      >
-        <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
-          {/* Fixed Sticky Header */}
-          <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
-            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              <CalendarPlus className="size-4.5 text-emerald-600 shrink-0" />
-              <span>Създаване / Управление на командировка</span>
-            </DialogTitle>
-            <DialogDescription className="mt-0.5 text-xs text-zinc-500">
-              Изберете събитие (турнир или лагер) от календара, за което да
-              създадете командировка.
-            </DialogDescription>
-            <div className="relative mt-2.5">
-              <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Търсене по име на събитие или град..."
-                value={eventSearchQuery}
-                onChange={(e) => setEventSearchQuery(e.target.value)}
-                className="h-9 rounded-xl pl-8.5 pr-8 text-xs"
-              />
-              {eventSearchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setEventSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
-                  aria-label="Изчисти търсенето"
-                >
-                  <X className="size-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-2 min-h-0">
-            {selectableEvents.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                {eventSearchQuery.trim()
-                  ? "Няма намерени събития, отговарящи на търсенето."
-                  : "Няма намерени събития (турнири или лагери)."}
-              </div>
-            ) : (
-              selectableEvents.map((ev) => {
-                const hasTrip = existingTripEventIds.has(ev.id);
-                return (
-                  <div
-                    key={ev.id}
-                    onClick={() => {
-                      setSelectedEvent(ev);
-                      setIsSelectEventOpen(false);
-                      setIsTripManagerOpen(true);
-                    }}
-                    className="group flex cursor-pointer items-center justify-between rounded-xl border border-slate-100 p-3.5 transition-colors hover:bg-slate-50 dark:border-zinc-800 dark:hover:bg-zinc-800/60"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-slate-800 transition-colors group-hover:text-emerald-600 dark:text-zinc-100 dark:group-hover:text-emerald-400">
-                          {ev.title}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className="border-zinc-200 px-1.5 py-0 text-[10px] text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
-                        >
-                          {ev.type === "competition" ||
-                          (ev as { isTournament?: boolean }).isTournament
-                            ? "🏆 Състезание"
-                            : ev.type === "camp"
-                              ? "🏕️ Лагер"
-                              : ev.type === "event"
-                                ? "📅 Събитие"
-                                : "📌 Друго"}
-                        </Badge>
-                        {hasTrip ? (
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-50 text-xs text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                          >
-                            Има командировка
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-emerald-300 text-xs text-emerald-700 dark:text-emerald-400"
-                          >
-                            + Нова
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="size-3.5" />
-                          {format(parseISO(ev.startDate), "dd.MM.yyyy", {
-                            locale: bg,
-                          })}
-                          {ev.endDate && ev.endDate !== ev.startDate && (
-                            <>
-                              {" "}
-                              -{" "}
-                              {format(parseISO(ev.endDate), "dd.MM.yyyy", {
-                                locale: bg,
-                              })}
-                            </>
-                          )}
-                        </span>
-                        {ev.location && <span>📍 {ev.location}</span>}
-                        <span>
-                          👥 {ev.attendeeMemberIds?.length || 0} участници
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="rounded-lg text-xs group-hover:bg-emerald-50 group-hover:text-emerald-700 dark:group-hover:bg-emerald-950/50"
-                    >
-                      {hasTrip ? "Преглед" : "Създай"}
-                    </Button>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Fixed Sticky Footer */}
-          <div className="shrink-0 flex items-center justify-end gap-2 border-t border-zinc-100 bg-zinc-50/80 px-4 py-2.5 sm:px-5 sm:py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
-            <Button
-              variant="ghost"
-              onClick={() => setIsSelectEventOpen(false)}
-              className="h-9 rounded-xl px-4 text-xs font-semibold text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            >
-              Затвори
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Reused Trip Manager Dialog from Schedule route */}
-      {selectedEvent && (
-        <BusinessTripManagerDialog
-          event={selectedEvent}
-          open={isTripManagerOpen}
-          onOpenChange={(open) => {
-            setIsTripManagerOpen(open);
-            if (!open) {
-              updateParams({ tripId: null, modal: null, manageTrip: null });
-              loadData(); // refresh table if they edited/deleted anything
-            }
-          }}
-        />
-      )}
+      {selectedEvent &&
+        (() => {
+          const matchedTrip = trips.find(
+            (t) => t.eventId === selectedEvent.id || t.id === effectiveManageId
+          );
+          return (
+            <BusinessTripManagerDialog
+              event={selectedEvent}
+              initialTripId={matchedTrip?.id}
+              initialTrip={matchedTrip}
+              initialMembersDict={membersDict}
+              initialExpenses={
+                matchedTrip?.id ? expenses[matchedTrip.id] : undefined
+              }
+              open={isTripManagerOpen}
+              onOpenChange={(open) => {
+                setIsTripManagerOpen(open);
+                if (!open) {
+                  updateParams({
+                    tripId: null,
+                    modal: null,
+                    manageTrip: null,
+                  });
+                  loadData(); // refresh table if they edited/deleted anything
+                }
+              }}
+            />
+          );
+        })()}
 
       {/* Chronological Renumber Preview Dialog */}
       <Dialog

@@ -169,126 +169,137 @@ export function TripStatementEditDialog({
   // Load members and init state
   useEffect(() => {
     if (!open || !trip) return;
+    let cancelled = false;
 
-    getAllMembers().then((all) => {
-      const dict: Record<string, Member> = {};
-      all.forEach((m) => {
-        if (m.id) dict[m.id] = m;
+    getAllMembers()
+      .then((all) => {
+        if (cancelled) return;
+        const dict: Record<string, Member> = {};
+        all.forEach((m) => {
+          if (m.id) dict[m.id] = m;
+        });
+        setMembersDict(dict);
+
+        // Default team days / nights
+        const defDays = trip.actualDays != null ? trip.actualDays : plannedDays;
+        const defNights = coverageExcludesAccom
+          ? 0
+          : trip.actualNights != null
+            ? trip.actualNights
+            : plannedNights;
+        setGlobalDays(defDays);
+        setGlobalNights(defNights);
+
+        let initialTrips = 1;
+        if (trip.vehicle?.actualTripsCount != null) {
+          initialTrips = trip.vehicle.actualTripsCount;
+        } else if (isDailyCommute) {
+          initialTrips = defDays;
+        }
+        setActualTripsCount(initialTrips);
+
+        let initialKm: number | "" = "";
+        if (
+          trip.vehicle?.singleRoundTripKm &&
+          trip.vehicle.singleRoundTripKm > 0
+        ) {
+          initialKm = trip.vehicle.singleRoundTripKm;
+        } else if (trip.vehicle?.distanceKm) {
+          initialKm =
+            isDailyCommute && defDays > 0
+              ? Math.round((trip.vehicle.distanceKm / defDays) * 10) / 10
+              : trip.vehicle.distanceKm;
+        }
+        setCustomSingleKm(initialKm);
+        setCommuteNote(trip.vehicle?.commuteNote || "");
+
+        const overrides = trip.participantOverrides ?? {};
+
+        const coachName =
+          trip.coachName ||
+          (dict[trip.coachId]
+            ? `${dict[trip.coachId].firstName} ${dict[trip.coachId].lastName}`
+            : "Треньор");
+        const baseCoachRole =
+          trip.coachRole ||
+          (dict[trip.coachId]?.isCoach ? "Треньор" : "Ръководител");
+        const coachRole =
+          trip.coachIsAthlete && !baseCoachRole.includes("състезател")
+            ? `${baseCoachRole} и състезател`
+            : baseCoachRole;
+
+        const coachOv = overrides["coach"] ?? {};
+        const coachDays =
+          coachOv.actualDays != null ? coachOv.actualDays : defDays;
+        let coachNights: number;
+        if (coachOv.actualNights != null) {
+          coachNights = coachOv.actualNights;
+        } else if (coachOv.stayedOvernight === false) {
+          coachNights = 0;
+        } else {
+          coachNights = defNights;
+        }
+        const coachStayed =
+          coachOv.stayedOvernight != null
+            ? coachOv.stayedOvernight
+            : coachNights > 0;
+
+        const filteredParticipantIds = (trip.participantsIds || []).filter(
+          (pid) => pid !== trip.coachId && pid !== "coach"
+        );
+
+        const peopleList: PersonOverride[] = [
+          {
+            id: "coach",
+            name: coachName,
+            role: coachRole,
+            isCoach: true,
+            excluded: coachOv.excluded ?? false,
+            actualDays: coachDays,
+            actualNights: coachNights,
+            stayedOvernight: coachStayed,
+            perDiemRateEUR: coachOv.perDiemRateEUR ?? "",
+            note: coachOv.note || "",
+          },
+          ...filteredParticipantIds.map((pid) => {
+            const m = dict[pid];
+            const ov = overrides[pid] ?? {};
+            const pDays = ov.actualDays != null ? ov.actualDays : defDays;
+            let pNights: number;
+            if (ov.actualNights != null) {
+              pNights = ov.actualNights;
+            } else if (ov.stayedOvernight === false) {
+              pNights = 0;
+            } else {
+              pNights = defNights;
+            }
+            const pStayed =
+              ov.stayedOvernight != null ? ov.stayedOvernight : pNights > 0;
+
+            return {
+              id: pid,
+              name: m ? `${m.firstName} ${m.lastName}` : pid,
+              role: m?.isCoach ? "Треньор" : "Състезател",
+              isCoach: Boolean(m?.isCoach),
+              excluded: ov.excluded ?? false,
+              actualDays: pDays,
+              actualNights: pNights,
+              stayedOvernight: pStayed,
+              perDiemRateEUR: ov.perDiemRateEUR ?? "",
+              note: ov.note || "",
+            };
+          }),
+        ];
+        setPeople(peopleList);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error("Failed to load members for statement dialog:", err);
+        }
       });
-      setMembersDict(dict);
-
-      // Default team days / nights
-      const defDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-      const defNights = coverageExcludesAccom
-        ? 0
-        : trip.actualNights != null
-          ? trip.actualNights
-          : plannedNights;
-      setGlobalDays(defDays);
-      setGlobalNights(defNights);
-
-      let initialTrips = 1;
-      if (trip.vehicle?.actualTripsCount != null) {
-        initialTrips = trip.vehicle.actualTripsCount;
-      } else if (isDailyCommute) {
-        initialTrips = defDays;
-      }
-      setActualTripsCount(initialTrips);
-
-      let initialKm: number | "" = "";
-      if (
-        trip.vehicle?.singleRoundTripKm &&
-        trip.vehicle.singleRoundTripKm > 0
-      ) {
-        initialKm = trip.vehicle.singleRoundTripKm;
-      } else if (trip.vehicle?.distanceKm) {
-        initialKm =
-          isDailyCommute && defDays > 0
-            ? Math.round((trip.vehicle.distanceKm / defDays) * 10) / 10
-            : trip.vehicle.distanceKm;
-      }
-      setCustomSingleKm(initialKm);
-      setCommuteNote(trip.vehicle?.commuteNote || "");
-
-      const overrides = trip.participantOverrides ?? {};
-
-      const coachName =
-        trip.coachName ||
-        (dict[trip.coachId]
-          ? `${dict[trip.coachId].firstName} ${dict[trip.coachId].lastName}`
-          : "Треньор");
-      const baseCoachRole =
-        trip.coachRole ||
-        (dict[trip.coachId]?.isCoach ? "Треньор" : "Ръководител");
-      const coachRole =
-        trip.coachIsAthlete && !baseCoachRole.includes("състезател")
-          ? `${baseCoachRole} и състезател`
-          : baseCoachRole;
-
-      const coachOv = overrides["coach"] ?? {};
-      const coachDays =
-        coachOv.actualDays != null ? coachOv.actualDays : defDays;
-      let coachNights: number;
-      if (coachOv.actualNights != null) {
-        coachNights = coachOv.actualNights;
-      } else if (coachOv.stayedOvernight === false) {
-        coachNights = 0;
-      } else {
-        coachNights = defNights;
-      }
-      const coachStayed =
-        coachOv.stayedOvernight != null
-          ? coachOv.stayedOvernight
-          : coachNights > 0;
-
-      const filteredParticipantIds = (trip.participantsIds || []).filter(
-        (pid) => pid !== trip.coachId && pid !== "coach"
-      );
-
-      const peopleList: PersonOverride[] = [
-        {
-          id: "coach",
-          name: coachName,
-          role: coachRole,
-          isCoach: true,
-          excluded: coachOv.excluded ?? false,
-          actualDays: coachDays,
-          actualNights: coachNights,
-          stayedOvernight: coachStayed,
-          perDiemRateEUR: coachOv.perDiemRateEUR ?? "",
-          note: coachOv.note || "",
-        },
-        ...filteredParticipantIds.map((pid) => {
-          const m = dict[pid];
-          const ov = overrides[pid] ?? {};
-          const pDays = ov.actualDays != null ? ov.actualDays : defDays;
-          let pNights: number;
-          if (ov.actualNights != null) {
-            pNights = ov.actualNights;
-          } else if (ov.stayedOvernight === false) {
-            pNights = 0;
-          } else {
-            pNights = defNights;
-          }
-          const pStayed =
-            ov.stayedOvernight != null ? ov.stayedOvernight : pNights > 0;
-
-          return {
-            id: pid,
-            name: m ? `${m.firstName} ${m.lastName}` : pid,
-            role: m?.isCoach ? "Треньор" : "Състезател",
-            isCoach: Boolean(m?.isCoach),
-            excluded: ov.excluded ?? false,
-            actualDays: pDays,
-            actualNights: pNights,
-            stayedOvernight: pStayed,
-            perDiemRateEUR: ov.perDiemRateEUR ?? "",
-            note: ov.note || "",
-          };
-        }),
-      ];
-      setPeople(peopleList);
-    });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, trip]);
 
@@ -323,7 +334,15 @@ export function TripStatementEditDialog({
           const isStaying = Boolean(value);
           const currentGlobalNights =
             globalNights === "" ? plannedNights : Number(globalNights);
-          return applyStayedOvernightChange(p, isStaying, currentGlobalNights);
+          const nextPerson = applyStayedOvernightChange(
+            p,
+            isStaying,
+            currentGlobalNights
+          );
+          return {
+            ...nextPerson,
+            perDiemRateEUR: "",
+          };
         }
 
         if (field === "actualNights") {
@@ -1015,7 +1034,10 @@ export function TripStatementEditDialog({
 
                         {/* Calculated sum badge */}
                         <span className="min-w-[70px] text-right text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                          €{personTotal.toFixed(2)}
+                          <span>€{personTotal.toFixed(2)}</span>
+                          <span className="block text-[10px] font-normal text-zinc-400 dark:text-zinc-500">
+                            {convertEurToBgn(personTotal).toFixed(2)} лв.
+                          </span>
                         </span>
                       </div>
                     )}

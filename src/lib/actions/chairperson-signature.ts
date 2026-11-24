@@ -153,14 +153,40 @@ export async function deleteChairpersonSignatureAction(input: {
     await ensureAdmin(input.idToken);
     const adminDb = getAdminDb();
 
+    const now = new Date().toISOString();
     const docRef = adminDb.collection("club_settings").doc("chairperson");
     await docRef.set(
       {
         signatureUrl: null,
-        updatedAt: new Date().toISOString(),
+        updatedAt: now,
       },
       { merge: true }
     );
+
+    // Clear signature from Mira Georgieva's member profile(s) to keep both in sync
+    try {
+      const membersSnap = await adminDb
+        .collection("members")
+        .where("firstName", "==", "Мира")
+        .where("lastName", "==", "Георгиева")
+        .get();
+      if (!membersSnap.empty) {
+        const batch = adminDb.batch();
+        membersSnap.docs.forEach((d) => {
+          batch.set(
+            d.ref,
+            { signature: null, signatureUpdatedAt: now, updatedAt: now },
+            { merge: true }
+          );
+        });
+        await batch.commit();
+      }
+    } catch (syncErr) {
+      console.warn(
+        "Failed to clear chairperson signature from member profile:",
+        syncErr
+      );
+    }
 
     return {
       success: true,

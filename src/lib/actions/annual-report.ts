@@ -913,6 +913,7 @@ export async function getAnnualReportAction(
         trip.startDate || trip.orderDate || trip.createdAt
       );
       if (!dObj || dObj.getFullYear() !== year) continue;
+      if ((trip.siteId || "bkgalabovo") !== cleanSiteId) continue;
 
       const protocols = trip.matchProtocols || [];
       const hasProtocols = protocols.length > 0;
@@ -920,13 +921,27 @@ export async function getAnnualReportAction(
 
       // Имената на участниците от БК Гълъбово
       const participantsNames: string[] = [];
+      const seenParticipantIds = new Set<string>();
       if (trip.participantsIds && Array.isArray(trip.participantsIds)) {
         trip.participantsIds.forEach((pid) => {
+          seenParticipantIds.add(pid);
           const m = membersMap.get(pid);
           if (m) {
             participantsNames.push(`${m.firstName} ${m.lastName}`.trim());
           }
         });
+      }
+      if (
+        trip.coachIsAthlete &&
+        trip.coachId &&
+        !seenParticipantIds.has(trip.coachId)
+      ) {
+        const coachMember = membersMap.get(trip.coachId);
+        if (coachMember) {
+          participantsNames.unshift(
+            `${coachMember.firstName} ${coachMember.lastName}`.trim()
+          );
+        }
       }
 
       // Ниво на състезанието

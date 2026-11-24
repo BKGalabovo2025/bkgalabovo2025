@@ -1,33 +1,24 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
 import {
+  addTripExpenseAction,
   assignMissingBusinessTripNumbersAction,
+  createBusinessTripAction,
+  deleteBusinessTripAction,
+  deleteTripExpenseAction,
+  getBusinessTripByIdAction,
+  getBusinessTripsAction,
+  getBusinessTripsByEventIdAction,
+  getExpensesBySiteAction,
+  getTripExpensesAction,
+  logExpenseAttachmentDownloadAction,
+  logTripProtocolDownloadAction,
   renumberAllBusinessTripsChronologicallyAction,
+  updateBusinessTripAction,
+  updateTripExpenseAction,
 } from "@/lib/actions/business-trips";
-import { isAutoDecision } from "@/lib/business-trip-numbers";
-import { db } from "@/lib/firebase";
 import { uploadFile } from "@/services/storage-service";
-import {
-  BusinessTrip,
-  BusinessTripSchema,
-  TripExpense,
-  TripExpenseSchema,
-} from "@/types/business-trip.types";
-
-const TRIPS_COLLECTION = "business_trips";
-const EXPENSES_COLLECTION = "trip_expenses";
+import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 
 export const businessTripService = {
   // ---------------------------------------------
@@ -35,180 +26,27 @@ export const businessTripService = {
   // ---------------------------------------------
 
   async createTrip(data: Omit<BusinessTrip, "id">): Promise<string> {
-    // Auto-populate stored athlete signatures from member profiles if any participant lacks a signature
-    const athleteSignatures: Record<string, string> = {
-      ...(data.signatures?.athletes || {}),
-    };
-
-    let chairmanSig = data.signatures?.chairman || null;
-    let coachSig = data.signatures?.coach || null;
-
-    try {
-      // 1. Auto-resolve Chairman signature from club_settings if not explicitly provided
-      if (!chairmanSig) {
-        const chairSnap = await getDoc(doc(db, "club_settings", "chairperson"));
-        if (chairSnap.exists()) {
-          const cData = chairSnap.data();
-          if (cData?.signatureUrl && typeof cData.signatureUrl === "string") {
-            chairmanSig = cData.signatureUrl;
-          }
-        }
-      }
-
-      // 2. Auto-resolve Coach signature if coach is Mira Georgieva
-      const coachLower = (data.coachName || "").toLowerCase();
-      if (
-        !coachSig &&
-        (coachLower.includes("мира") || !data.coachName) &&
-        chairmanSig
-      ) {
-        coachSig = chairmanSig;
-      }
-    } catch {
-      // Ignore background signature fetch errors
+    const res = await createBusinessTripAction(data);
+    if (!res.success || !res.id) {
+      throw new Error(res.error || "Неуспешно създаване на командировката");
     }
-
-    if (
-      Array.isArray(data.participantsIds) &&
-      data.participantsIds.length > 0
-    ) {
-      const missingIds = data.participantsIds.filter(
-        (id) => !athleteSignatures[id]
-      );
-      if (missingIds.length > 0) {
-        try {
-          await Promise.all(
-            missingIds.map(async (id) => {
-              try {
-                const memberSnap = await getDoc(doc(db, "members", id));
-                if (memberSnap.exists()) {
-                  const mData = memberSnap.data();
-                  if (mData?.signature && typeof mData.signature === "string") {
-                    athleteSignatures[id] = mData.signature;
-                  }
-                }
-              } catch {
-                // Silently continue if single lookup fails
-              }
-            })
-          );
-        } catch {
-          // Ignore lookup batch errors
-        }
-      }
-    }
-
-    const validatedData = BusinessTripSchema.omit({ id: true }).parse({
-      ...data,
-      signatures: {
-        ...data.signatures,
-        chairman: chairmanSig || undefined,
-        coach: coachSig || undefined,
-        athletes: athleteSignatures,
-      },
-      // Официална дата на заповедта: ако потребителят я е определил ръчно, използваме нея; иначе вземаме сегашната
-      orderDate: data.orderDate || new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-
-    // Firebase не приема undefined стойности, затова ги изчистваме
-    const sanitizedData = JSON.parse(JSON.stringify(validatedData));
-
-    const docRef = await addDoc(
-      collection(db, TRIPS_COLLECTION),
-      sanitizedData
-    );
-    const newId = docRef.id;
-    try {
-      await this.renumberAllTripsChronologically(
-        validatedData.siteId || "bkgalabovo"
-      );
-    } catch (e) {
-      console.warn(
-        "Хронологичното преномериране при създаване срещна проблем, опит с assignMissingNumbers:",
-        e
-      );
-      try {
-        await this.assignMissingNumbers(validatedData.siteId);
-      } catch (fallbackErr) {
-        console.error("Неуспешно присвояване на номер на заповед", fallbackErr);
-      }
-    }
-    return newId;
+    return res.id;
   },
 
   /**
    * Присвоява автоматични поредни номера (по календарна година на заповедта)
    * на всички командировки без номер и подменя старите "ID"-базирани номера
    * на решенията на УС. Ръчно въведени номера на решения не се пипат.
-   * Използва Server Action (Admin SDK) с надежден fallback.
+   * Използва Server Action (Admin SDK -> двупосочен запис в двете бази).
    */
   async assignMissingNumbers(siteId: string): Promise<number> {
-    try {
-      const res = await assignMissingBusinessTripNumbersAction(siteId);
-      if (res?.success && typeof res.count === "number") {
-        return res.count;
-      }
-    } catch {
-      // Fallback към клиентски запис при липса на Server Action среда
+    const res = await assignMissingBusinessTripNumbersAction(siteId);
+    if (!res.success) {
+      throw new Error(
+        res.error || "Неуспешно присвояване на номера на командировки"
+      );
     }
-
-    try {
-      const trips = await this.getTrips(siteId);
-      const stamp = (t: BusinessTrip) =>
-        t.orderDate || t.startDate || t.createdAt || "";
-      const yearOf = (t: BusinessTrip) =>
-        new Date(
-          t.orderDate || t.startDate || t.createdAt || Date.now()
-        ).getFullYear();
-
-      const maxByYear: Record<number, number> = {};
-      trips.forEach((t) => {
-        if (t.orderNumber) {
-          const y = yearOf(t);
-          maxByYear[y] = Math.max(maxByYear[y] ?? 0, t.orderNumber);
-        }
-      });
-
-      const missing = trips
-        .filter((t) => !t.orderNumber && t.id)
-        .sort((a, b) => stamp(a).localeCompare(stamp(b)));
-
-      let updatedCount = 0;
-      for (const t of missing) {
-        const y = yearOf(t);
-        const n = (maxByYear[y] ?? 0) + 1;
-        maxByYear[y] = n;
-        await this.updateTrip(t.id as string, {
-          orderNumber: n,
-          siteId: t.siteId || siteId || "bkgalabovo",
-          ...(isAutoDecision(t.usDecision) ? { usDecision: `${n}-УС` } : {}),
-        });
-        updatedCount++;
-      }
-
-      // Подменяме стари ID-базирани решения на вече номерирани командировки
-      for (const t of trips) {
-        if (
-          t.id &&
-          t.orderNumber &&
-          isAutoDecision(t.usDecision) &&
-          t.usDecision !== `${t.orderNumber}-УС`
-        ) {
-          await this.updateTrip(t.id, {
-            usDecision: `${t.orderNumber}-УС`,
-            siteId: t.siteId || siteId || "bkgalabovo",
-          });
-          updatedCount++;
-        }
-      }
-
-      return updatedCount;
-    } catch (clientErr) {
-      console.warn("Client fallback assignMissingNumbers skipped:", clientErr);
-      return 0;
-    }
+    return res.count || 0;
   },
 
   /**
@@ -225,63 +63,31 @@ export const businessTripService = {
   },
 
   async updateTrip(id: string, data: Partial<BusinessTrip>): Promise<void> {
-    const docRef = doc(db, TRIPS_COLLECTION, id);
-
-    // Firebase не приема undefined стойности, затова ги изчистваме
-    const sanitizedData = JSON.parse(JSON.stringify(data));
-
-    // Уверяваме се, че siteId е налично в payload-а за да преминат правилата за сигурност
-    const updatePayload: Record<string, unknown> = {
-      ...sanitizedData,
-      updatedAt: new Date().toISOString(),
-    };
-    if (data.siteId) {
-      updatePayload.siteId = data.siteId;
+    const res = await updateBusinessTripAction(id, data);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно обновяване на командировката");
     }
-
-    await updateDoc(docRef, updatePayload);
   },
 
   async getTrips(siteId: string): Promise<BusinessTrip[]> {
-    const q = query(
-      collection(db, TRIPS_COLLECTION),
-      where("siteId", "==", siteId)
-    );
-
-    const snapshot = await getDocs(q);
-    const trips = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as BusinessTrip[];
-
-    return trips.sort(
-      (a, b) =>
-        new Date(b.startDate || 0).getTime() -
-        new Date(a.startDate || 0).getTime()
-    );
+    const res = await getBusinessTripsAction(siteId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно зареждане на командировките");
+    }
+    return res.data || [];
   },
 
   async getTripsByEventId(
     eventId: string,
     siteId: string = "bkgalabovo"
   ): Promise<BusinessTrip[]> {
-    const q = query(
-      collection(db, TRIPS_COLLECTION),
-      where("siteId", "==", siteId),
-      where("eventId", "==", eventId)
-    );
-
-    const snapshot = await getDocs(q);
-    // Fetch and sort locally since we don't have a composite index for eventId + startDate yet
-    const trips = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as BusinessTrip[];
-
-    return trips.sort(
-      (a, b) =>
-        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
+    const res = await getBusinessTripsByEventIdAction(eventId, siteId);
+    if (!res.success) {
+      throw new Error(
+        res.error || "Неуспешно зареждане на командировките за събитието"
+      );
+    }
+    return res.data || [];
   },
 
   /**
@@ -302,43 +108,17 @@ export const businessTripService = {
   },
 
   async getTripById(id: string): Promise<BusinessTrip | null> {
-    const docRef = doc(db, TRIPS_COLLECTION, id);
-    const snapshot = await getDoc(docRef);
-
-    if (!snapshot.exists()) return null;
-    return { id: snapshot.id, ...snapshot.data() } as BusinessTrip;
+    const res = await getBusinessTripByIdAction(id);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно зареждане на командировката");
+    }
+    return res.data ?? null;
   },
 
   async deleteTrip(id: string): Promise<void> {
-    // 0. Извличаме командировката първо, за да вземем нейния siteId.
-    // Това е нужно, защото Firestore Security Rules (Rules are not filters)
-    // изискват заявката към trip_expenses да включва siteId, за да разрешат list(getDocs).
-    const trip = await this.getTripById(id);
-    if (!trip) return;
-
-    // 1. Изтриваме всички разходи, свързани с командировката
-    const expensesQuery = query(
-      collection(db, EXPENSES_COLLECTION),
-      where("tripId", "==", id),
-      where("siteId", "==", trip.siteId) // Ключово за преминаване през Security Rules!
-    );
-    const expensesSnapshot = await getDocs(expensesQuery);
-    const deleteExpensesPromises = expensesSnapshot.docs.map((expDoc) =>
-      deleteDoc(doc(db, EXPENSES_COLLECTION, expDoc.id))
-    );
-    await Promise.all(deleteExpensesPromises);
-
-    // 2. Изтриваме самата командировка
-    await deleteDoc(doc(db, TRIPS_COLLECTION, id));
-
-    // 3. Преномерираме останалите командировки, за да няма пропуски в номерацията
-    try {
-      await this.renumberAllTripsChronologically(trip.siteId || "bkgalabovo");
-    } catch (renumberErr) {
-      console.warn(
-        "Преномериране след изтриване на командировка пропуснато:",
-        renumberErr
-      );
+    const res = await deleteBusinessTripAction(id);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно изтриване на командировката");
     }
   },
 
@@ -347,56 +127,52 @@ export const businessTripService = {
   // ---------------------------------------------
 
   async addExpense(data: Omit<TripExpense, "id">): Promise<string> {
-    const validatedData = TripExpenseSchema.omit({ id: true }).parse({
-      ...data,
-      createdAt: new Date().toISOString(),
-    });
-
-    const docRef = await addDoc(
-      collection(db, EXPENSES_COLLECTION),
-      validatedData
-    );
-    return docRef.id;
+    const res = await addTripExpenseAction(data);
+    if (!res.success || !res.id) {
+      throw new Error(res.error || "Неуспешно добавяне на разхода");
+    }
+    return res.id;
   },
 
   async getExpensesByTrip(
     tripId: string,
     siteId?: string
   ): Promise<TripExpense[]> {
-    const constraints = [where("tripId", "==", tripId)];
-    if (siteId) {
-      constraints.push(where("siteId", "==", siteId));
+    const res = await getTripExpensesAction(tripId, siteId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно зареждане на разходите");
     }
-    const q = query(
-      collection(db, EXPENSES_COLLECTION),
-      ...constraints,
-      orderBy("createdAt", "desc")
-    );
+    return res.data || [];
+  },
 
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as TripExpense[];
+  async getExpensesBySite(siteId: string): Promise<TripExpense[]> {
+    const res = await getExpensesBySiteAction(siteId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно зареждане на разходите");
+    }
+    return res.data || [];
   },
 
   async deleteExpense(id: string): Promise<void> {
-    await deleteDoc(doc(db, EXPENSES_COLLECTION, id));
+    const res = await deleteTripExpenseAction(id);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно изтриване на разхода");
+    }
   },
 
   async updateExpense(id: string, data: Partial<TripExpense>): Promise<void> {
-    const validatedData = TripExpenseSchema.partial().parse(data);
-    await updateDoc(doc(db, EXPENSES_COLLECTION, id), {
-      ...validatedData,
-      updatedAt: new Date().toISOString(),
-    });
+    const res = await updateTripExpenseAction(id, data);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешно обновяване на разхода");
+    }
   },
 
   /** Записва дата/час на сваляне на прикачен документ към разход */
   async logExpenseAttachmentDownload(expenseId: string): Promise<void> {
-    await updateDoc(doc(db, EXPENSES_COLLECTION, expenseId), {
-      attachmentDownloadedAt: new Date().toISOString(),
-    });
+    const res = await logExpenseAttachmentDownloadAction(expenseId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешен запис на свалянето");
+    }
   },
 
   // ---------------------------------------------
@@ -436,23 +212,9 @@ export const businessTripService = {
     tripId: string,
     protocolId?: string
   ): Promise<void> {
-    const tripRef = doc(db, TRIPS_COLLECTION, tripId);
-    const snap = await getDoc(tripRef);
-    if (!snap.exists()) return;
-    const tripData = snap.data() as BusinessTrip;
-    const now = new Date().toISOString();
-
-    let updatedProtocols = tripData.matchProtocols;
-    if (updatedProtocols && protocolId) {
-      updatedProtocols = updatedProtocols.map((p) =>
-        p.id === protocolId ? { ...p, downloadedAt: now } : p
-      );
+    const res = await logTripProtocolDownloadAction(tripId, protocolId);
+    if (!res.success) {
+      throw new Error(res.error || "Неуспешен запис на свалянето на протокола");
     }
-
-    await updateDoc(tripRef, {
-      matchProtocolDownloadedAt: now,
-      ...(updatedProtocols ? { matchProtocols: updatedProtocols } : {}),
-      updatedAt: now,
-    });
   },
 };

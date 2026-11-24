@@ -10,9 +10,10 @@ import {
   RotateCcw,
   Save,
   Trash2,
+  Trophy,
   Upload,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
+import { getTournamentResultsSummaryAction } from "@/lib/actions/business-trips";
 import {
   buildStaySectionText,
   generateDefaultReportText,
@@ -75,32 +77,40 @@ export function TripReportDialog({
   const [protocols, setProtocols] = useState<TripProtocolAttachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isImportingResults, setIsImportingResults] = useState(false);
   const [viewerDoc, setViewerDoc] = useState<{
     url: string;
     name?: string;
     type?: DocumentAttachmentType;
     protocolId?: string;
   } | null>(null);
+  const initializedKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (open && trip) {
-      const hasProtocols = Boolean(trip.attachMatchProtocols);
-      setAttachMatchProtocols(hasProtocols);
-      setProtocols(trip.matchProtocols || []);
+    if (!open || !trip) {
+      initializedKeyRef.current = null;
+      return;
+    }
+    const key = `${trip.id || "new"}`;
+    if (initializedKeyRef.current === key) return;
+    initializedKeyRef.current = key;
 
-      if (trip.reportText && trip.reportText.trim() !== "") {
-        setReportText(trip.reportText);
-      } else {
-        setReportText(
-          generateDefaultReportText(
-            trip,
-            membersDict,
-            hasProtocols,
-            expenses,
-            event
-          )
-        );
-      }
+    const hasProtocols = Boolean(trip.attachMatchProtocols);
+    setAttachMatchProtocols(hasProtocols);
+    setProtocols(trip.matchProtocols || []);
+
+    if (trip.reportText && trip.reportText.trim() !== "") {
+      setReportText(trip.reportText);
+    } else {
+      setReportText(
+        generateDefaultReportText(
+          trip,
+          membersDict,
+          hasProtocols,
+          expenses,
+          event
+        )
+      );
     }
   }, [open, trip, membersDict, expenses, event]);
 
@@ -237,6 +247,7 @@ export function TripReportDialog({
 
   const handleDeleteProtocol = async (protocolId: string) => {
     if (!trip?.id) return;
+    const prevProtocols = protocols;
     const updated = protocols.filter((p) => p.id !== protocolId);
     setProtocols(updated);
     try {
@@ -247,6 +258,7 @@ export function TripReportDialog({
       onSuccess?.();
     } catch (err) {
       console.error(err);
+      setProtocols(prevProtocols);
       toast.error("Грешка при премахване на протокола.");
     }
   };
@@ -543,23 +555,69 @@ export function TripReportDialog({
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
               <label
                 htmlFor="trip-report-text"
                 className="font-medium text-zinc-700 dark:text-zinc-300"
               >
                 Съдържание на доклада / спортния отчет:
               </label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleResetToDefault}
-                className="h-7 text-xs text-indigo-600 hover:text-indigo-700"
-              >
-                <RotateCcw className="mr-1 size-3.5" />
-                Възстанови готов текст
-              </Button>
+              <div className="flex items-center gap-1.5">
+                {trip?.eventId && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isImportingResults}
+                    onClick={async () => {
+                      if (!trip?.eventId) return;
+                      setIsImportingResults(true);
+                      try {
+                        const res = await getTournamentResultsSummaryAction(
+                          trip.eventId,
+                          trip.participantsIds || []
+                        );
+                        if (!res.success || !res.summary) {
+                          toast.error(
+                            res.error || "Няма данни за импорт от турнира."
+                          );
+                          return;
+                        }
+                        setReportText((prev) =>
+                          prev.includes(res.summary!.trim())
+                            ? prev
+                            : `${prev.trimEnd()}\n${res.summary}`
+                        );
+                        toast.success(
+                          "Резултатите от модул „Турнири“ са добавени в доклада."
+                        );
+                      } catch {
+                        toast.error("Грешка при импортиране от Турнири.");
+                      } finally {
+                        setIsImportingResults(false);
+                      }
+                    }}
+                    className="h-7 text-xs text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+                  >
+                    {isImportingResults ? (
+                      <Loader2 className="mr-1 size-3.5 animate-spin" />
+                    ) : (
+                      <Trophy className="mr-1 size-3.5" />
+                    )}
+                    Импортирай от Турнири
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleResetToDefault}
+                  className="h-7 text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
+                  <RotateCcw className="mr-1 size-3.5" />
+                  Възстанови готов текст
+                </Button>
+              </div>
             </div>
 
             <Textarea

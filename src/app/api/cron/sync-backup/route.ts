@@ -149,12 +149,42 @@ async function syncCollection(
         const bCount = bCountSnap.data().count;
 
         if (pCount === bCount) {
-          return {
-            syncedToBackup: 0,
-            syncedToPrimary: 0,
-            synced: 0,
-            skipped: true,
-          };
+          // Also check latest updatedAt in both DBs (1 read each) so in-place edits are not skipped
+          try {
+            const [pLatestSnap, bLatestSnap] = await Promise.all([
+              primaryDb
+                .collection(collectionName)
+                .orderBy("updatedAt", "desc")
+                .limit(1)
+                .get(),
+              backupDb
+                .collection(collectionName)
+                .orderBy("updatedAt", "desc")
+                .limit(1)
+                .get(),
+            ]);
+            const pLatest = pLatestSnap.docs[0]
+              ? getDocTime(pLatestSnap.docs[0].data())
+              : 0;
+            const bLatest = bLatestSnap.docs[0]
+              ? getDocTime(bLatestSnap.docs[0].data())
+              : 0;
+            if (pLatest === bLatest) {
+              return {
+                syncedToBackup: 0,
+                syncedToPrimary: 0,
+                synced: 0,
+                skipped: true,
+              };
+            }
+          } catch {
+            return {
+              syncedToBackup: 0,
+              syncedToPrimary: 0,
+              synced: 0,
+              skipped: true,
+            };
+          }
         }
       } catch {
         // Fall through to standard read if count fails

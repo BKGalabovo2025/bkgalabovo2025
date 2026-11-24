@@ -625,7 +625,9 @@ export async function saveDirectAthleteSignatureAction(input: {
       updatedTripsCount = res.updatedTripsCount;
     } else {
       // Just save to member profile without propagating to trips
-      await adminDb.collection("members").doc(memberId).set(
+      const memberRef = adminDb.collection("members").doc(memberId);
+      const memberSnap = await memberRef.get();
+      await memberRef.set(
         {
           signature: signatureBase64,
           signatureUpdatedAt: now,
@@ -633,6 +635,21 @@ export async function saveDirectAthleteSignatureAction(input: {
         },
         { merge: true }
       );
+      const mData = memberSnap.data();
+      const fullName =
+        `${mData?.firstName || ""} ${mData?.lastName || ""}`.toLowerCase();
+      if (
+        memberId === "2kNiT9VeLWOnK8kpnSsR" ||
+        (fullName.includes("мира") && fullName.includes("георгиева"))
+      ) {
+        await adminDb.collection("club_settings").doc("chairperson").set(
+          {
+            signatureUrl: signatureBase64,
+            updatedAt: now,
+          },
+          { merge: true }
+        );
+      }
     }
 
     const totalSigned = tripId ? updatedTripsCount + 1 : updatedTripsCount;

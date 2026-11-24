@@ -221,6 +221,9 @@ describe("ShadowWizard Component Flow", () => {
     expect(toast.info).toHaveBeenCalledWith(
       "Сесията беше приключена без запазване."
     );
+
+    vi.useRealTimers();
+    await act(async () => {});
   });
 
   it("allows starting a second training session after completing and saving the first one", async () => {

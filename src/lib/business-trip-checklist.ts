@@ -120,6 +120,17 @@ function checkFuelTransport(ctx: CheckContext): TripCheckItem[] {
       message: "Лично МПС: Липсва фактура/бон за гориво",
       hint: 'Добавете разход от тип "Гориво". Счетоводството изисква оригинален бон или фактура на клуба.',
     });
+  } else if (hasFuelExpense && needsTransport) {
+    const fuelExpenses = ctx.expenses.filter((e) => e.expenseType === "fuel");
+    if (fuelExpenses.some((e) => !e.attachmentUrl)) {
+      issues.push({
+        id: "fuel_missing_attachment",
+        severity: "warning",
+        category: "document",
+        message: "Гориво: Липсва прикачена снимка/PDF на касовия бон",
+        hint: "Прикачете снимка или PDF на фактурата/бона за гориво за счетоводния архив.",
+      });
+    }
   }
   if (!trip.fuelDownloadedAt) {
     issues.push({
@@ -209,8 +220,23 @@ function checkAccommodation(ctx: CheckContext): TripCheckItem[] {
 }
 
 function checkFinancials(ctx: CheckContext): TripCheckItem[] {
-  const { trip, hasEntryFeeExpense, needsPerDiem } = ctx;
+  const { trip, expenses, hasEntryFeeExpense, needsPerDiem } = ctx;
   const issues: TripCheckItem[] = [];
+
+  if (
+    expenses.some(
+      (e) =>
+        e.expenseType !== "fuel" && (e.amountEUR || 0) > 0 && !e.attachmentUrl
+    )
+  ) {
+    issues.push({
+      id: "expense_missing_attachment",
+      severity: "warning",
+      category: "document",
+      message: "Има разходи без прикачен счетоводен документ (снимка/PDF)",
+      hint: "Качете снимка или PDF на фактурата/квитанцията към всеки въведен разход.",
+    });
+  }
 
   if (
     needsPerDiem &&

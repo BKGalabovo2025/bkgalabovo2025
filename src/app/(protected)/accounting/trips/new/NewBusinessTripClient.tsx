@@ -15,7 +15,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, {
   useCallback,
   useEffect,
@@ -27,9 +27,10 @@ import React, {
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getEventsQuery } from "@/lib/firebase-collections";
 import { businessTripService } from "@/services/business-trip-service";
 import { docToScheduleEvent } from "@/services/schedule-service";
@@ -37,7 +38,10 @@ import { useAppStore } from "@/store/use-app-store";
 import { BusinessTrip } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
 
+type TripFilterMode = "all" | "new" | "existing";
+
 export function NewBusinessTripClient() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
   const siteId = activeBranch || "bkgalabovo";
@@ -45,10 +49,33 @@ export function NewBusinessTripClient() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [tripFilter, setTripFilter] = useState<"all" | "new" | "existing">(
-    "all"
+  const searchQuery = searchParams.get("q") || "";
+  const rawFilter = searchParams.get("filter");
+  const tripFilter: TripFilterMode =
+    rawFilter === "new" || rawFilter === "existing" ? rawFilter : "all";
+
+  const updateUrl = useCallback(
+    (patch: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(patch).forEach(([k, v]) => {
+        if (!v) params.delete(k);
+        else params.set(k, v);
+      });
+      const qs = params.toString();
+      router.replace(
+        qs ? `/accounting/trips/new?${qs}` : "/accounting/trips/new",
+        {
+          scroll: false,
+        }
+      );
+    },
+    [router, searchParams]
   );
+
+  const setSearchQuery = (q: string) => updateUrl({ q: q || null });
+  const setTripFilter = (f: TripFilterMode) =>
+    updateUrl({ filter: f === "all" ? null : f });
+
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(
     null
   );
@@ -99,7 +126,12 @@ export function NewBusinessTripClient() {
 
   const relevantEvents = useMemo(() => {
     return events
-      .filter((ev) => ev.type === "competition" || ev.type === "camp")
+      .filter(
+        (ev) =>
+          ev.type === "competition" ||
+          ev.type === "camp" ||
+          Boolean((ev as { isTournament?: boolean }).isTournament)
+      )
       .filter((ev) => {
         const hasTrip = existingTripEventIds.has(ev.id);
         if (tripFilter === "new" && hasTrip) return false;
@@ -253,13 +285,15 @@ export function NewBusinessTripClient() {
 
         {/* Events Grid */}
         {loading ? (
-          <div className="p-8 text-center text-xs text-muted-foreground">
-            Зареждане на календарни събития...
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+            ))}
           </div>
         ) : relevantEvents.length === 0 ? (
-          <Card className="p-8 text-center text-xs text-muted-foreground">
+          <BentoCard className="p-8 text-center text-xs text-muted-foreground">
             Няма намерени събития.
-          </Card>
+          </BentoCard>
         ) : (
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {relevantEvents.map((ev) => {
@@ -269,13 +303,13 @@ export function NewBusinessTripClient() {
                 : null;
 
               return (
-                <div
+                <BentoCard
                   key={ev.id}
                   onClick={() => {
                     setSelectedEvent(ev);
                     setIsTripManagerOpen(true);
                   }}
-                  className="group flex flex-col justify-between rounded-xl border border-zinc-200/80 bg-white p-3.5 shadow-2xs transition-all hover:border-blue-400 hover:shadow-xs cursor-pointer dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-blue-500"
+                  className="group flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-none transition-all hover:border-blue-400 cursor-pointer dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-500"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
@@ -350,7 +384,7 @@ export function NewBusinessTripClient() {
                       {hasTrip ? "Бърз преглед" : "Създай командировка"}
                     </Button>
                   </div>
-                </div>
+                </BentoCard>
               );
             })}
           </div>

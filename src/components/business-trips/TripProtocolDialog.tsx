@@ -12,7 +12,7 @@ import {
   Save,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { BoardMembersInput } from "@/components/business-trips/BoardMembersInput";
@@ -71,68 +71,75 @@ export function TripProtocolDialog({
   const [protocolText, setProtocolText] = useState("");
   const [autoSyncText, setAutoSyncText] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const initializedKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (open && trip) {
-      // Инициализация на дата
-      const rawDate = trip.usDecisionDate || trip.orderDate || trip.startDate;
-      let dateVal = "";
-      if (rawDate) {
-        const clean = rawDate.replace(/\s*г\.?$/u, "").trim();
-        const ddmmyyyy = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(clean);
-        if (ddmmyyyy) {
-          const [, d, m, y] = ddmmyyyy;
-          dateVal = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-        } else {
-          try {
-            dateVal = format(new Date(clean), "yyyy-MM-dd");
-          } catch {
-            dateVal = clean.slice(0, 10);
-          }
+    if (!open || !trip) {
+      initializedKeyRef.current = null;
+      return;
+    }
+    const key = `${trip.id || "new"}`;
+    if (initializedKeyRef.current === key) return;
+    initializedKeyRef.current = key;
+
+    // Инициализация на дата
+    const rawDate = trip.usDecisionDate || trip.orderDate || trip.startDate;
+    let dateVal = "";
+    if (rawDate) {
+      const clean = rawDate.replace(/\s*г\.?$/u, "").trim();
+      const ddmmyyyy = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(clean);
+      if (ddmmyyyy) {
+        const [, d, m, y] = ddmmyyyy;
+        dateVal = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      } else {
+        try {
+          dateVal = format(new Date(clean), "yyyy-MM-dd");
+        } catch {
+          dateVal = clean.slice(0, 10);
         }
       }
-      setMeetingDate(dateVal);
+    }
+    setMeetingDate(dateVal);
 
-      // Инициализация на основни полета
-      const timeVal = trip.usMeetingTime || "18:00 ч.";
-      const locVal =
-        trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението";
-      const chairVal = trip.usMeetingChair || mol;
-      const secVal = trip.usMeetingSecretary || "Невена Георгиева";
-      const defMembers = DEFAULT_BOARD_MEMBERS_TEXT;
-      const membersVal = trip.usBoardMembers || defMembers;
-      const protoNumVal = trip.usProtocolNumber || getTripProtocolNumber(trip);
+    // Инициализация на основни полета
+    const timeVal = trip.usMeetingTime || "18:00 ч.";
+    const locVal =
+      trip.usMeetingLocation || "гр. Гълъбово, в седалището на сдружението";
+    const chairVal = trip.usMeetingChair || mol;
+    const secVal = trip.usMeetingSecretary || "Невена Георгиева";
+    const defMembers = DEFAULT_BOARD_MEMBERS_TEXT;
+    const membersVal = trip.usBoardMembers || defMembers;
+    const protoNumVal = trip.usProtocolNumber || getTripProtocolNumber(trip);
 
-      setMeetingTime(timeVal);
-      setMeetingLocation(locVal);
-      setMeetingChair(chairVal);
-      setMeetingSecretary(secVal);
-      setBoardMembers(membersVal);
-      setProtocolNumber(protoNumVal);
+    setMeetingTime(timeVal);
+    setMeetingLocation(locVal);
+    setMeetingChair(chairVal);
+    setMeetingSecretary(secVal);
+    setBoardMembers(membersVal);
+    setProtocolNumber(protoNumVal);
 
-      if (trip.protocolText && trip.protocolText.trim() !== "") {
-        setProtocolText(
-          cleanProtocolText(
-            trip.protocolText,
-            isFemalePerson(chairVal, membersDict),
-            site.shortName
-          )
-        );
-        setAutoSyncText(false);
-      } else {
-        setAutoSyncText(true);
-        setProtocolText(
-          generateDefaultProtocolText(trip, site, membersDict, {
-            meetingDate: dateVal,
-            meetingTime: timeVal,
-            meetingLocation: locVal,
-            meetingChair: chairVal,
-            meetingSecretary: secVal,
-            boardMembers: membersVal,
-            protocolNumber: protoNumVal,
-          })
-        );
-      }
+    if (trip.protocolText && trip.protocolText.trim() !== "") {
+      setProtocolText(
+        cleanProtocolText(
+          trip.protocolText,
+          isFemalePerson(chairVal, membersDict),
+          site.shortName
+        )
+      );
+      setAutoSyncText(false);
+    } else {
+      setAutoSyncText(true);
+      setProtocolText(
+        generateDefaultProtocolText(trip, site, membersDict, {
+          meetingDate: dateVal,
+          meetingTime: timeVal,
+          meetingLocation: locVal,
+          meetingChair: chairVal,
+          meetingSecretary: secVal,
+          boardMembers: membersVal,
+          protocolNumber: protoNumVal,
+        })
+      );
     }
   }, [open, trip, membersDict, mol, site]);
 

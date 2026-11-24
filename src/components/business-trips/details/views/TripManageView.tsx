@@ -11,14 +11,8 @@ import {
 import Link from "next/link";
 import React from "react";
 
+import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 import { useTripDetails } from "../TripDetailsContext";
 
@@ -27,20 +21,20 @@ export function TripManageView() {
 
   return (
     <div className="space-y-4">
-      <Card className="rounded-2xl border-zinc-200/80 dark:border-zinc-800">
-        <CardHeader className="pb-3">
+      <BentoCard className="rounded-2xl border-zinc-200/80 p-5 dark:border-zinc-800">
+        <div className="pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-base font-bold sm:text-lg flex items-center gap-2">
+              <h2 className="text-base font-bold sm:text-lg flex items-center gap-2 text-zinc-900 dark:text-white">
                 <SlidersHorizontal className="size-5 text-indigo-600 dark:text-indigo-400" />
                 <span>
                   Управление на командировка № {trip.orderNumber || "—"}
                 </span>
-              </CardTitle>
-              <CardDescription className="text-xs">
+              </h2>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Решение на УС: <strong>{trip.usDecision || "—"}</strong> •
                 Протокол: <strong>{trip.usProtocolNumber || "—"}</strong>
-              </CardDescription>
+              </p>
             </div>
             <div className="flex gap-2">
               <Button
@@ -61,9 +55,9 @@ export function TripManageView() {
               </Button>
             </div>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <Link
               href={`/accounting/trips/${trip.id}/order`}
@@ -150,8 +144,8 @@ export function TripManageView() {
               </div>
             </Link>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </BentoCard>
     </div>
   );
 }

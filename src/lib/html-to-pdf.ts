@@ -370,5 +370,13 @@ export async function previewPdfFromElement(
   const pdf = await createPdf(element, orientation);
   const blob = pdf.output("blob");
   const blobUrl = URL.createObjectURL(blob);
-  window.open(blobUrl, "_blank");
+  const win = window.open(blobUrl, "_blank");
+  if (!win) {
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.click();
+  }
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
 }

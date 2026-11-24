@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { SiteConfig } from "../config/sites";
 import {
+  buildTripRouteDescription,
+  buildTripRouteLabel,
   calculateTripExpensesSummary,
   calculateTripStatementTotals,
   calculateTripTransportTotals,
+  COACH_ORIGIN_ONE_WAY_KM,
+  COACH_ORIGIN_ROUND_TRIP_KM,
   getEffectiveTripRates,
+  isCoachMiraGeorgieva,
   isTripCoverageWithoutAccom,
   resolvePersonRate,
+  usesCoachOriginRoute,
 } from "../lib/business-trip-calc";
 import {
   getTripAttendanceNumber,
@@ -615,7 +621,7 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
         "За водещ заседанието бе определена Мира Георгиева"
       );
       expect(text).toContain("Тя запозна присъстващите");
-      expect(text).toContain("Спортния календар на БФ Бадминтон");
+      expect(text).toContain("официалната Наредба (регламент) на БФ Бадминтон");
       expect(text).toContain("съгласно Устава на сдружението кворум");
       expect(text).not.toContain("Той запозна");
       expect(text).not.toContain("поканата от БФ Бадминтон");
@@ -671,7 +677,9 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
         "Думата бе дадена на Председателя на УС Мира Георгиева. Той запозна членовете с поканата от БФ Бадминтон, графика на състезанието и предложи клубна делегация. Присъства необходимият съгласно чл. 32 от ЗЮЛНЦ и разпоредбите на Устава кворум.";
       const healed = cleanProtocolText(legacy, true);
       expect(healed).toContain("Тя запозна");
-      expect(healed).toContain("Спортния календар на БФ Бадминтон");
+      expect(healed).toContain(
+        "официалната Наредба (регламент) на БФ Бадминтон"
+      );
       expect(healed).toContain("съгласно Устава на сдружението");
       expect(healed).not.toContain("Той запозна");
       expect(healed).not.toContain("поканата от БФ Бадминтон");
@@ -981,6 +989,134 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
 
       // 1 night * 25 EUR = 25 EUR accommodation per person. 3 people = 75 EUR (NOT 100 EUR!)
       expect(statement.calcAccomEUR).toBe(3 * 25);
+    });
+  });
+
+  describe("Coach Origin Route (Haskovo <-> Galabovo Energetik <-> Destination)", () => {
+    it("recognizes Mira Georgieva and 48/96 km constants", () => {
+      expect(COACH_ORIGIN_ONE_WAY_KM).toBe(48);
+      expect(COACH_ORIGIN_ROUND_TRIP_KM).toBe(96);
+      expect(isCoachMiraGeorgieva("Мира Георгиева")).toBe(true);
+      expect(isCoachMiraGeorgieva(undefined, "Мира", "Георгиева")).toBe(true);
+      expect(isCoachMiraGeorgieva("Иван Петров")).toBe(false);
+    });
+
+    it("applies Haskovo -> Energetik route ONLY for fuel_only, never for free/club_paid/public", () => {
+      const baseTrip = {
+        destination: "гр. София",
+        coachName: "Мира Георгиева",
+      };
+
+      expect(
+        usesCoachOriginRoute({ ...baseTrip, transportType: "fuel_only" })
+      ).toBe(true);
+      expect(usesCoachOriginRoute({ ...baseTrip, transportType: "free" })).toBe(
+        false
+      );
+      expect(
+        usesCoachOriginRoute({ ...baseTrip, transportType: "club_paid" })
+      ).toBe(false);
+      expect(
+        usesCoachOriginRoute({ ...baseTrip, transportType: "public" })
+      ).toBe(false);
+      expect(
+        usesCoachOriginRoute({
+          ...baseTrip,
+          transportType: "fuel_only",
+          vehicle: { includeCoachOriginLeg: false },
+        })
+      ).toBe(false);
+    });
+
+    it("builds full Haskovo-Energetik-Destination route label and description for fuel_only", () => {
+      const label = buildTripRouteLabel({
+        transportType: "fuel_only",
+        coachName: "Мира Георгиева",
+        destination: "гр. София",
+      });
+      expect(label).toBe(
+        "гр. Хасково — гр. Гълъбово (Спортна зала „Енергетик“) — гр. София — гр. Гълъбово (Спортна зала „Енергетик“) — гр. Хасково"
+      );
+
+      const desc = buildTripRouteDescription({
+        transportType: "fuel_only",
+        coachName: "Мира Георгиева",
+        destination: "гр. Хасково",
+      });
+      expect(desc).toContain("гр. Хасково");
+      expect(desc).toContain("Спортна зала „Енергетик“");
+
+      const freeLabel = buildTripRouteLabel({
+        transportType: "free",
+        coachName: "Мира Георгиева",
+        destination: "гр. София",
+      });
+      expect(freeLabel).toBe("гр. Гълъбово — гр. София — гр. Гълъбово");
+      expect(
+        buildTripRouteDescription({
+          transportType: "free",
+          coachName: "Мира Георгиева",
+          destination: "гр. София",
+        })
+      ).toBeNull();
+    });
+
+    it("includes Haskovo-Energetik route in protocol & report text for fuel_only, and excludes it for free", () => {
+      const baseTrip: BusinessTrip = {
+        id: "t-route",
+        orderNumber: 5,
+        title: "Държавно първенство",
+        destination: "гр. София",
+        startDate: "2026-04-10T08:00:00.000Z",
+        endDate: "2026-04-12T18:00:00.000Z",
+        coachId: "mira",
+        coachName: "Мира Георгиева",
+        participantsIds: ["ath-1"],
+        status: "approved",
+        transportType: "fuel_only",
+        siteId: "bkgalabovo",
+        vehicle: {
+          distanceKm: 616,
+          fuelNorm: 6.5,
+          commuteMode: "single",
+        },
+        financials: {
+          perDiemRateEUR: 22,
+          accommodationRateEUR: 25,
+          isCommercialActivity: false,
+        },
+      };
+
+      const site: SiteConfig = {
+        id: "bkgalabovo",
+        name: "Бадминтон клуб Гълъбово",
+        shortName: "БК Гълъбово",
+        domain: "bkgalabovo.bg",
+        contact: {
+          mol: "Мира Георгиева",
+          email: "info@bkgalabovo.bg",
+          phone: "0888000000",
+          address: "гр. Гълъбово",
+        },
+        theme: {
+          primaryColor: "#000000",
+          accentColor: "#ffffff",
+        },
+      } as unknown as SiteConfig;
+
+      const protocolFuel = generateDefaultProtocolText(baseTrip, site, {});
+      expect(protocolFuel).toContain("гр. Хасково");
+      expect(protocolFuel).toContain("Спортна зала „Енергетик“");
+
+      const reportFuel = generateDefaultReportText(baseTrip, {}, false);
+      expect(reportFuel).toContain("гр. Хасково");
+      expect(reportFuel).toContain("Спортна зала „Енергетик“");
+
+      const freeTrip: BusinessTrip = { ...baseTrip, transportType: "free" };
+      const protocolFree = generateDefaultProtocolText(freeTrip, site, {});
+      const reportFree = generateDefaultReportText(freeTrip, {}, false);
+      expect(protocolFree).not.toContain("Спортна зала „Енергетик“");
+      expect(reportFree).not.toContain("Спортна зала „Енергетик“");
     });
   });
 });

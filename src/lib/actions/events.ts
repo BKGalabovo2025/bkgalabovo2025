@@ -284,6 +284,28 @@ export async function deleteEventAction(idToken: string, eventId: string) {
   try {
     await ensureAdmin(idToken);
     const db = getAdminDb();
+
+    // Проверка за обвързана командировка в модул „Счетоводство“
+    const linkedTripsSnap = await db
+      .collection("business_trips")
+      .where("eventId", "==", eventId)
+      .limit(1)
+      .get();
+    if (!linkedTripsSnap.empty) {
+      const tripData = linkedTripsSnap.docs[0].data() as {
+        orderNumber?: number;
+        title?: string;
+      };
+      const orderLabel = tripData.orderNumber
+        ? `Заповед № ${tripData.orderNumber}`
+        : tripData.title || "командировка";
+      return {
+        success: false,
+        blockedByTrip: true,
+        message: `Събитието не може да бъде изтрито, защото е обвързано със счетоводна документация (${orderLabel}).`,
+      };
+    }
+
     await db.collection("events").doc(eventId).delete();
     invalidateClubScheduleCaches();
     return { success: true, message: "Събитието е изтрито успешно." };

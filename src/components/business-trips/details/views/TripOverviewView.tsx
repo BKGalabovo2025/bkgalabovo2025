@@ -1,13 +1,18 @@
 "use client";
 
 import {
+  AlertTriangle,
   Calendar,
+  Camera,
   Car,
   CheckCircle2,
   Euro,
   FileText,
+  Lock,
   MapPin,
   Pencil,
+  PenTool,
+  RefreshCw,
   Repeat,
   Shield,
   SlidersHorizontal,
@@ -16,22 +21,28 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 import { useTripDetails } from "@/components/business-trips/details/TripDetailsContext";
 import { Badge } from "@/components/ui/badge";
 import { BentoCard } from "@/components/ui/bento-card";
 import { Button } from "@/components/ui/button";
 import {
+  buildTripRouteLabel,
   calculateTripExpensesSummary,
   calculateTripTransportTotals,
   EUR_TO_BGN_RATE,
   getEffectiveTripRates,
 } from "@/lib/business-trip-calc";
+import { checkTripCompleteness } from "@/lib/business-trip-checklist";
 import { formatDateShort } from "@/lib/date-utils";
+import { businessTripService } from "@/services/business-trip-service";
 
 export function TripOverviewView() {
-  const { trip, event, expenses, membersDict, openDialog } = useTripDetails();
+  const { trip, event, expenses, membersDict, openDialog, refreshData } =
+    useTripDetails();
+  const [isSyncingEvent, setIsSyncingEvent] = useState(false);
 
   const coach = trip.coachId ? membersDict[trip.coachId] : null;
   const coachName = coach
@@ -94,8 +105,135 @@ export function TripOverviewView() {
 
   const covInfo = getCoverageInfo(trip.expensesCoverage);
 
+  const eventEndDate = event?.endDate || event?.startDate;
+  const datesDiffer = Boolean(
+    event &&
+    (event.startDate !== trip.startDate || eventEndDate !== trip.endDate)
+  );
+  const locationDiffers = Boolean(
+    event?.location && event.location !== trip.destination
+  );
+  const eventAttendees = event?.attendeeMemberIds || [];
+  const tripParticipants = trip.participantsIds || [];
+  const attendeesDiffer = Boolean(
+    event &&
+    eventAttendees.length > 0 &&
+    [...eventAttendees].sort().join(",") !==
+      [...tripParticipants].sort().join(",")
+  );
+  const hasScheduleDrift = datesDiffer || locationDiffers || attendeesDiffer;
+
+  const handleSyncFromSchedule = async () => {
+    if (!event || !trip.id) return;
+    setIsSyncingEvent(true);
+    try {
+      await businessTripService.updateTrip(trip.id, {
+        startDate: event.startDate,
+        endDate: eventEndDate || event.startDate,
+        ...(event.location ? { destination: event.location } : {}),
+        ...(eventAttendees.length > 0
+          ? { participantsIds: eventAttendees }
+          : {}),
+      });
+      toast.success("Данните са синхронизирани с графика.");
+      await refreshData();
+    } catch (e) {
+      console.error(e);
+      toast.error("Грешка при синхронизиране с графика.");
+    } finally {
+      setIsSyncingEvent(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {hasScheduleDrift && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-300/80 bg-amber-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-amber-800/70 dark:bg-amber-950/30">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="text-xs text-amber-900 dark:text-amber-200">
+              <p className="font-bold">
+                Открита е промяна в свързаното събитие от Графика
+              </p>
+              <p className="mt-0.5 text-[11px] text-amber-800/90 dark:text-amber-300/90">
+                Разминавания:{" "}
+                {[
+                  datesDiffer ? "дати" : null,
+                  locationDiffers ? "локация" : null,
+                  attendeesDiffer ? "участници" : null,
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+                .
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={isSyncingEvent}
+            onClick={handleSyncFromSchedule}
+            className="shrink-0 rounded-xl border-amber-400 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/60"
+          >
+            <RefreshCw
+              className={`mr-1.5 size-3.5 ${isSyncingEvent ? "animate-spin" : ""}`}
+            />
+            {isSyncingEvent ? "Синхронизиране..." : "Синхронизирай от графика"}
+          </Button>
+        </div>
+      )}
+      {/* Треньорски полеви режим (Мобилни бързи действия) */}
+      <div className="rounded-2xl border border-indigo-200/70 bg-indigo-50/40 p-3.5 dark:border-indigo-900/50 dark:bg-indigo-950/20">
+        <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-200">
+            Бърз треньорски режим (в залата / на път)
+          </span>
+          {trip.status === "completed" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+              <Lock className="size-3" />
+              Приключена и отчетена
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+          >
+            <Link
+              href={`/accounting/trips/${trip.id}/expenses?action=add-expense`}
+            >
+              <Camera className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+              <span>Качи / Сканирай разход</span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+          >
+            <Link
+              href={`/accounting/trips/${trip.id}/athletes?action=signatures`}
+            >
+              <PenTool className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>Подписи на състезатели</span>
+            </Link>
+          </Button>
+          <Button
+            asChild
+            variant="outline"
+            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+          >
+            <Link href={`/accounting/trips/${trip.id}/report?action=report`}>
+              <FileText className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span>Спортен доклад</span>
+            </Link>
+          </Button>
+        </div>
+      </div>
+
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <BentoCard className="flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
@@ -413,7 +551,9 @@ export function TripOverviewView() {
                     ? `Личен автомобил (${trip.vehicle?.brand || "—"}, ${trip.vehicle?.regNumber || "—"})`
                     : trip.transportType === "club_paid"
                       ? "Клубен транспорт"
-                      : "Обществен транспорт"}
+                      : trip.transportType === "free"
+                        ? "Безплатен (осигурен)"
+                        : "Обществен транспорт"}
                 </p>
                 {trip.vehicle?.fuelType && (
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
@@ -421,6 +561,9 @@ export function TripOverviewView() {
                     {trip.vehicle.fuelNorm || "—"} л/100км
                   </p>
                 )}
+                <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Маршрут: {buildTripRouteLabel(trip, coach)}
+                </p>
               </div>
             </div>
 
@@ -463,85 +606,83 @@ export function TripOverviewView() {
           )}
         </BentoCard>
 
-        {/* Quick actions box */}
+        {/* Checklist & Quick Print Box */}
         <BentoCard className="flex flex-col justify-between space-y-4 rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-none dark:border-zinc-800 dark:bg-zinc-950">
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold tracking-wider text-zinc-900 uppercase dark:text-white">
-              Бързи действия
-            </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Всички документи, корекции и мениджъри на един клик разстояние:
-            </p>
+          {(() => {
+            const checklist = checkTripCompleteness(trip, expenses);
+            return (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold tracking-wider text-zinc-900 uppercase dark:text-white">
+                    Чеклист за готовност
+                  </h3>
+                  <Badge
+                    variant="outline"
+                    className={
+                      checklist.length === 0
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        : "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                    }
+                  >
+                    {checklist.length === 0
+                      ? "100% готова"
+                      : `${checklist.length} забележки`}
+                  </Badge>
+                </div>
 
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl border-blue-200 bg-blue-50/50 text-blue-800 hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 font-semibold"
-                onClick={() => openDialog("manager")}
-              >
-                <SlidersHorizontal className="mr-2 size-3.5 text-blue-600" />
-                Пълен мениджър (всички бланки)
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-                onClick={() => openDialog("statement")}
-              >
-                <Pencil className="mr-2 size-3.5 text-amber-600" />
-                Корекция дни / курсове / ведомост
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-              >
-                <Link href={`/accounting/trips/${trip.id}/expenses`}>
-                  <Euro className="mr-2 size-3.5 text-blue-600" />
-                  Управление на разходите ({expenses.length})
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-              >
-                <Link href={`/accounting/trips/${trip.id}/order`}>
-                  <FileText className="mr-2 size-3.5 text-indigo-600" />
-                  Официална заповед за командировка
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-              >
-                <Link href={`/accounting/trips/${trip.id}/protocol`}>
-                  <CheckCircle2 className="mr-2 size-3.5 text-emerald-600" />
-                  Решение на УС и Протокол
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-              >
-                <Link href={`/accounting/trips/${trip.id}/athletes`}>
-                  <Users className="mr-2 size-3.5 text-amber-600" />
-                  Състезатели & електронни подписи
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full justify-start text-xs rounded-xl"
-              >
-                <Link href={`/accounting/trips/${trip.id}/report`}>
-                  <FileText className="mr-2 size-3.5 text-rose-600" />
-                  Финансов & технически доклад
-                </Link>
-              </Button>
-            </div>
-          </div>
+                {checklist.length === 0 ? (
+                  <div className="flex items-center gap-2 rounded-xl border border-emerald-200/80 bg-emerald-50/60 p-3 text-xs font-medium text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                    <span>
+                      Всички документи, подписи и разходи са налични и
+                      окомплектовани.
+                    </span>
+                  </div>
+                ) : (
+                  <ul className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    {checklist.map((item) => (
+                      <li
+                        key={item.id}
+                        className={`rounded-xl border px-3 py-2 text-xs ${
+                          item.severity === "error"
+                            ? "border-rose-200 bg-rose-50/60 text-rose-900 dark:border-rose-900/50 dark:bg-rose-950/25 dark:text-rose-200"
+                            : "border-amber-200 bg-amber-50/60 text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200"
+                        }`}
+                        title={item.hint}
+                      >
+                        <p className="font-semibold">{item.message}</p>
+                        {item.hint && (
+                          <p className="mt-0.5 text-[11px] opacity-80">
+                            {item.hint}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                <div className="space-y-2 pt-1">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-xs rounded-xl border-blue-200 bg-blue-50/50 text-blue-800 hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/30 dark:text-blue-300 font-semibold"
+                    onClick={() => openDialog("manager")}
+                  >
+                    <SlidersHorizontal className="mr-2 size-3.5 text-blue-600 dark:text-blue-400" />
+                    Бърз печат и имейл (всички бланки)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={trip.status === "completed"}
+                    className="w-full justify-start text-xs rounded-xl"
+                    onClick={() => openDialog("statement")}
+                  >
+                    <Pencil className="mr-2 size-3.5 text-amber-600 dark:text-amber-400" />
+                    Корекция дни / курсове / ведомост
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </BentoCard>
       </div>
     </div>

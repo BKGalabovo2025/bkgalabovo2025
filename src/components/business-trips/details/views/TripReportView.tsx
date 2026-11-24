@@ -49,6 +49,16 @@ export function TripReportView() {
             .then(() => {
               if (action === "download") {
                 toast.success("Докладът е генериран успешно.");
+                if (trip.id) {
+                  import("@/services/business-trip-service").then((svc) => {
+                    svc.businessTripService
+                      .updateTrip(trip.id!, {
+                        reportDownloadedAt: new Date().toISOString(),
+                      })
+                      .then(refreshData)
+                      .catch(console.error);
+                  });
+                }
               }
             })
             .catch((e) => {

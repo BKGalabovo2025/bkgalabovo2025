@@ -268,7 +268,7 @@ export function TripAthletesSignaturesDialog({
                 Подписи на състезатели във ведомостта
               </DialogTitle>
             </div>
-            <DialogDescription className="mt-0.5 text-xs text-zinc-500">
+            <DialogDescription className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
               Командировка:{" "}
               <span className="font-semibold text-zinc-700 dark:text-zinc-300">
                 {trip.title}

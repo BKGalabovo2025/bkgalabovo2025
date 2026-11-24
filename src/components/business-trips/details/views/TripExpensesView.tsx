@@ -28,13 +28,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
-import {
-  calculateTripExpensesSummary,
-  EUR_TO_BGN_RATE,
-} from "@/lib/business-trip-calc";
+import { calculateTripExpensesSummary } from "@/lib/business-trip-calc";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
-import { TripExpense } from "@/types/business-trip.types";
+import { convertEurToBgn, TripExpense } from "@/types/business-trip.types";
 
 export function TripExpensesView() {
   const {
@@ -54,6 +51,7 @@ export function TripExpensesView() {
 
   const summary = calculateTripExpensesSummary(trip, expenses);
   const hasFuelExpense = summary.hasFuelReceipts;
+  const isLocked = trip.status === "completed";
 
   const isExpenseDialogOpen =
     activeDialog === "add-expense" || activeDialog === "edit-expense";
@@ -136,6 +134,12 @@ export function TripExpensesView() {
 
         <Button
           onClick={handleOpenAdd}
+          disabled={isLocked}
+          title={
+            isLocked
+              ? "Командировката е заключена. Отключете я, за да добавяте разходи."
+              : undefined
+          }
           className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
         >
           <Plus className="mr-1.5 size-3.5" />
@@ -152,8 +156,7 @@ export function TripExpensesView() {
                 <TableHead>Описание / Основание</TableHead>
                 <TableHead>Документ №</TableHead>
                 <TableHead>Дата</TableHead>
-                <TableHead className="text-right">Сума (EUR)</TableHead>
-                <TableHead className="text-right">Сума (BGN)</TableHead>
+                <TableHead className="text-right">Сума</TableHead>
                 <TableHead className="w-28 text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
@@ -161,7 +164,7 @@ export function TripExpensesView() {
               {expenses.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="py-12 text-center text-xs text-zinc-500 dark:text-zinc-400"
                   >
                     <Receipt className="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-700" />
@@ -196,20 +199,23 @@ export function TripExpensesView() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right font-bold text-zinc-900 dark:text-white">
-                      {exp.expenseType === "fuel"
-                        ? `Цена/л: €${(exp.amountEUR || 0).toFixed(2)}`
-                        : `€${(exp.amountEUR || 0).toFixed(2)}`}
-                    </TableCell>
-                    <TableCell className="text-right text-zinc-500 dark:text-zinc-400">
-                      {exp.expenseType === "fuel"
-                        ? `${((exp.amountEUR || 0) * EUR_TO_BGN_RATE).toFixed(2)} лв./л`
-                        : `${((exp.amountEUR || 0) * EUR_TO_BGN_RATE).toFixed(2)} лв.`}
+                      <div>
+                        {exp.expenseType === "fuel"
+                          ? `Цена/л: €${(exp.amountEUR || 0).toFixed(2)}`
+                          : `€${(exp.amountEUR || 0).toFixed(2)}`}
+                      </div>
+                      <div className="text-[10px] font-normal text-zinc-400 dark:text-zinc-500">
+                        {exp.expenseType === "fuel"
+                          ? `${convertEurToBgn(exp.amountEUR || 0).toFixed(2)} лв./л`
+                          : `${convertEurToBgn(exp.amountEUR || 0).toFixed(2)} лв.`}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
+                          disabled={isLocked}
                           onClick={() => handleOpenEdit(exp)}
                           className="min-h-9 sm:min-h-8 text-xs"
                         >
@@ -219,8 +225,12 @@ export function TripExpensesView() {
                           variant="ghost"
                           size="icon"
                           aria-label={`Изтрий разход ${getCategoryLabel(exp.expenseType)}`}
-                          title="Изтрий разход"
-                          disabled={isDeleting === exp.id}
+                          title={
+                            isLocked
+                              ? "Командировката е заключена"
+                              : "Изтрий разход"
+                          }
+                          disabled={isLocked || isDeleting === exp.id}
                           onClick={() => setPendingDeleteExpense(exp)}
                           className="min-h-9 min-w-9 sm:size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                         >

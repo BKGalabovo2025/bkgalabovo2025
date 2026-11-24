@@ -33,10 +33,11 @@ export async function GET(request: Request) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tripsToRemind: any[] = [];
 
-      // Check if the end date has passed
+      // Check if the 3-day NKS reporting deadline after endDate has passed
+      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       for (const doc of tripsSnapshot.docs) {
         const data = doc.data();
-        if (data.endDate && new Date(data.endDate) < now) {
+        if (data.endDate && new Date(data.endDate) < threeDaysAgo) {
           tripsToRemind.push({ id: doc.id, ...data });
         }
       }
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
       let emailsSent = 0;
 
       for (const trip of tripsToRemind) {
+        if (!trip.coachId) continue;
         // Get the coach
         const coachDoc = await adminDb
           .collection("members")

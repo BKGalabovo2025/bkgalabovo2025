@@ -265,6 +265,32 @@ export function TripExpenseDialog({
         }
       }
 
+      // 4. Вид на разхода (мапване към валидни стойности на ExpenseTypeEnum)
+      if (preParsedData.expenseType) {
+        const typeMap: Record<
+          string,
+          | "fuel"
+          | "transport"
+          | "accommodation"
+          | "food"
+          | "entry_fee"
+          | "other"
+        > = {
+          fuel: "fuel",
+          toll: "transport",
+          transport: "transport",
+          accommodation: "accommodation",
+          per_diem: "food",
+          food: "food",
+          entry_fee: "entry_fee",
+          other: "other",
+        };
+        const mapped = typeMap[preParsedData.expenseType];
+        if (mapped) {
+          form.setValue("expenseType", mapped);
+        }
+      }
+
       if (detectedFields.length > 0) {
         setOcrSummary(
           `Автоматично извлечени данни от НАП QR код: ${detectedFields.join(" | ")}`
@@ -328,7 +354,7 @@ export function TripExpenseDialog({
                       <FormLabel>Вид на разхода</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -374,7 +400,7 @@ export function TripExpenseDialog({
                               "px-2 py-0.5 rounded font-medium transition-colors",
                               currencyMode === "EUR"
                                 ? "bg-white text-zinc-900 shadow-2xs dark:bg-zinc-900 dark:text-zinc-100"
-                                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                             )}
                           >
                             EUR € (Основна)
@@ -395,7 +421,7 @@ export function TripExpenseDialog({
                               "px-2 py-0.5 rounded font-medium transition-colors",
                               currencyMode === "BGN"
                                 ? "bg-white text-blue-600 shadow-2xs dark:bg-zinc-900 dark:text-blue-400"
-                                : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                             )}
                           >
                             BGN лв (Калкулатор)
@@ -498,6 +524,10 @@ export function TripExpenseDialog({
                           name="documentDate"
                           value={field.value ? field.value.split("T")[0] : ""}
                           onChange={(e) => {
+                            if (!e.target.value) {
+                              field.onChange(undefined);
+                              return;
+                            }
                             const date = new Date(e.target.value);
                             if (!isNaN(date.getTime())) {
                               field.onChange(date.toISOString());

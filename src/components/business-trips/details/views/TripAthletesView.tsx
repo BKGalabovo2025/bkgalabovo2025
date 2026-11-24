@@ -182,15 +182,21 @@ export function TripAthletesView() {
             type="button"
             variant="outline"
             size="sm"
+            disabled={trip.status === "completed"}
             onClick={() => openDialog("statement")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            title="Корекция на присъствени дни или отпадане на състезатели от ведомостта"
+            title={
+              trip.status === "completed"
+                ? "Командировката е заключена. Отключете я за корекции."
+                : "Корекция на присъствени дни или отпадане на състезатели от ведомостта"
+            }
           >
             <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
             Корекция дни / ведомост
           </Button>
 
           <Button
+            disabled={trip.status === "completed"}
             onClick={() => openDialog("signatures")}
             className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
           >
@@ -239,7 +245,7 @@ export function TripAthletesView() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {participantIds.length === 0 ? (
-          <div className="col-span-full rounded-2xl border border-zinc-200 bg-white p-12 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="col-span-full rounded-2xl border border-zinc-200 bg-white p-12 text-center text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
             <Users className="mx-auto mb-2 size-8 text-zinc-300 dark:text-zinc-700" />
             Няма избрани състезатели за тази командировка.
           </div>
@@ -285,6 +291,36 @@ export function TripAthletesView() {
                       ? `Възраст: ${member.ageGroup}`
                       : "Състезател"}
                   </p>
+                  {member && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {(!member.hasMedicalCertificate ||
+                        member.medicalCertificateStatus === "expired" ||
+                        member.medicalCertificateStatus === "rejected") && (
+                        <span
+                          title="Липсва или е изтекъл медицински преглед в профила на състезателя"
+                          className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-medium text-rose-600 dark:text-rose-400"
+                        >
+                          Мед. преглед!
+                        </span>
+                      )}
+                      {!member.hasTravelDeclaration && (
+                        <span
+                          title="Липсва декларация за пътуване от родител"
+                          className="rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400"
+                        >
+                          Декларация!
+                        </span>
+                      )}
+                      {!member.isLicensed && (
+                        <span
+                          title="Няма отбелязана активна картотека"
+                          className="rounded bg-zinc-500/10 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-400"
+                        >
+                          Без картотека
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">

@@ -3,6 +3,10 @@ import { bg } from "date-fns/locale";
 
 import { SiteConfig } from "@/config/sites";
 import {
+  buildTripRouteDescription,
+  formatDestPlace,
+} from "@/lib/business-trip-calc";
+import {
   getTripDecisionNumber,
   getTripOrderNumber,
   getTripProtocolNumber,
@@ -140,11 +144,11 @@ export function cleanProtocolText(
     res = res
       .replace(
         /(?:Той|Тя)\s+запозна членовете с поканата от БФ Бадминтон,\s*графика на състезанието/giu,
-        `${pronoun} запозна присъстващите с провеждането на предстоящото състезание съгласно Спортния календар на БФ Бадминтон`
+        `${pronoun} запозна присъстващите с провеждането на предстоящото състезание съгласно официалната Наредба (регламент) на БФ Бадминтон`
       )
       .replace(
         /поканата от БФ Бадминтон,\s*графика на състезанието/giu,
-        "Спортния календар на БФ Бадминтон"
+        "официалната Наредба (регламент) на БФ Бадминтон"
       );
   }
 
@@ -289,7 +293,7 @@ export function generateDefaultProtocolText(
       ? `${totalPeople} ${totalPeople === 1 ? "човек" : "души"}`
       : "клубна делегация";
 
-  const destCity = trip.destination || "състезателния център";
+  const destCity = formatDestPlace(trip.destination);
   const startFmt = formatProtocolDate(trip.startDate);
   const endFmt = formatProtocolDate(trip.endDate);
   const periodStr =
@@ -337,6 +341,18 @@ export function generateDefaultProtocolText(
     : "";
 
   const calendarOrg = trip.organizer?.trim() || "БФ Бадминтон";
+  const routeDescription = buildTripRouteDescription(trip, coach);
+
+  const isCoachFemale = isFemalePerson(coachName, membersDict);
+  const coachAthleteRoleNote = trip.coachIsAthlete
+    ? isCoachFemale
+      ? " (в качеството ѝ на състезател)"
+      : " (в качеството му на състезател)"
+    : "";
+  const fuelLegalClause =
+    trip.transportType === "fuel_only"
+      ? " (включително ползване на лично МПС по официални разходни норми)"
+      : "";
 
   return cleanProtocolText(
     `Днес, ${decisionDateFmt} г., в ${meetingLocation}, в ${meetingTime} се проведе заседание на Управителния съвет на ${formatOrgName(site.name)}.
@@ -347,18 +363,18 @@ ${boardMembers}
 Председателят констатира, че е налице необходимият съгласно Устава на сдружението кворум. Заседанието е законно конституирано и може да взема валидни решения. За водещ заседанието бе ${chairDetermined} ${chair}, а за протоколчик — ${secretary}.
 
 ДНЕВЕН РЕД:
-Точка 1: Обсъждане и вземане на решение за официално участие на представителния клубен отбор в състезание съгласно Държавния спортен календар на ${calendarOrg}: ${trip.title} (гр./място ${destCity}, период ${periodStr}), утвърждаване на клубна делегация и финансово обезпечаване на разходите.
+Точка 1: Обсъждане и вземане на решение за официално участие на представителния клубен отбор в състезание съгласно официалната Наредба (регламент) на ${calendarOrg}: ${trip.title} (${destCity}, период ${periodStr}), утвърждаване на клубна делегация и финансово обезпечаване на разходите.
 
 ПО ТОЧКА 1 ОТ ДНЕВНИЯ РЕД:
-Думата бе дадена на Председателя на УС ${chair}. ${chairPronoun} запозна присъстващите с предстоящото участие на клуба в състезанието съгласно Спортния календар на ${calendarOrg} — ${trip.title}, провеждащо се в ${destCity} в периода ${periodStr}. ${chairPronoun} представи информацията за турнира и предложи клубна делегация в общ брой от ${countStr} (Ръководител/Треньор: ${coachName} и състезатели: ${playersList}). Направена бе финансова план-сметка за пътни, дневни и нощувки съгласно Наредбата за командировките в страната (НКС).
+Думата бе дадена на Председателя на УС ${chair}. ${chairPronoun} запозна присъстващите с предстоящото участие на клуба в състезанието съгласно официалната Наредба (регламент) на ${calendarOrg} — ${trip.title}, провеждащо се в ${destCity} в периода ${periodStr}. ${chairPronoun} представи информацията за турнира и предложи клубна делегация в общ брой от ${countStr} (Ръководител/Треньор: ${coachName} и състезатели: ${playersList}). Направена бе финансова план-сметка за пътни, дневни и нощувки съгласно Наредбата за командировките в страната (НКС).
 
 След проведени обсъждания и разисквания, заседанието пристъпи към гласуване.
 Резултат от гласуването: „ЗА“ — единодушно (100%), „ПРОТИВ“ — няма, „ВЪЗДЪРЖАЛИ СЕ“ — няма.
 
 ВЪЗ ОСНОВА НА РЕЗУЛТАТИТЕ ОТ ГЛАСУВАНЕТО, УПРАВИТЕЛНИЯТ СЪВЕТ ПРИЕ СЛЕДНОТО РЕШЕНИЕ № ${decisionNum}:
 1. Одобрява участието на ${formatOrgName(site.shortName)} в ${trip.title} (${destCity}) в периода ${periodStr}.
-2. Утвърждава поименния състав на делегацията с ръководител ${coachName}${trip.coachIsAthlete ? " (в качеството и на състезател)" : ""}.
-3. Одобрява финансовото обезпечаване (пътни, дневни и квартирни пари) съгласно НКС и бюджета на клуба.
+2. Утвърждава поименния състав на делегацията с ръководител ${coachName}${coachAthleteRoleNote}.
+3. Одобрява финансовото обезпечаване (пътни, дневни и квартирни пари) съгласно НКС${fuelLegalClause} и бюджета на клуба.${routeDescription ? ` ${routeDescription}` : ""}
 4. Възлага на Председателя на УС да издаде Заповед за командировка № ${orderNum} и окомплектова счетоводното досие на състезанието.${notesText}
 
 Поради изчерпване на дневния ред заседанието на Управителния съвет бе закрито. Настоящият протокол № ${protocolNum} се съставя в удостоверение на взетите решения.`,

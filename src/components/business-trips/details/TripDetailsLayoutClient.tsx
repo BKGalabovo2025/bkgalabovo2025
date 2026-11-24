@@ -4,12 +4,15 @@ import {
   ArrowLeft,
   ArrowRight,
   Edit3,
+  Lock,
   Printer,
   SlidersHorizontal,
+  Unlock,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
+import { toast } from "sonner";
 
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { CreateBusinessTripDialog } from "@/components/business-trips/CreateBusinessTripDialog";
@@ -17,7 +20,9 @@ import { TripStatementEditDialog } from "@/components/business-trips/TripStateme
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateShort } from "@/lib/date-utils";
+import { businessTripService } from "@/services/business-trip-service";
 import { ScheduleEvent } from "@/types";
 import { BusinessTrip, TripExpense } from "@/types/business-trip.types";
 import { Member } from "@/types/member.types";
@@ -41,6 +46,22 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
     openDialog,
     closeDialog,
   } = useTripDetails();
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const isLocked = trip.status === "completed";
+
+  const handleUnlockTrip = async () => {
+    if (!trip.id) return;
+    setIsUnlocking(true);
+    try {
+      await businessTripService.updateTrip(trip.id, { status: "approved" });
+      toast.success("Командировката е отключена за корекция.");
+      await refreshData();
+    } catch {
+      toast.error("Грешка при отключване на командировката.");
+    } finally {
+      setIsUnlocking(false);
+    }
+  };
 
   const effectiveEvent: ScheduleEvent =
     event ||
@@ -128,9 +149,14 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
           <Button
             variant="outline"
             size="sm"
+            disabled={isLocked}
             onClick={() => openDialog("edit")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            title="Редактирай параметри на командировката (дати, дестинация, покритие на разходи, МПС)"
+            title={
+              isLocked
+                ? "Отключете командировката, за да редактирате данните"
+                : "Редактирай параметри на командировката (дати, дестинация, покритие на разходи, МПС)"
+            }
           >
             <Edit3 className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
             Редактирай данни
@@ -161,6 +187,29 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
       </PageHeader>
 
       <TripDetailsNav tripId={tripId} />
+
+      {isLocked && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50/60 px-4 py-2.5 text-xs dark:border-emerald-900/60 dark:bg-emerald-950/30">
+          <div className="flex items-center gap-2 font-semibold text-emerald-800 dark:text-emerald-300">
+            <Lock className="size-3.5 shrink-0" />
+            <span>
+              Командировката е приключена („Отчетена“) и заключена за
+              счетоводството.
+            </span>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={isUnlocking}
+            onClick={handleUnlockTrip}
+            className="h-7 rounded-lg border-emerald-300 bg-white px-2.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
+          >
+            <Unlock className="mr-1 size-3" />
+            {isUnlocking ? "Отключване..." : "Отключи за корекция"}
+          </Button>
+        </div>
+      )}
 
       {activeDialog === "edit" && (
         <CreateBusinessTripDialog
@@ -279,7 +328,15 @@ export function TripDetailsLayoutClient({
   children: React.ReactNode;
 }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <div className="space-y-6" aria-busy="true" aria-live="polite">
+          <Skeleton className="h-24 w-full rounded-2xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-80 w-full rounded-2xl" />
+        </div>
+      }
+    >
       <TripDetailsProvider
         initialTrip={initialTrip}
         initialEvent={initialEvent}

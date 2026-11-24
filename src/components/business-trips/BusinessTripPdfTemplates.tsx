@@ -9,10 +9,14 @@ import React from "react";
 
 import { getSiteConfig } from "@/config/sites";
 import {
+  buildTripRouteDescription,
+  buildTripRouteLabel,
   calculateTripTransportTotals,
+  formatDestPlace,
   getEffectiveTripRates,
   isTripCoverageWithoutAccom,
   resolvePersonRate,
+  usesCoachOriginRoute,
 } from "@/lib/business-trip-calc";
 import {
   getTripAttendanceNumber,
@@ -51,7 +55,7 @@ const EUR_BGN = 1.95583;
 // ─── Currency helpers ─────────────────────────────────────────────────────────
 const fmtEUR = (eur: number) => `€${eur.toFixed(2)} EUR`;
 const eurToBgn = (eur: number) => eur * EUR_BGN;
-const roundEUR = (eur: number) => Math.round(eur);
+const roundEUR = (eur: number) => Math.round(eur * 100) / 100;
 
 // ─── Bulgarian number to words (for Словом) ───────────────────────────────────
 const _ones = [
@@ -135,8 +139,9 @@ function convertNumberToWords(n: number): string {
 
 function numToWordsBG(amount: number, isEur: boolean = false): string {
   if (amount <= 0) return isEur ? "нула евро" : "нула лева";
-  const i = Math.floor(amount);
-  const c = Math.round((amount - i) * 100);
+  const totalCents = Math.round(amount * 100);
+  const i = Math.floor(totalCents / 100);
+  const c = totalCents % 100;
 
   let w = convertNumberToWords(i) || "нула";
 
@@ -382,8 +387,10 @@ export function BusinessTripPdfTemplates({
   const roundedPricePerLiterBGN =
     Math.round(eurToBgn(avgPricePerLiterEUR) * 100) / 100;
   const avgPricePerLiterBGN = eurToBgn(avgPricePerLiterEUR);
-  const finalFuelBGN = totalLiters * roundedPricePerLiterBGN;
-  const finalFuelEUR = finalFuelBGN > 0 ? finalFuelBGN / 1.95583 : 0;
+  const finalFuelBGN =
+    Math.round(totalLiters * roundedPricePerLiterBGN * 100) / 100;
+  const finalFuelEUR =
+    finalFuelBGN > 0 ? Math.round((finalFuelBGN / 1.95583) * 100) / 100 : 0;
 
   const entryEUR = trip.financials.entryFeeEUR ?? 0;
   const hasEntryFee = Boolean(trip.financials.hasEntryFee ?? entryEUR > 0);
@@ -552,7 +559,9 @@ export function BusinessTripPdfTemplates({
   };
 
   const destCity = trip.destination || "___________";
-  const routeLabel = `Гълъбово — ${destCity} — Гълъбово`;
+  const coachOriginRoute = usesCoachOriginRoute(trip, coach);
+  const routeLabel = buildTripRouteLabel(trip, coach);
+  const routeDescription = buildTripRouteDescription(trip, coach);
 
   const transportShort: Record<string, string> = {
     club_paid: "Клубен транспорт",
@@ -631,7 +640,7 @@ export function BusinessTripPdfTemplates({
           <em>{routeLabel}</em> ({distKm > 0 ? `${distKm} км` : "по отчет"}) и
           се възстановява на водача срещу представен пътен лист (Отчет за
           гориво) и разходооправдателен документ (фактура / фискален бон на
-          името на клуба).
+          името на клуба).{routeDescription ? ` ${routeDescription}` : ""}
         </span>
       );
     }
@@ -674,9 +683,10 @@ export function BusinessTripPdfTemplates({
             : ""}
           , с разходна норма{" "}
           <strong>{fuelNorm > 0 ? fuelNorm : "0"} л/100 км</strong>. Разходът за
-          гориво се отчита по официални разходни норми срещу представен пътен
-          лист и разходооправдателен документ (фактура / касов бон за заредено
-          гориво на името на клуба).
+          гориво се отчита по официални разходни норми за маршрута{" "}
+          <em>{routeLabel}</em> ({distKm > 0 ? `${distKm} км` : "по отчет"}) и
+          се възстановява срещу представен пътен лист и разходооправдателен
+          документ (фактура / касов бон за заредено гориво на името на клуба).
         </p>
       );
     }
@@ -861,10 +871,10 @@ export function BusinessTripPdfTemplates({
                 <p style={{ margin: 0 }}>
                   <strong>Точка 1:</strong> Обсъждане и вземане на решение за
                   официално участие на представителния клубен отбор в състезание
-                  съгласно Държавния спортен календар на{" "}
+                  съгласно официалната Наредба (регламент) на{" "}
                   {trip.organizer?.trim() || "БФ Бадминтон"}:{" "}
-                  <strong>{trip.title}</strong> (гр./място{" "}
-                  <strong>{destCity}</strong>, период{" "}
+                  <strong>{trip.title}</strong> (
+                  <strong>{formatDestPlace(destCity)}</strong>, период{" "}
                   <strong>
                     {fmtDate(trip.startDate)} г.
                     {trip.startDate !== trip.endDate
@@ -881,7 +891,7 @@ export function BusinessTripPdfTemplates({
                 Председателя на УС <strong>{chair}</strong>.{" "}
                 {isFemalePerson(chair, membersDict) ? "Тя" : "Той"} запозна
                 присъстващите с предстоящото участие на клуба в състезанието
-                съгласно Спортния календар на{" "}
+                съгласно официалната Наредба (регламент) на{" "}
                 {trip.organizer?.trim() || "БФ Бадминтон"} —{" "}
                 <strong>{trip.title}</strong>, провеждащо се в {destCity} в
                 периода{" "}
@@ -939,7 +949,11 @@ export function BusinessTripPdfTemplates({
                 <p style={{ margin: "2pt 0" }}>
                   <strong>2.</strong> Утвърждава поименния състав на делегацията
                   с ръководител <strong>{coachName}</strong>
-                  {trip.coachIsAthlete ? " (в качеството и на състезател)" : ""}
+                  {trip.coachIsAthlete
+                    ? isFemalePerson(coachName, membersDict)
+                      ? " (в качеството ѝ на състезател)"
+                      : " (в качеството му на състезател)"
+                    : ""}
                   .
                 </p>
                 <p style={{ margin: "2pt 0" }}>
@@ -1202,7 +1216,8 @@ export function BusinessTripPdfTemplates({
         >
           Днес, <strong>{decisionDate} г.</strong>, Управителният съвет на{" "}
           {formatOrgName(site.name)}, на основание Устава на сдружението,
-          Държавния спортен календар на БФ Бадминтон и разпоредбите на Наредбата
+          официалната Наредба (регламент) на{" "}
+          {trip.organizer?.trim() || "БФ Бадминтон"} и разпоредбите на Наредбата
           за командировките в страната (НКС), проведе заседание относно
           финансовото, организационното и транспортното обезпечаване на
           предстоящо спортно участие.
@@ -1232,7 +1247,7 @@ export function BusinessTripPdfTemplates({
                 ? ` — ${fmtDate(trip.endDate)} г.`
                 : ""}
             </strong>{" "}
-            в гр./място <strong>{destCity}</strong>.
+            в <strong>{formatDestPlace(destCity)}</strong>.
           </p>
 
           <p style={{ marginBottom: "3.5pt" }}>
@@ -1553,8 +1568,8 @@ export function BusinessTripPdfTemplates({
               lineHeight: "1.4",
             }}
           >
-            На основание Наредбата за командировките в страната, Държавния
-            спортен календар на БФ Бадминтон
+            На основание Наредбата за командировките в страната, официалната
+            Наредба (регламент) на {trip.organizer?.trim() || "БФ Бадминтон"}
             {trip.usDecision ? (
               <>
                 {" "}
@@ -1593,7 +1608,11 @@ export function BusinessTripPdfTemplates({
             style={{ marginBottom: "6pt", lineHeight: "1.4", fontSize: "9pt" }}
           >
             До <strong style={{ color: "#000" }}>{destCity}</strong> и обратно
-            до гр. Гълъбово, за участие в:{" "}
+            до гр. Гълъбово
+            {coachOriginRoute
+              ? " (за водача с лично МПС — с тръгване и прибиране от гр. Хасково през гр. Гълъбово, Спортна зала „Енергетик“, за вземане и връщане на състезателите)"
+              : ""}
+            , за участие в:{" "}
             <strong style={{ color: "#000" }}>{trip.title}</strong> (
             {fmtDate(trip.startDate)}
             {trip.startDate !== trip.endDate
@@ -1696,7 +1715,20 @@ export function BusinessTripPdfTemplates({
         <div style={{ marginTop: "auto" }}>
           <p
             style={{
-              marginTop: "8pt",
+              marginTop: "6pt",
+              marginBottom: "4pt",
+              fontSize: "8.5pt",
+              lineHeight: "1.35",
+              color: "#000",
+            }}
+          >
+            В 3-дневен срок след завръщането си ръководителят да представи
+            писмен доклад за извършената работа и оригинални разходооправдателни
+            документи.
+          </p>
+          <p
+            style={{
+              marginTop: "4pt",
               marginBottom: "10pt",
               fontSize: "9.5pt",
               fontWeight: "600",
@@ -1704,7 +1736,8 @@ export function BusinessTripPdfTemplates({
             }}
           >
             Разходите за командировката са за сметка на{" "}
-            {formatOrgName(site.shortName)} гр. Гълъбово.
+            {formatOrgName(site.shortName)} гр. Гълъбово
+            {site.bulstat ? ` (ЕИК/БУЛСТАТ: ${site.bulstat})` : ""}.
           </p>
           <div
             style={{
@@ -2390,7 +2423,8 @@ export function BusinessTripPdfTemplates({
                         {exp.documentNumber
                           ? `Фактура/Бон № ${exp.documentNumber}`
                           : "Документ № ...................."}{" "}
-                        от {docDate} г. на стойност {finalExpAmount} EUR
+                        от {docDate} г. на стойност{" "}
+                        {Number(finalExpAmount).toFixed(2)} EUR
                       </p>
                     );
                   })}
@@ -2733,8 +2767,24 @@ export function BusinessTripPdfTemplates({
             за личен лек автомобил, марка/ модел{" "}
             <strong>{trip.vehicle?.brand || "неопределена"}</strong>
             ,&nbsp; рег. №{" "}
-            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>,
-            използван за служебни цели — <strong>{titleWithLabel}</strong>
+            <strong>{trip.vehicle?.regNumber || "неопределен"}</strong>, водач{" "}
+            <strong>{coachName}</strong>, използван за служебни цели —{" "}
+            <strong>{titleWithLabel}</strong>
+            {coachOriginRoute ? (
+              <>
+                {" "}
+                (с изходен и краен пункт{" "}
+                <strong>
+                  {trip.vehicle?.coachOriginCity?.trim() || "гр. Хасково"}
+                </strong>{" "}
+                през{" "}
+                <strong>
+                  {trip.vehicle?.pickupPoint?.trim() ||
+                    "гр. Гълъбово (Спортна зала „Енергетик“)"}
+                </strong>
+                )
+              </>
+            ) : null}
             {formatDecisionWithDate(trip.usDecision || decisionNum) ? (
               <>
                 {" "}
@@ -2922,6 +2972,17 @@ export function BusinessTripPdfTemplates({
               </tr>
             </tbody>
           </table>
+          <p
+            style={{
+              fontSize: "8pt",
+              margin: "0 0 6pt 0",
+              color: "#000",
+              fontStyle: "italic",
+            }}
+          >
+            Разходът е изчислен по официалната разходна норма на автомобила и е
+            документално обоснован с приложените първични счетоводни документи.
+          </p>
           <div style={{ fontSize: "9pt", marginBottom: "8pt" }}>
             {(() => {
               const fuelExpenses = expenses.filter(
@@ -3458,12 +3519,26 @@ export function BusinessTripPdfTemplates({
               <p style={{ margin: 0, fontWeight: "700", color: "#000" }}>
                 УТВЪРЖДАВАМ:
               </p>
-              <p style={{ margin: "1pt 0" }}>
-                Председател на УС: ....................
-              </p>
-              <p style={{ margin: "1pt 0", color: "#000" }}>
-                / {site.contact.mol || "М. Георгиева"} /
-              </p>
+              <p style={{ margin: "1pt 0" }}>Председател на УС:</p>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  height: "24pt",
+                }}
+              >
+                {effectiveChairmanSig ? (
+                  <img
+                    src={effectiveChairmanSig}
+                    alt="signature"
+                    style={{ height: "22pt", objectFit: "contain" }}
+                  />
+                ) : (
+                  <span>....................</span>
+                )}
+              </div>
+              <p style={{ margin: "1pt 0", color: "#000" }}>/ {chair} /</p>
               <p style={{ margin: "1pt 0" }}>
                 Дата: {fmtDate(trip.endDate || trip.startDate)} г.
               </p>

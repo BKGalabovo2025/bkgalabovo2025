@@ -3,7 +3,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { differenceInCalendarDays } from "date-fns";
-import { AlertTriangle, FileText, Save } from "lucide-react";
+import { AlertTriangle, Car, FileText, MapPin, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,7 +38,23 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
+import {
+  getTripVehiclePresetsAction,
+  saveTripVehiclePresetAction,
+  type VehiclePreset,
+} from "@/lib/actions/business-trips";
+import { COACH_ORIGIN_ROUND_TRIP_KM } from "@/lib/business-trip-calc";
 import { DEFAULT_BOARD_MEMBERS_TEXT } from "@/lib/business-trip-protocol";
+
+const ROUTE_PRESETS = [
+  { label: "София", destination: "гр. София", roundTripKm: 520 },
+  { label: "Пловдив", destination: "гр. Пловдив", roundTripKm: 210 },
+  { label: "Стара Загора", destination: "гр. Стара Загора", roundTripKm: 84 },
+  { label: "Хасково", destination: "гр. Хасково", roundTripKm: 96 },
+  { label: "Първомай", destination: "гр. Първомай", roundTripKm: 140 },
+  { label: "Бургас", destination: "гр. Бургас", roundTripKm: 350 },
+  { label: "Варна", destination: "гр. Варна", roundTripKm: 590 },
+] as const;
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip, BusinessTripSchema } from "@/types/business-trip.types";
 import { ScheduleEvent } from "@/types/index";
@@ -81,6 +97,23 @@ export function CreateBusinessTripDialog({
   const isEditMode = !!initialData;
   const submitLockRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [vehiclePresets, setVehiclePresets] = useState<VehiclePreset[]>([]);
+  const [isSavingPreset, setIsSavingPreset] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    getTripVehiclePresetsAction()
+      .then((res) => {
+        if (!cancelled && res.success) {
+          setVehiclePresets(res.presets);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   // Намираме всички деца/състезатели, които участват (изключваме треньорите)
   const participantIds = event.attendees
@@ -185,8 +218,16 @@ export function CreateBusinessTripDialog({
   // Наблюдаваме промяната във "Покрити разходи", за да преизчислим дневните пари
   const coverage = form.watch("expensesCoverage");
   const transportType = form.watch("transportType");
+  const prevCoverageRef = useRef<string | undefined>(
+    initialData?.expensesCoverage || getInitialExpensesCoverage()
+  );
 
   useEffect(() => {
+    if (initialData && prevCoverageRef.current === coverage) {
+      return;
+    }
+    prevCoverageRef.current = coverage;
+
     let baseRate = 0;
     if (coverage === "food_only" || coverage === "transport_and_food") {
       baseRate = 11; // 50% без нощувка (Наредба 2026)
@@ -197,7 +238,7 @@ export function CreateBusinessTripDialog({
       baseRate = 22; // С нощувка (Наредба 2026)
     }
     form.setValue("financials.perDiemRateEUR", baseRate);
-  }, [coverage, form]);
+  }, [coverage, form, initialData]);
 
   // Предупреждение: Датата на заповедта трябва да е преди започването на събитието
   const watchedOrderDate = form.watch("orderDate");
@@ -243,12 +284,6 @@ export function CreateBusinessTripDialog({
         ? `${baseCoachRole} и състезател`
         : baseCoachRole;
 
-      const computedEntryFee = computeTotalEntryFee(
-        Boolean(values.hasEntryFee),
-        values.entryFeePerPersonEUR,
-        participantsCount
-      );
-
       const effectiveParticipantsIds: string[] =
         values.participantsIds && values.participantsIds.length > 0
           ? values.participantsIds
@@ -256,6 +291,12 @@ export function CreateBusinessTripDialog({
               initialData.participantsIds.length > 0
             ? initialData.participantsIds
             : participantIds;
+
+      const computedEntryFee = computeTotalEntryFee(
+        Boolean(values.hasEntryFee),
+        values.entryFeePerPersonEUR,
+        effectiveParticipantsIds.length
+      );
 
       // Auto-prefill stored athlete signatures from member profiles for all participants
       const athleteSignatures: Record<string, string> = {
@@ -381,6 +422,64 @@ export function CreateBusinessTripDialog({
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {ROUTE_PRESETS.map((rp) => (
+                          <button
+                            key={rp.label}
+                            type="button"
+                            onClick={() => {
+                              field.onChange(rp.destination);
+                              const commuteMode = form.getValues(
+                                "vehicle.commuteMode"
+                              );
+                              const currentTransport =
+                                form.getValues("transportType");
+                              const includeOrigin =
+                                currentTransport === "fuel_only" &&
+                                form.getValues(
+                                  "vehicle.includeCoachOriginLeg"
+                                ) !== false;
+                              const effectiveRoundTripKm =
+                                rp.roundTripKm +
+                                (includeOrigin
+                                  ? COACH_ORIGIN_ROUND_TRIP_KM
+                                  : 0);
+                              form.setValue(
+                                "vehicle.singleRoundTripKm",
+                                effectiveRoundTripKm
+                              );
+                              if (commuteMode === "daily_commute") {
+                                const plannedDays = Math.max(
+                                  1,
+                                  differenceInCalendarDays(
+                                    new Date(
+                                      form.getValues("endDate") || event.endDate
+                                    ),
+                                    new Date(
+                                      form.getValues("startDate") ||
+                                        event.startDate
+                                    )
+                                  ) + 1
+                                );
+                                form.setValue(
+                                  "vehicle.distanceKm",
+                                  effectiveRoundTripKm * plannedDays
+                                );
+                              } else {
+                                form.setValue(
+                                  "vehicle.distanceKm",
+                                  effectiveRoundTripKm
+                                );
+                              }
+                            }}
+                            className="inline-flex items-center gap-0.5 rounded-md border border-zinc-200 bg-zinc-50 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:border-blue-700 dark:hover:bg-blue-950/40 dark:hover:text-blue-300"
+                            title={`${rp.destination} (${rp.roundTripKm} км двупосочно)`}
+                          >
+                            <MapPin className="size-2.5" />
+                            {rp.label}
+                          </button>
+                        ))}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -705,7 +804,7 @@ export function CreateBusinessTripDialog({
                       <FormLabel>Ръководител / Командировано лице</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -776,7 +875,7 @@ export function CreateBusinessTripDialog({
                       <FormLabel>Вид транспорт</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -1142,6 +1241,162 @@ export function CreateBusinessTripDialog({
                         документ.
                       </p>
                     </div>
+                    <div className="col-span-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-200/80 bg-zinc-50/70 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="flex items-center gap-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                          <Car className="size-3.5 text-blue-600 dark:text-blue-400" />
+                          Запазени МПС:
+                        </span>
+                        {vehiclePresets.length === 0 ? (
+                          <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
+                            Няма запазени шаблони
+                          </span>
+                        ) : (
+                          vehiclePresets.map((vp) => (
+                            <Button
+                              key={vp.id}
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                form.setValue("vehicle.brand", vp.brand);
+                                form.setValue(
+                                  "vehicle.regNumber",
+                                  vp.regNumber
+                                );
+                                form.setValue("vehicle.fuelType", vp.fuelType);
+                                form.setValue("vehicle.fuelNorm", vp.fuelNorm);
+                                toast.success(`Приложено МПС: ${vp.label}`);
+                              }}
+                              className="h-6 rounded-md px-2 text-[11px]"
+                            >
+                              {vp.brand} ({vp.regNumber})
+                            </Button>
+                          ))
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={isSavingPreset}
+                        onClick={async () => {
+                          const brand = (
+                            form.getValues("vehicle.brand") || ""
+                          ).trim();
+                          const regNumber = (
+                            form.getValues("vehicle.regNumber") || ""
+                          ).trim();
+                          const fuelType =
+                            (form.getValues("vehicle.fuelType") as
+                              "бензин" | "дизел" | "газ") || "бензин";
+                          const fuelNorm =
+                            Number(form.getValues("vehicle.fuelNorm")) || 0;
+                          if (!brand || !regNumber || fuelNorm <= 0) {
+                            toast.error(
+                              "Попълнете марка, рег. номер и разходна норма, за да запазите МПС шаблон."
+                            );
+                            return;
+                          }
+                          setIsSavingPreset(true);
+                          try {
+                            const res = await saveTripVehiclePresetAction({
+                              label: `${brand} (${regNumber})`,
+                              brand,
+                              regNumber,
+                              fuelType,
+                              fuelNorm,
+                            });
+                            if (res.success && res.presets) {
+                              setVehiclePresets(res.presets);
+                              toast.success("МПС шаблонът е запазен.");
+                            } else {
+                              toast.error(
+                                res.error || "Грешка при запазване на шаблона."
+                              );
+                            }
+                          } finally {
+                            setIsSavingPreset(false);
+                          }
+                        }}
+                        className="h-6 px-2 text-[11px] text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        <Save className="mr-1 size-3" />
+                        Запази това МПС
+                      </Button>
+                    </div>
+                    <FormField
+                      control={form.control as any}
+                      name="vehicle.includeCoachOriginLeg"
+                      render={({ field }: any) => {
+                        const checked = field.value !== false;
+                        return (
+                          <FormItem className="col-span-2 flex flex-row items-start space-x-2.5 space-y-0 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+                            <FormControl>
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={(val) => {
+                                  const nextChecked = Boolean(val);
+                                  field.onChange(nextChecked);
+                                  const delta = nextChecked
+                                    ? COACH_ORIGIN_ROUND_TRIP_KM
+                                    : -COACH_ORIGIN_ROUND_TRIP_KM;
+                                  const curSingle =
+                                    Number(
+                                      form.getValues(
+                                        "vehicle.singleRoundTripKm"
+                                      )
+                                    ) || 0;
+                                  const curDist =
+                                    Number(
+                                      form.getValues("vehicle.distanceKm")
+                                    ) || 0;
+                                  const isDaily =
+                                    form.getValues("vehicle.commuteMode") ===
+                                    "daily_commute";
+                                  const courses = isDaily
+                                    ? Math.max(
+                                        1,
+                                        Number(
+                                          form.getValues(
+                                            "vehicle.plannedTripsCount"
+                                          )
+                                        ) || 1
+                                      )
+                                    : 1;
+                                  if (curSingle > 0) {
+                                    form.setValue(
+                                      "vehicle.singleRoundTripKm",
+                                      Math.max(0, curSingle + delta)
+                                    );
+                                  }
+                                  if (curDist > 0) {
+                                    form.setValue(
+                                      "vehicle.distanceKm",
+                                      Math.max(0, curDist + delta * courses)
+                                    );
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-0.5 leading-snug">
+                              <FormLabel className="text-xs font-semibold text-amber-950 dark:text-amber-200 cursor-pointer">
+                                Маршрут от гр. Хасково през СЗ „Енергетик“ гр.
+                                Гълъбово (+{COACH_ORIGIN_ROUND_TRIP_KM} км /
+                                курс)
+                              </FormLabel>
+                              <FormDescription className="text-[11px] text-amber-800/90 dark:text-amber-300/80">
+                                Мира Георгиева тръгва от гр. Хасково до гр.
+                                Гълъбово (Спортна зала „Енергетик“, 48 км) за
+                                вземане на състезателите, пътува до
+                                състезанието, връща ги в Гълъбово и се прибира в
+                                Хасково (+48 км). Важи само при лично МПС.
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        );
+                      }}
+                    />
                     <FormField
                       control={form.control as any}
                       name="vehicle.brand"
@@ -1206,7 +1461,7 @@ export function CreateBusinessTripDialog({
                           <FormLabel>Вид гориво</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -1241,7 +1496,7 @@ export function CreateBusinessTripDialog({
                       <FormLabel>Покрити разходи</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -1494,7 +1749,7 @@ export function CreateBusinessTripDialog({
                       </div>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || ""}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -1529,18 +1784,23 @@ export function CreateBusinessTripDialog({
                       <FormControl>
                         <Input
                           type="date"
-                          value={
-                            field.value
-                              ? new Date(field.value)
-                                  .toISOString()
-                                  .split("T")[0]
-                              : ""
-                          }
+                          value={(() => {
+                            if (!field.value) return "";
+                            const parsed = new Date(field.value);
+                            return isNaN(parsed.getTime())
+                              ? ""
+                              : parsed.toISOString().split("T")[0];
+                          })()}
                           onChange={(e) => {
                             const d = e.target.value;
-                            field.onChange(
-                              d ? new Date(d).toISOString() : undefined
-                            );
+                            if (!d) {
+                              field.onChange(undefined);
+                              return;
+                            }
+                            const parsed = new Date(d);
+                            if (!isNaN(parsed.getTime())) {
+                              field.onChange(parsed.toISOString());
+                            }
                           }}
                         />
                       </FormControl>

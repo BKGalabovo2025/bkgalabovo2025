@@ -40,6 +40,7 @@ export function DocumentCameraScannerDialog({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scanningTimerRef = useRef<number | null>(null);
+  const isProcessingRef = useRef(false);
 
   const [hasCamera, setHasCamera] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -142,7 +143,7 @@ export function DocumentCameraScannerDialog({
         if (
           !videoRef.current ||
           videoRef.current.readyState < 2 ||
-          isProcessing
+          isProcessingRef.current
         ) {
           return;
         }
@@ -205,7 +206,8 @@ export function DocumentCameraScannerDialog({
 
   // Заснемане на кадър от видео потока
   const captureFrame = async (parsedData?: ParsedExpenseData | null) => {
-    if (!videoRef.current || isProcessing) return;
+    if (!videoRef.current || isProcessingRef.current) return;
+    isProcessingRef.current = true;
     setIsProcessing(true);
 
     try {
@@ -233,7 +235,7 @@ export function DocumentCameraScannerDialog({
           `✨ НАП QR: Номер ${parsedData.documentNumber || "—"}, Сума ${parsedData.amountBGN.toFixed(2)} лв.`
         );
       } else {
-        toast.info("Снимката е заснета! Започва интелигентно разпознаване...");
+        toast.info("Снимката е заснета и готова за прикачване.");
       }
 
       stopStream();
@@ -243,6 +245,7 @@ export function DocumentCameraScannerDialog({
       console.error("Capture error:", err);
       toast.error("Възникна грешка при заснемане.");
     } finally {
+      isProcessingRef.current = false;
       setIsProcessing(false);
     }
   };

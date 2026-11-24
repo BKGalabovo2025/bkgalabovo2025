@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,12 @@ export function SignaturePadDialog({
   const sigCanvas = useRef<SignatureCanvas>(null);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open) {
+      setError(null);
+    }
+  }, [open]);
+
   const handleClear = () => {
     sigCanvas.current?.clear();
     setError(null);
@@ -39,12 +45,17 @@ export function SignaturePadDialog({
       setError("Моля, положете подпис преди да запазите.");
       return;
     }
-    const dataURL = sigCanvas.current
-      ?.getTrimmedCanvas()
-      .toDataURL("image/png");
-    if (dataURL) {
-      onSave(dataURL);
-      onOpenChange(false);
+    try {
+      const dataURL = sigCanvas.current
+        ?.getTrimmedCanvas()
+        .toDataURL("image/png");
+      if (dataURL) {
+        onSave(dataURL);
+        onOpenChange(false);
+      }
+    } catch (err) {
+      console.error("Failed to export signature:", err);
+      setError("Грешка при обработка на подписа. Опитайте отново.");
     }
   };
 
@@ -55,7 +66,7 @@ export function SignaturePadDialog({
           <DialogTitle className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
             {title}
           </DialogTitle>
-          <DialogDescription className="mt-0.5 text-xs text-zinc-500">
+          <DialogDescription className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
             Моля, подпишете се в полето по-долу, използвайки мишката или
             пръст/писалка на мобилно устройство.
           </DialogDescription>
@@ -82,7 +93,7 @@ export function SignaturePadDialog({
             >
               Изчисти
             </Button>
-            <div className="text-[11px] text-zinc-400">
+            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
               След запазване, можете да изчистите подписа от менюто.
             </div>
           </div>

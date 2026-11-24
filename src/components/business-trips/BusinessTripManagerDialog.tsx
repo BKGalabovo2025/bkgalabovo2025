@@ -494,11 +494,6 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
 
-    businessTripService
-      .updateTrip(trip.id!, { fuelDownloadedAt: new Date().toISOString() })
-      .then(() => loadData())
-      .catch(console.error);
-
     setTimeout(() => {
       const el = document.getElementById("pdf-fuel-report-template");
       if (el) {
@@ -508,7 +503,15 @@ export function BusinessTripManagerDialog({
             el,
             `Отчет_Гориво_${num}_${trip.title}`,
             "landscape"
-          ).finally(() => setIsGeneratingPdf(false));
+          ).finally(() => {
+            setIsGeneratingPdf(false);
+            businessTripService
+              .updateTrip(trip.id!, {
+                fuelDownloadedAt: new Date().toISOString(),
+              })
+              .then(() => loadData())
+              .catch(console.error);
+          });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -587,6 +590,11 @@ export function BusinessTripManagerDialog({
       user?.email || "bkgalabovo2014@gmail.com"
     );
     if (!email) return;
+    const trimmedEmail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast.error("Моля, въведете валиден имейл адрес.");
+      return;
+    }
 
     setIsSendingEmail(true);
     setSelectedTripForPdf(trip);
@@ -632,7 +640,7 @@ export function BusinessTripManagerDialog({
                   ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
                 body: JSON.stringify({
-                  to: email,
+                  to: trimmedEmail,
                   subject: `Документ за командировка: ${trip.title}`,
                   template: "marketing",
                   data: {

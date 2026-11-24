@@ -537,3 +537,94 @@ export function calculateTripExpensesSummary(
     totalEstimatedCostBGN,
   };
 }
+
+export const COACH_ORIGIN_ONE_WAY_KM = 48;
+export const COACH_ORIGIN_ROUND_TRIP_KM = 96;
+
+export function isCoachMiraGeorgieva(
+  coachName?: string,
+  coachFirstName?: string,
+  coachLastName?: string
+): boolean {
+  const full = `${coachFirstName || ""} ${coachLastName || ""}`
+    .trim()
+    .toLowerCase();
+  const raw = (coachName || "").trim().toLowerCase();
+  return (
+    raw.includes("мира") ||
+    full.includes("мира георгиева") ||
+    (coachFirstName?.trim().toLowerCase() === "мира" &&
+      coachLastName?.trim().toLowerCase() === "георгиева")
+  );
+}
+
+/**
+ * Определя дали командировката ползва специалния маршрут на треньора с лично МПС:
+ * гр. Хасково -> гр. Гълъбово (СЗ „Енергетик“) -> Дестинация -> гр. Гълъбово (СЗ „Енергетик“) -> гр. Хасково.
+ * Важи САМО при transportType === "fuel_only" (лично МПС). При безплатен, клубен или обществен транспорт НЕ важи.
+ */
+export function usesCoachOriginRoute(
+  trip: Pick<BusinessTrip, "transportType" | "coachName" | "vehicle">,
+  coachMember?: { firstName?: string; lastName?: string } | null
+): boolean {
+  if (trip.transportType !== "fuel_only") return false;
+  if (trip.vehicle?.includeCoachOriginLeg === false) return false;
+  if (trip.vehicle?.includeCoachOriginLeg === true) return true;
+  return (
+    isCoachMiraGeorgieva(
+      trip.coachName,
+      coachMember?.firstName,
+      coachMember?.lastName
+    ) || !trip.coachName
+  );
+}
+
+export function buildTripRouteLabel(
+  trip: Pick<
+    BusinessTrip,
+    "transportType" | "coachName" | "vehicle" | "destination"
+  >,
+  coachMember?: { firstName?: string; lastName?: string } | null,
+  fallbackDest = "___________"
+): string {
+  const dest = (trip.destination || "").trim() || fallbackDest;
+  if (usesCoachOriginRoute(trip, coachMember)) {
+    const origin = trip.vehicle?.coachOriginCity?.trim() || "гр. Хасково";
+    const pickup =
+      trip.vehicle?.pickupPoint?.trim() ||
+      "гр. Гълъбово (Спортна зала „Енергетик“)";
+    return `${origin} — ${pickup} — ${dest} — ${pickup} — ${origin}`;
+  }
+  return `гр. Гълъбово — ${dest} — гр. Гълъбово`;
+}
+
+export function buildTripRouteDescription(
+  trip: Pick<
+    BusinessTrip,
+    "transportType" | "coachName" | "vehicle" | "destination"
+  >,
+  coachMember?: { firstName?: string; lastName?: string } | null
+): string | null {
+  if (!usesCoachOriginRoute(trip, coachMember)) return null;
+  const dest = (trip.destination || "").trim() || "мястото на състезанието";
+  const origin = trip.vehicle?.coachOriginCity?.trim() || "гр. Хасково";
+  const pickup =
+    trip.vehicle?.pickupPoint?.trim() ||
+    "гр. Гълъбово (Спортна зала „Енергетик“)";
+  return `Маршрут с лично МПС: тръгване от ${origin} до ${pickup} за вземане на състезателите, придвижване до ${dest}, връщане на състезателите до ${pickup} и прибиране в ${origin}.`;
+}
+
+/**
+ * Форматира името на населеното място/залата без дублиране на „гр. / град / гр./място“.
+ */
+export function formatDestPlace(dest?: string | null): string {
+  const trimmed = (dest || "").trim();
+  if (!trimmed) return "посочената дестинация";
+  if (
+    /^(гр\.|град\s)/iu.test(trimmed) ||
+    /(зала|спорт|дворец|клуб|гр\.|град\s)/iu.test(trimmed)
+  ) {
+    return trimmed;
+  }
+  return `гр. ${trimmed}`;
+}
