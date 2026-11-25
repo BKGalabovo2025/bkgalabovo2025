@@ -38,27 +38,32 @@ const RATING_DEFINITIONS: Record<
   1: {
     label: "1★ - Незадоволително / Слабо",
     short: "Слабо",
-    color: "text-rose-700 bg-rose-50 border-rose-200",
+    color:
+      "text-rose-700 bg-rose-50 border-rose-200 dark:text-rose-300 dark:bg-rose-950/50 dark:border-rose-900/60",
   },
   2: {
     label: "2★ - Приемливо / Има забележки",
     short: "Приемливо",
-    color: "text-amber-700 bg-amber-50 border-amber-200",
+    color:
+      "text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-300 dark:bg-amber-950/50 dark:border-amber-900/60",
   },
   3: {
     label: "3★ - Добро / Средно ниво",
     short: "Добро",
-    color: "text-yellow-700 bg-yellow-50 border-yellow-200",
+    color:
+      "text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-300 dark:bg-yellow-950/50 dark:border-yellow-900/60",
   },
   4: {
     label: "4★ - Много добро / Доволен/на съм",
     short: "Много добро",
-    color: "text-blue-700 bg-blue-50 border-blue-200",
+    color:
+      "text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-300 dark:bg-blue-950/50 dark:border-blue-900/60",
   },
   5: {
     label: "5★ - Отлично / Изключително доволен/на! 🌟",
     short: "Отлично 🌟",
-    color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    color:
+      "text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-900/60",
   },
 };
 

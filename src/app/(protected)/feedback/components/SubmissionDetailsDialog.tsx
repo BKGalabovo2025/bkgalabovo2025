@@ -105,20 +105,20 @@ export function SubmissionDetailsDialog({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {submission.status === "approved" ? (
-                <Badge className="border-emerald-200 bg-emerald-100 font-bold text-emerald-800">
+                <Badge className="border-emerald-200 bg-emerald-100 font-bold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/60 dark:text-emerald-300">
                   <CheckCircle2 className="mr-1 size-3.5" />
                   Одобрен отзив
                 </Badge>
               ) : submission.status === "rejected" ? (
                 <Badge
                   variant="destructive"
-                  className="border-rose-200 bg-rose-100 font-bold text-rose-800"
+                  className="border-rose-200 bg-rose-100 font-bold text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/60 dark:text-rose-300"
                 >
                   <XCircle className="mr-1 size-3.5" />
                   Отхвърлен
                 </Badge>
               ) : (
-                <Badge className="border-amber-200 bg-amber-100 font-bold text-amber-800">
+                <Badge className="border-amber-200 bg-amber-100 font-bold text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/60 dark:text-amber-300">
                   <Clock className="mr-1 size-3.5" />
                   Чакащ преглед
                 </Badge>

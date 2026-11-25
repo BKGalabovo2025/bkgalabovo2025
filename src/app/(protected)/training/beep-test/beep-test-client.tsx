@@ -63,10 +63,13 @@ interface Participant extends Member {
 }
 
 const getScoreColor = (score: string) => {
-  if (score === "Елитен състезател") return "bg-purple-100 text-purple-700";
-  if (score === "Отличен") return "bg-emerald-100 text-emerald-700";
-  if (score === "Лош") return "bg-red-100 text-red-700";
-  return "bg-blue-100 text-blue-700";
+  if (score === "Елитен състезател")
+    return "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300";
+  if (score === "Отличен")
+    return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300";
+  if (score === "Лош")
+    return "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300";
+  return "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300";
 };
 
 interface BeepTestClientProps {

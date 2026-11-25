@@ -72,8 +72,10 @@ export default async function RankingsContent({
   return (
     <div className="pb-12">
       {error ? (
-        <div className="rounded-5xl border border-rose-100 bg-rose-50 p-8 text-center">
-          <p className="font-medium text-rose-600">{error}</p>
+        <div className="rounded-5xl border border-rose-100 bg-rose-50 p-8 text-center dark:border-rose-900/50 dark:bg-rose-950/30">
+          <p className="font-medium text-rose-600 dark:text-rose-400">
+            {error}
+          </p>
         </div>
       ) : (
         <RankingsClient initialRankings={enrichedRankings} section={section} />

@@ -444,7 +444,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                          className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400"
                           onClick={() => {
                             setAttendeesMap((prev) => {
                               const next = { ...prev };
@@ -462,7 +462,7 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                             </span>
                             {(attendee.isGuest ||
                               attendee.memberId?.startsWith("guest_")) && (
-                              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-zinc-600 uppercase">
+                              <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-zinc-600 uppercase dark:bg-zinc-800 dark:text-zinc-300">
                                 Гост
                               </span>
                             )}

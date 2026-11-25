@@ -26,7 +26,7 @@ export default async function CertificateDetailPage({
     return (
       <main
         id="main-content"
-        className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center"
+        className="flex min-h-[70vh] flex-col items-center justify-center bg-zinc-50 p-6 text-center dark:bg-zinc-950"
       >
         <div className="max-w-md space-y-4 rounded-3xl border border-zinc-200 bg-white p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-red-50 text-red-500 dark:bg-red-950/60">
@@ -35,7 +35,7 @@ export default async function CertificateDetailPage({
           <h2 className="text-xl font-black text-zinc-900 dark:text-white">
             Документът не е намерен
           </h2>
-          <p className="text-xs leading-relaxed text-zinc-500">
+          <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             Възможно е документът да е премахнат или серийният номер в адреса да
             е невалиден.
           </p>

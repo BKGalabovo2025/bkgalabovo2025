@@ -42,7 +42,7 @@ export function SettingsNav({ className }: SettingsNavProps) {
               "group inline-flex shrink-0 items-center justify-start rounded-xl px-3.5 py-2 text-xs font-semibold tracking-wide whitespace-nowrap uppercase transition-all sm:px-4 sm:py-2.5 lg:w-full",
               isActive
                 ? section.id === "recovery"
-                  ? "bg-[#00f2fe]/10 text-[#00f2fe]"
+                  ? "bg-cyan-500/10 text-cyan-700 dark:bg-[#00f2fe]/10 dark:text-[#00f2fe]"
                   : section.id === "audit"
                     ? "bg-indigo-500/10 text-indigo-500 dark:text-indigo-400"
                     : section.id === "backup"
@@ -56,7 +56,7 @@ export function SettingsNav({ className }: SettingsNavProps) {
                 "mr-2.5 size-4 shrink-0 transition-transform duration-200 group-hover:scale-110",
                 isActive
                   ? section.id === "recovery"
-                    ? "text-[#00f2fe]"
+                    ? "text-cyan-700 dark:text-[#00f2fe]"
                     : section.id === "audit"
                       ? "text-indigo-500 dark:text-indigo-400"
                       : section.id === "backup"

@@ -184,7 +184,7 @@ export function CourtsOccupancyCard() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                        className="border-amber-200 bg-amber-50 text-[10px] font-bold text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                       >
                         Неплатено
                       </Badge>

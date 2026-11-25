@@ -57,7 +57,7 @@ export default async function QuizTokenPage({
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
           <Loader2 className="size-10 animate-spin text-indigo-500" />
         </div>
       }

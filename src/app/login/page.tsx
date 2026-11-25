@@ -146,7 +146,7 @@ function LoginForm() {
     <div className="relative z-10 w-full max-w-sm sm:max-w-md">
       <Link
         href="/"
-        className="mb-2.5 sm:mb-3 inline-flex min-h-6 items-center gap-1.5 py-1 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400"
+        className="mb-2.5 sm:mb-3 inline-flex min-h-6 items-center gap-1.5 py-1 text-[10px] font-semibold tracking-[0.2em] text-zinc-600 uppercase transition-colors hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
       >
         <ArrowLeft size={13} strokeWidth={2} /> Обратно към порталите
       </Link>
