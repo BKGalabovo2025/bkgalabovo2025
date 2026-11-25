@@ -372,9 +372,7 @@ export function buildStaySectionText(
     : (vehicle?.distanceKm ?? singleKm);
 
   const rawDest = (trip.destination || "дестинацията").trim();
-  const destStr = rawDest.toLowerCase().startsWith("гр.")
-    ? rawDest
-    : `гр. ${rawDest}`;
+  const destStr = formatDestPlace(rawDest);
 
   const tripWord = actualTrips === 1 ? "курс" : "курса";
 

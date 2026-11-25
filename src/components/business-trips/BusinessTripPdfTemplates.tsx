@@ -34,6 +34,7 @@ import {
   DEFAULT_BOARD_MEMBERS_TEXT,
   extractBoardMembers,
   formatOrgName,
+  generateDefaultProtocolText,
   isFemalePerson,
 } from "@/lib/business-trip-protocol";
 import { generateDefaultReportText } from "@/lib/business-trip-report";
@@ -867,181 +868,32 @@ export function BusinessTripPdfTemplates({
             color: "#000",
           }}
         >
-          {trip.protocolText && trip.protocolText.trim().length > 0 ? (
-            <div
-              style={{
-                whiteSpace: "pre-wrap",
-                lineHeight: "1.42",
-                textAlign: "justify",
-                fontSize: "8.5pt",
-                color: "#000",
-              }}
-            >
-              {cleanProtocolText(
-                trip.protocolText.trim(),
-                isFemalePerson(chair, membersDict),
-                site.shortName
-              )}
-            </div>
-          ) : (
-            <>
-              <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
-                Днес, <strong>{decisionDate} г.</strong>, в {meetingLocation}, в{" "}
-                {meetingTime} се проведе заседание на Управителния съвет на{" "}
-                {formatOrgName(site.name)}.
-              </p>
-
-              <p style={{ marginBottom: "3pt", fontWeight: "700" }}>
-                ПРИСЪСТВАТ ЧЛЕНОВЕТЕ НА УПРАВИТЕЛНИЯ СЪВЕТ:
-              </p>
-              <div style={{ marginLeft: "15pt", marginBottom: "5pt" }}>
-                <div style={{ whiteSpace: "pre-line" }}>
-                  {trip.usBoardMembers?.trim() || DEFAULT_BOARD_MEMBERS_TEXT}
-                </div>
-              </div>
-
-              <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
-                Председателят констатира, че е налице необходимият съгласно
-                Устава на сдружението кворум. Заседанието е законно
-                конституирано и може да взема валидни решения. За водещ
-                заседанието бе{" "}
-                {isFemalePerson(chair, membersDict)
-                  ? "определена"
-                  : "определен"}{" "}
-                <strong>{chair}</strong>, а за протоколчик —{" "}
-                <strong>{secretary}</strong>.
-              </p>
-
-              <p
-                style={{
-                  marginBottom: "3pt",
-                  fontWeight: "700",
-                  textAlign: "center",
-                  letterSpacing: "1px",
-                }}
-              >
-                ДНЕВЕН РЕД:
-              </p>
-              <div
-                style={{
-                  border: "1px solid #000",
-                  backgroundColor: "#f8fafc",
-                  padding: "6pt 10pt",
-                  borderRadius: "6px",
-                  marginBottom: "6pt",
-                }}
-              >
-                <p style={{ margin: 0 }}>
-                  <strong>Точка 1:</strong> Обсъждане и вземане на решение за
-                  официално участие на представителния клубен отбор в състезание
-                  съгласно официалната Наредба (регламент) на{" "}
-                  {trip.organizer?.trim() || "БФ Бадминтон"}:{" "}
-                  <strong>{trip.title}</strong> (
-                  <strong>{formatDestPlace(destCity)}</strong>, период{" "}
-                  <strong>
-                    {fmtDate(trip.startDate)} г.
-                    {trip.startDate !== trip.endDate
-                      ? ` — ${fmtDate(trip.endDate)} г.`
-                      : ""}
-                  </strong>
-                  ), утвърждаване на клубна делегация и финансово обезпечаване
-                  на разходите.
-                </p>
-              </div>
-
-              <p style={{ marginBottom: "4pt", textIndent: "15pt" }}>
-                <strong>ПО ТОЧКА 1 ОТ ДНЕВНИЯ РЕД:</strong> Думата бе дадена на
-                Председателя на УС <strong>{chair}</strong>.{" "}
-                {isFemalePerson(chair, membersDict) ? "Тя" : "Той"} запозна
-                присъстващите с предстоящото участие на клуба в състезанието
-                съгласно официалната Наредба (регламент) на{" "}
-                {trip.organizer?.trim() || "БФ Бадминтон"} —{" "}
-                <strong>{trip.title}</strong>, провеждащо се в {destCity} в
-                периода{" "}
-                <strong>
-                  {fmtDate(trip.startDate)} г.
-                  {trip.startDate !== trip.endDate
-                    ? ` — ${fmtDate(trip.endDate)} г.`
-                    : ""}
-                </strong>
-                . {isFemalePerson(chair, membersDict) ? "Тя" : "Той"} представи
-                информацията за турнира и предложи клубна делегация в общ брой
-                от{" "}
-                <strong>
-                  {totalPlannedPeople}{" "}
-                  {totalPlannedPeople === 1 ? "човек" : "души"}
-                </strong>{" "}
-                (Ръководител/Треньор: <strong>{coachName}</strong> и
-                състезатели: <em>{plannedAthletesText}</em>
-                ). Направена бе финансова план-сметка за пътни, дневни и нощувки
-                съгласно Наредбата за командировките в страната (НКС).
-              </p>
-
-              <p style={{ marginBottom: "5pt", textIndent: "15pt" }}>
-                След проведени обсъждания и разисквания, заседанието пристъпи
-                към гласуване.{" "}
-                <strong>
-                  Резултат от гласуването: „ЗА“ — единодушно (100%), „ПРОТИВ“ —
-                  няма, „ВЪЗДЪРЖАЛИ СЕ“ — няма.
-                </strong>
-              </p>
-
-              <p
-                style={{
-                  textAlign: "center",
-                  fontWeight: "700",
-                  margin: "6pt 0",
-                  letterSpacing: "1px",
-                }}
-              >
-                ВЪЗ ОСНОВА НА РЕЗУЛТАТИТЕ ОТ ГЛАСУВАНЕТО, УПРАВИТЕЛНИЯТ СЪВЕТ
-                ПРИЕ СЛЕДНОТО РЕШЕНИЕ № {decisionNum}:
-              </p>
-
-              <div style={{ marginLeft: "12pt", marginBottom: "6pt" }}>
-                <p style={{ margin: "2pt 0" }}>
-                  <strong>1.</strong> Одобрява участието на{" "}
-                  {formatOrgName(site.shortName)} в{" "}
-                  <strong>{trip.title}</strong> ({destCity}) в периода{" "}
-                  {fmtDate(trip.startDate)} г.
-                  {trip.startDate !== trip.endDate
-                    ? ` — ${fmtDate(trip.endDate)} г.`
-                    : ""}
-                  .
-                </p>
-                <p style={{ margin: "2pt 0" }}>
-                  <strong>2.</strong> Утвърждава поименния състав на делегацията
-                  с ръководител <strong>{coachName}</strong>
-                  {trip.coachIsAthlete
-                    ? isFemalePerson(coachName, membersDict)
-                      ? " (в качеството ѝ на състезател)"
-                      : " (в качеството му на състезател)"
-                    : ""}
-                  .
-                </p>
-                <p style={{ margin: "2pt 0" }}>
-                  <strong>3.</strong> Одобрява финансовото обезпечаване (пътни,
-                  дневни и квартирни пари) съгласно НКС и бюджета на клуба.
-                </p>
-                <p style={{ margin: "2pt 0" }}>
-                  <strong>4.</strong> Възлага на Председателя на УС да издаде
-                  Заповед за командировка <strong>№ {orderNum}</strong> и
-                  окомплектова счетоводното досие на състезанието.
-                </p>
-                {trip.usDecisionNotes?.trim() && (
-                  <p style={{ margin: "2pt 0" }}>
-                    <strong>5.</strong> {trip.usDecisionNotes.trim()}
-                  </p>
-                )}
-              </div>
-
-              <p style={{ margin: "4pt 0 0 0", textIndent: "15pt" }}>
-                Поради изчерпване на дневния ред заседанието на Управителния
-                съвет бе закрито. Настоящият протокол № {protocolNum} се съставя
-                в удостоверение на взетите решения.
-              </p>
-            </>
-          )}
+          <div
+            style={{
+              whiteSpace: "pre-wrap",
+              lineHeight: "1.42",
+              textAlign: "justify",
+              fontSize: "8.5pt",
+              color: "#000",
+            }}
+          >
+            {cleanProtocolText(
+              trip.protocolText && trip.protocolText.trim().length > 0
+                ? trip.protocolText.trim()
+                : generateDefaultProtocolText(trip, site, membersDict, {
+                    meetingDate: decisionDate,
+                    meetingTime,
+                    meetingLocation,
+                    meetingChair: chair,
+                    meetingSecretary: secretary,
+                    boardMembers:
+                      trip.usBoardMembers?.trim() || DEFAULT_BOARD_MEMBERS_TEXT,
+                    protocolNumber: protocolNum,
+                  }),
+              isFemalePerson(chair, membersDict),
+              site.shortName
+            )}
+          </div>
         </div>
 
         <div
