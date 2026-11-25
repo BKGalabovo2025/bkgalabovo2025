@@ -388,11 +388,28 @@ export async function updateBusinessTripAction(
     await ensureAdmin();
     const adminDb = getAdminDb();
 
-    const sanitizedData = JSON.parse(JSON.stringify(data));
-    const validatedData = BusinessTripSchema.partial().parse(sanitizedData);
+    const sanitizedData = JSON.parse(JSON.stringify(data)) as Record<
+      string,
+      unknown
+    >;
+    const validatedData = BusinessTripSchema.partial().parse(
+      sanitizedData
+    ) as Record<string, unknown>;
+
+    // CRITICAL: Zod .partial().parse() still applies .default() values (e.g.
+    // participantsIds: [], status: "draft", coachIsAthlete: false) for omitted
+    // keys! Strip any key that was NOT explicitly provided in `data` so partial
+    // updates NEVER wipe participantsIds or reset status/coachIsAthlete.
+    const explicitKeys = new Set(Object.keys(sanitizedData));
+    const safeValidatedData: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(validatedData)) {
+      if (explicitKeys.has(key)) {
+        safeValidatedData[key] = val;
+      }
+    }
 
     const updatePayload: Record<string, unknown> = {
-      ...validatedData,
+      ...safeValidatedData,
       updatedAt: new Date().toISOString(),
     };
     if (data.siteId) {
