@@ -11,6 +11,67 @@ export type LocationType =
 export type TrainingMode = "season" | "camp";
 type MedicalStatus = "healthy" | "discomfort" | "injured";
 
+export type FundamentalId =
+  | "grips"
+  | "split-step"
+  | "front-forehand"
+  | "front-backhand"
+  | "rear-footwork"
+  | "serve-receive"
+  | "clear"
+  | "drop-smash"
+  | "defense-drive"
+  | "warmup-cooldown";
+
+export type ProgressionStage = "learn" | "consolidate" | "apply";
+
+export interface CoachMethodology {
+  /** Детайлно обяснение за треньора как да го представи на U9–U11 */
+  explainKids: string;
+  /** Детайлно обяснение за треньора как да го представи на U13–Мъже/Жени */
+  explainOlder: string;
+  /** Ключови технически и биомеханични маркери, които треньорът следи */
+  keyTechnicalPoints: string[];
+  /** Типични грешки и точни корекции (реплика + действие) */
+  commonErrors: {
+    error: string;
+    fix: string;
+  }[];
+  /** Официален BWF STEP принцип за адаптация в движение */
+  stepAdjustments: {
+    easier: string;
+    harder: string;
+  };
+  /** Безопасност и предпазване от травми */
+  safetyBiomechanics: string;
+  /** Официален BWF източник */
+  officialSource: string;
+}
+
+export interface CourtPoint {
+  /** 0..100 (ляво -> дясно на корта) */
+  x: number;
+  /** 0..100 (горна/далечна задна линия -> долна/близка задна линия; мрежата е на y=50) */
+  y: number;
+  label?: string;
+}
+
+export interface CourtArrow {
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  type: "shuttle" | "movement";
+  label?: string;
+}
+
+export interface DrillCourtDiagramData {
+  players: CourtPoint[];
+  coach?: CourtPoint;
+  cones?: CourtPoint[];
+  arrows: CourtArrow[];
+  targetZones?: { x: number; y: number; r?: number; label?: string }[];
+  caption: string;
+}
+
 export interface Exercise {
   id: string;
   siteId: string;
@@ -25,6 +86,15 @@ export interface Exercise {
   prerequisites?: string[];
   videoUrl?: string; // YouTube/Instagram link or local path
   imageUrl?: string;
+
+  // BWF Textbook & Smart Generator metadata
+  fundamentalId?: FundamentalId;
+  progressionStage?: ProgressionStage;
+  linkedTestIds?: string[];
+  coachFeedRequired?: boolean;
+  dosageText?: string; // напр. "3 × 10 повторения" или "2 мин."
+  methodology?: CoachMethodology;
+  courtDiagram?: DrillCourtDiagramData;
 
   // Pedagogical structure
   phase?: "warmup" | "main-tech" | "main-tact" | "cooldown";

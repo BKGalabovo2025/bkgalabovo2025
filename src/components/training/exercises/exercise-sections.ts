@@ -1,8 +1,9 @@
-import { Dumbbell, Flame, Layers, Tent } from "lucide-react";
+import { BookOpen, Dumbbell, Flame, Layers, Tent } from "lucide-react";
 
 import type { Exercise } from "@/types/planner.types";
 
-export type ExerciseSectionId = "all" | "court" | "physical" | "camp";
+export type ExerciseSectionId =
+  "all" | "textbook" | "court" | "physical" | "camp";
 
 export interface ExerciseSectionConfig {
   id: ExerciseSectionId;
@@ -22,6 +23,16 @@ export const EXERCISE_SECTIONS: readonly ExerciseSectionConfig[] = [
     tooltip: "Цялата база с упражнения",
     description: "Официални упражнения на BWF и собствени методики.",
     icon: Layers,
+  },
+  {
+    id: "textbook",
+    label: "Учебник (BWF)",
+    pathSuffix: "textbook",
+    tooltip:
+      "10 официални BWF глави по фундаменти с детайлна методология и схеми на корта",
+    description:
+      "Официален BWF учебник по фундаменти, 3 етапа на прогресия, 5-блокова треньорска методология и SVG схеми.",
+    icon: BookOpen,
   },
   {
     id: "court",
@@ -84,6 +95,7 @@ export function exerciseMatchesSection(
 ): boolean {
   switch (section) {
     case "all":
+    case "textbook":
       return true;
     case "camp":
       return isCampExercise(ex);

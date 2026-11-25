@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BookOpen,
   Download,
   Dumbbell,
   Home,
@@ -14,6 +15,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { CoachMethodologyDialog } from "@/components/training/exercises/CoachMethodologyDialog";
 import {
   exerciseMatchesSection,
   type ExerciseSectionId,
@@ -32,6 +34,10 @@ import {
 } from "@/components/ui/select";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { INITIAL_BWF_EXERCISES } from "@/lib/badminton-exercises";
+import {
+  getExerciseCourtDiagram,
+  getExerciseMethodology,
+} from "@/lib/exercises/bwf-textbook";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
 import { Exercise } from "@/types/planner.types";
@@ -58,6 +64,8 @@ export default function ExercisesClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState("all");
+  const [methodologyExercise, setMethodologyExercise] =
+    useState<Exercise | null>(null);
 
   useDeepLinkHighlight(
     "exercise",
@@ -396,6 +404,21 @@ export default function ExercisesClient({
                         >
                           <Link2 className="size-3.5" />
                         </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setMethodologyExercise(ex);
+                          }}
+                          className="size-7 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
+                          title="Пълна BWF треньорска методика и схема на корта"
+                          aria-label="Отвори треньорска методика"
+                        >
+                          <BookOpen className="size-3.5" />
+                        </Button>
                       </div>
                     </div>
                     <h3 className="mb-2 text-lg leading-tight font-bold text-zinc-900 dark:text-zinc-100">
@@ -458,6 +481,23 @@ export default function ExercisesClient({
         }}
         onSaveSuccess={handleSaveSuccess}
       />
+
+      {methodologyExercise && (
+        <CoachMethodologyDialog
+          open={Boolean(methodologyExercise)}
+          onOpenChange={(open) => {
+            if (!open) setMethodologyExercise(null);
+          }}
+          title={methodologyExercise.name}
+          subtitle={methodologyExercise.description}
+          dosageText={
+            methodologyExercise.dosageText ||
+            `${methodologyExercise.durationMinutes} мин.`
+          }
+          methodology={getExerciseMethodology(methodologyExercise)}
+          courtDiagram={getExerciseCourtDiagram(methodologyExercise)}
+        />
+      )}
     </div>
   );
 }
