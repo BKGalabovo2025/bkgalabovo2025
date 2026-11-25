@@ -1,7 +1,10 @@
-import SaleDetailsClient from "./SaleDetailsClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function SaleDetailsPage() {
-  return <SaleDetailsClient />;
+export default async function LegacyInventorySaleDetailsRedirect({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  redirect(`/sales/${id}`);
 }

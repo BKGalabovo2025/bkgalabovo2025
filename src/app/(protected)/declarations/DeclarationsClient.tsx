@@ -127,7 +127,7 @@ export default function DeclarationsClient({
 
   const handleCopyDeclarationLink = (id: string) => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+    const url = `${window.location.origin}${window.location.pathname}?declarationId=${id}`;
     navigator.clipboard
       .writeText(url)
       .then(() => {
@@ -141,76 +141,78 @@ export default function DeclarationsClient({
   return (
     <div className="space-y-6">
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={() => setRoleFilter("all")}
-          className={cn(
-            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
-            roleFilter === "all"
-              ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10 dark:border-white dark:bg-zinc-900 dark:ring-white/10"
-              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
-          )}
-        >
-          <div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              Общо декларации
-            </p>
-            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
-              {metrics.total}
-            </p>
-          </div>
-          <span className="flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-            <FileText className="size-5" />
-          </span>
-        </button>
+      {section === "signed" && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={() => setRoleFilter("all")}
+            className={cn(
+              "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+              roleFilter === "all"
+                ? "border-zinc-900 bg-white ring-2 ring-zinc-900/10 dark:border-white dark:bg-zinc-900 dark:ring-white/10"
+                : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+            )}
+          >
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Общо декларации
+              </p>
+              <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+                {metrics.total}
+              </p>
+            </div>
+            <span className="flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+              <FileText className="size-5" />
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setRoleFilter("adult")}
-          className={cn(
-            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
-            roleFilter === "adult"
-              ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/30"
-              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
-          )}
-        >
-          <div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              За състезатели (пълнолетни)
-            </p>
-            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
-              {metrics.adults}
-            </p>
-          </div>
-          <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
-            <User className="size-5" />
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setRoleFilter("adult")}
+            className={cn(
+              "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+              roleFilter === "adult"
+                ? "border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 dark:border-blue-500 dark:bg-blue-950/30"
+                : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+            )}
+          >
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                За състезатели (пълнолетни)
+              </p>
+              <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+                {metrics.adults}
+              </p>
+            </div>
+            <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400">
+              <User className="size-5" />
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setRoleFilter("minor")}
-          className={cn(
-            "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
-            roleFilter === "minor"
-              ? "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20 dark:border-amber-500 dark:bg-amber-950/30"
-              : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
-          )}
-        >
-          <div>
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              За родители / настойници
-            </p>
-            <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
-              {metrics.minors}
-            </p>
-          </div>
-          <span className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
-            <Users className="size-5" />
-          </span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setRoleFilter("minor")}
+            className={cn(
+              "flex items-center justify-between rounded-2xl border p-4 text-left shadow-2xs transition-all cursor-pointer",
+              roleFilter === "minor"
+                ? "border-amber-600 bg-amber-50/50 ring-2 ring-amber-500/20 dark:border-amber-500 dark:bg-amber-950/30"
+                : "border-zinc-100 bg-white hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950"
+            )}
+          >
+            <div>
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                За родители / настойници
+              </p>
+              <p className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">
+                {metrics.minors}
+              </p>
+            </div>
+            <span className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400">
+              <Users className="size-5" />
+            </span>
+          </button>
+        </div>
+      )}
 
       {section === "signed" && (
         <div className="space-y-4">

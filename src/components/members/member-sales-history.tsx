@@ -212,15 +212,9 @@ export const MemberSalesHistory = ({
     });
   };
 
-  const handleRowClick = (saleId: string, isPaid: boolean, type?: string) => {
+  const handleRowClick = (saleId: string, isPaid: boolean) => {
     if (isPaid) {
-      if (type === "general_service") {
-        router.push(`/finances/general-services/sales/${saleId}/receipt`);
-      } else if (type === "inventory") {
-        router.push(`/inventory/sales/${saleId}/receipt`);
-      } else {
-        router.push(`/sales/${saleId}/receipt`);
-      }
+      router.push(`/sales/${saleId}/receipt`);
     } else {
       router.push(`/sales/${saleId}`);
     }

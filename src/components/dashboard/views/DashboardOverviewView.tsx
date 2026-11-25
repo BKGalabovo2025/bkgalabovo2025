@@ -411,9 +411,9 @@ export function DashboardOverviewView() {
             variant="outline"
             className="h-8 gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800"
           >
-            <Link href="/schedule">
+            <Link href={isRecoveryZone ? "/schedule/recovery" : "/schedule"}>
               <Calendar className="size-3.5 text-indigo-600 dark:text-indigo-400" />
-              <span>График</span>
+              <span>{isRecoveryZone ? "Резервации" : "График"}</span>
             </Link>
           </Button>
 
@@ -423,9 +423,11 @@ export function DashboardOverviewView() {
             variant="outline"
             className="h-8 gap-1.5 rounded-xl border-zinc-200 text-xs font-semibold shadow-2xs hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800"
           >
-            <Link href="/catalogs/shop">
+            <Link
+              href={isRecoveryZone ? "/catalogs/recovery" : "/catalogs/shop"}
+            >
               <Package className="size-3.5 text-amber-600 dark:text-amber-400" />
-              <span>Магазин</span>
+              <span>{isRecoveryZone ? "Каталог" : "Магазин"}</span>
             </Link>
           </Button>
         </div>
@@ -513,7 +515,7 @@ export function DashboardOverviewView() {
 
         {/* Monthly Revenue Card */}
         <BentoCard
-          onClick={() => router.push(isRecoveryZone ? "/finances" : "/reports")}
+          onClick={() => router.push("/reports")}
           className="group relative flex h-full min-h-36 sm:min-h-40 cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-purple-100 bg-purple-50/80 p-3.5 sm:p-4 text-purple-600 shadow-none transition-all duration-300 hover:bg-purple-100/50 dark:border-purple-800/50 dark:bg-purple-900/10 dark:text-purple-400 dark:hover:bg-purple-950/20"
         >
           <div className="mb-2 flex items-center justify-between">

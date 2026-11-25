@@ -4,7 +4,6 @@ import {
   Clock,
   Loader2,
   Mail,
-  Megaphone,
   PhoneCall,
   RefreshCw,
   Users,
@@ -55,33 +54,15 @@ export function MarketingLayoutClient({
           { label: "Начало", href: "/dashboard" },
           { label: "Маркетинг & CRM", href: "/marketing" },
         ]}
-      />
-
-      {/* Top Banner Toolbar */}
-      <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white p-3 sm:p-3.5 shadow-xs sm:flex-row sm:items-center dark:border-zinc-800 dark:bg-zinc-900/60">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white shadow-xs">
-            <Megaphone className="size-4.5" />
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight text-zinc-950 uppercase sm:text-lg dark:text-white">
-              Маркетинг & CRM Център
-            </h1>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Телефонни обаждания, брандирани имейли, дневник на комуникацията и
-              шаблони
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+      >
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => loadData()}
             disabled={isLoading}
-            className="h-8 rounded-lg border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200"
+            className="h-8 rounded-lg border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 shadow-xs hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
             title="Презареди данни и шаблони"
           >
             <RefreshCw
@@ -96,7 +77,7 @@ export function MarketingLayoutClient({
             {allRecipients.length} обединени контакта
           </Badge>
         </div>
-      </div>
+      </PageHeader>
 
       {/* 2. Top KPI Analytics Bar */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">

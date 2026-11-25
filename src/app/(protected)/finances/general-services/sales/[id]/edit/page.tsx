@@ -1,11 +1,10 @@
-import EditSaleClient from "./EditSaleClient";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default function EditSalePage() {
-  return (
-    <div className="pb-12 duration-500 animate-in fade-in">
-      <EditSaleClient />
-    </div>
-  );
+export default async function LegacyGeneralServiceSaleEditRedirect({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  redirect(`/sales/${id}/edit`);
 }

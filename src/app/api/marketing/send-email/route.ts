@@ -124,7 +124,9 @@ export async function POST(request: Request) {
           )
           .replace(
             /{ЛИНК_АНКЕТА}/g,
-            "https://bkgalabovo2025.vercel.app/feedback/sample"
+            isRecovery
+              ? "https://bkgalabovo2025.vercel.app/recovery-zone/reviews"
+              : "https://bkgalabovo2025.vercel.app/club/reviews"
           );
 
         const safeSubject = escapeHtml(subject).replace(/[\r\n]+/g, " ");

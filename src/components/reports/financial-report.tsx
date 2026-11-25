@@ -107,32 +107,20 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
     });
   }, [dateFrom, dateTo, paymentType]);
 
-  const handleRowClick = (saleId: string, isPaid?: boolean, type?: string) => {
+  const handleRowClick = (saleId: string, isPaid?: boolean) => {
     if (saleId.startsWith("camp-")) {
       router.push("/training/camps");
       return;
     }
     if (isPaid) {
-      if (type === "general_service") {
-        router.push(`/finances/general-services/sales/${saleId}/receipt`);
-      } else if (type === "inventory") {
-        router.push(`/inventory/sales/${saleId}/receipt`);
-      } else {
-        router.push(`/sales/${saleId}/receipt`);
-      }
+      router.push(`/sales/${saleId}/receipt`);
     } else {
       router.push(`/sales/${saleId}`);
     }
   };
 
-  const handleEdit = (saleId: string, type?: string) => {
-    if (type === "general_service") {
-      router.push(`/finances/general-services/sales/${saleId}/edit`);
-    } else if (type === "inventory") {
-      router.push(`/inventory/sales/${saleId}/edit`);
-    } else {
-      router.push(`/sales/${saleId}/edit`);
-    }
+  const handleEdit = (saleId: string) => {
+    router.push(`/sales/${saleId}/edit`);
   };
 
   const handleDelete = async (saleId: string) => {
@@ -573,7 +561,7 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                     return (
                       <TableRow
                         key={s.id}
-                        onClick={() => handleRowClick(s.id, s.isPaid, s.type)}
+                        onClick={() => handleRowClick(s.id, s.isPaid)}
                         className="group h-20 cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-50/50 dark:border-zinc-800 dark:hover:bg-zinc-800/40"
                       >
                         <TableCell className="px-8 text-[11px] font-medium text-zinc-400">
@@ -671,16 +659,14 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                             >
                               <DropdownMenuItem
                                 className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
-                                onClick={() =>
-                                  handleRowClick(s.id, s.isPaid, s.type)
-                                }
+                                onClick={() => handleRowClick(s.id, s.isPaid)}
                               >
                                 <Eye className="mr-3 size-4 text-zinc-400" />{" "}
                                 Преглед
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
-                                onClick={() => handleEdit(s.id, s.type)}
+                                onClick={() => handleEdit(s.id)}
                               >
                                 <Edit className="mr-3 size-4 text-zinc-400" />{" "}
                                 Редакция
@@ -822,16 +808,14 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                         >
                           <DropdownMenuItem
                             className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
-                            onClick={() =>
-                              handleRowClick(s.id, s.isPaid, s.type)
-                            }
+                            onClick={() => handleRowClick(s.id, s.isPaid)}
                           >
                             <Eye className="mr-3 size-4 text-zinc-400" />{" "}
                             Преглед
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="flex cursor-pointer items-center rounded-lg p-2 text-sm font-medium"
-                            onClick={() => handleEdit(s.id, s.type)}
+                            onClick={() => handleEdit(s.id)}
                           >
                             <Edit className="mr-3 size-4 text-zinc-400" />{" "}
                             Редакция

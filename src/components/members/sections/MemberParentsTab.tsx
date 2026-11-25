@@ -435,7 +435,7 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
             Активност
           </Link>
           <Link
-            href="/parents/communication"
+            href="/parents/messages"
             className="inline-flex items-center rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           >
             Комуникация

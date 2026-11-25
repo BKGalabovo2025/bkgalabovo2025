@@ -106,10 +106,10 @@ export default function TournamentsClient({
   }, []);
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && initialTournaments.length === 0) {
       refreshTournaments();
     }
-  }, [mounted, refreshTournaments]);
+  }, [mounted, initialTournaments.length, refreshTournaments]);
 
   const handleSave = async (data: Tournament) => {
     try {
