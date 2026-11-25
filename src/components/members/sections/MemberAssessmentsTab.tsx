@@ -15,8 +15,10 @@ import {
   YAxis,
 } from "recharts";
 
+import { FundamentalMapCard } from "@/components/members/profile/FundamentalMapCard";
 import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
+import { evaluateMemberFundamentals } from "@/lib/fundamental-engine";
 import { getAssessmentsByMemberId } from "@/services/assessment-service";
 import { beepTestService } from "@/services/beep-test-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -121,32 +123,41 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     );
   }
 
+  const fundamentalProfile = evaluateMemberFundamentals({
+    memberId,
+    assessments,
+    beepResults,
+  });
+
   if (assessments.length === 0 && beepResults.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
-        <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-600" />
-        <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-100">
-          Няма данни от тестове
-        </h3>
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-          Започнете да провеждате тестове от меню &quot;Тренировъчен процес
-          -&gt; Тестове&quot;.
-        </p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link
-            href="/training/assessments"
-            className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-          >
-            <TrendingUp className="size-3.5" />
-            Физически тестове
-          </Link>
-          <Link
-            href="/training/beep-test"
-            className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-          >
-            <Activity className="size-3.5" />
-            Бийп тест
-          </Link>
+      <div className="space-y-6">
+        <FundamentalMapCard profile={fundamentalProfile} />
+        <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
+          <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-600" />
+          <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-100">
+            Няма данни от тестове
+          </h3>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Започнете да провеждате тестове от меню &quot;Тренировъчен процес
+            -&gt; Тестове&quot;.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/training/assessments"
+              className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              <TrendingUp className="size-3.5" />
+              Физически тестове
+            </Link>
+            <Link
+              href="/training/beep-test"
+              className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            >
+              <Activity className="size-3.5" />
+              Бийп тест
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -164,6 +175,8 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
+      <FundamentalMapCard profile={fundamentalProfile} />
+
       <div className="flex flex-wrap items-center justify-end gap-2">
         <Link
           href="/training/assessments"
