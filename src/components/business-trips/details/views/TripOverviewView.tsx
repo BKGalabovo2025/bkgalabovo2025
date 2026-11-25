@@ -113,15 +113,29 @@ export function TripOverviewView() {
     (event.startDate !== trip.startDate || eventEndDate !== trip.endDate)
   );
   const locationDiffers = Boolean(
-    event?.location && event.location !== trip.destination
+    event?.location?.trim() &&
+    event.location.trim() !== (trip.destination || "").trim()
   );
-  const eventAttendees = event?.attendeeMemberIds || [];
-  const tripParticipants = trip.participantsIds || [];
+  const normalizeParticipantIds = (ids: string[]) =>
+    Array.from(
+      new Set(
+        ids.filter(
+          (id) =>
+            Boolean(id) &&
+            id !== "coach" &&
+            (trip.coachIsAthlete ? true : id !== trip.coachId)
+        )
+      )
+    ).sort();
+  const rawEventAttendees = event?.attendeeMemberIds || [];
+  const normalizedEventAttendees = normalizeParticipantIds(rawEventAttendees);
+  const normalizedTripParticipants = normalizeParticipantIds(
+    trip.participantsIds || []
+  );
   const attendeesDiffer = Boolean(
     event &&
-    eventAttendees.length > 0 &&
-    [...eventAttendees].sort().join(",") !==
-      [...tripParticipants].sort().join(",")
+    normalizedEventAttendees.length > 0 &&
+    normalizedEventAttendees.join(",") !== normalizedTripParticipants.join(",")
   );
   const hasScheduleDrift = datesDiffer || locationDiffers || attendeesDiffer;
 
@@ -132,9 +146,11 @@ export function TripOverviewView() {
       await businessTripService.updateTrip(trip.id, {
         startDate: event.startDate,
         endDate: eventEndDate || event.startDate,
-        ...(event.location ? { destination: event.location } : {}),
-        ...(eventAttendees.length > 0
-          ? { participantsIds: eventAttendees }
+        ...(event.location?.trim()
+          ? { destination: event.location.trim() }
+          : {}),
+        ...(normalizedEventAttendees.length > 0
+          ? { participantsIds: normalizedEventAttendees }
           : {}),
       });
       toast.success("Данните са синхронизирани с графика.");

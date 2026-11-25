@@ -83,7 +83,16 @@ export function TripDetailsProvider({
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    setTrip(initialTrip);
+    setTrip((prev) => {
+      if (!prev || prev.id !== initialTrip.id) return initialTrip;
+      const prevTs = prev.updatedAt ? Date.parse(prev.updatedAt) : 0;
+      const nextTs = initialTrip.updatedAt
+        ? Date.parse(initialTrip.updatedAt)
+        : 0;
+      // Never overwrite fresher client state with a stale RSC prop during router.replace/navigation
+      if (prevTs > nextTs) return prev;
+      return initialTrip;
+    });
   }, [initialTrip]);
 
   useEffect(() => {
@@ -139,6 +148,7 @@ export function TripDetailsProvider({
       ]);
       if (freshTrip) setTrip(freshTrip);
       setExpenses(freshExpenses);
+      router.refresh();
     } catch (e) {
       console.error("Грешка при обновяване на данни за командировката:", e);
     }

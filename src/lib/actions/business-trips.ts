@@ -1,6 +1,8 @@
 "use server";
 import "server-only";
 
+import { revalidatePath } from "next/cache";
+
 import { ensureAdmin } from "@/lib/auth-utils";
 import { isAutoDecision } from "@/lib/business-trip-numbers";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -398,6 +400,12 @@ export async function updateBusinessTripAction(
     }
 
     await adminDb.collection("business_trips").doc(id).update(updatePayload);
+    try {
+      revalidatePath("/accounting", "layout");
+      revalidatePath(`/accounting/trips/${id}`, "layout");
+    } catch {
+      // Ignore outside Next.js request context (e.g. unit tests)
+    }
     return { success: true };
   } catch (error) {
     console.error("Error in updateBusinessTripAction:", error);
