@@ -126,7 +126,13 @@ function LoginForm() {
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("redirect")
           : null;
-      const redirectTarget = redirectParam || "/dashboard";
+      const redirectTarget =
+        redirectParam &&
+        redirectParam.startsWith("/") &&
+        !redirectParam.startsWith("//") &&
+        !redirectParam.startsWith("/\\")
+          ? redirectParam
+          : "/dashboard";
       window.location.href = redirectTarget;
     } catch (err: unknown) {
       const friendlyMessage = getFriendlyErrorMessage(err);

@@ -5,7 +5,7 @@ import * as admin from "firebase-admin";
 import QRCode from "qrcode";
 
 import { logAuditEvent } from "@/lib/audit-logger";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { writeWithFallback } from "@/lib/db-failover";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getBackupDb } from "@/lib/firebase-admin-backup";
@@ -30,10 +30,10 @@ export async function issueCertificateAction(
   input: IssueCertificateInput
 ): Promise<{ success: boolean; data?: IssuedCertificate; error?: string }> {
   try {
+    const user = await ensureAdminFromSession();
     const adminDb = getAdminDb();
-    const user = await getAuthUserFromSessionCookie();
-    const issuerEmail = user?.email || "admin@bkgalabovo.bg";
-    const issuerName = user?.name || "Клубен Администратор";
+    const issuerEmail = user.email || "admin@bkgalabovo.bg";
+    const issuerName = user.name || "Клубен Администратор";
 
     // 1. Извличане на шаблона (ако е посочен)
     let templateData: CertificateTemplate | null = null;
@@ -448,11 +448,11 @@ export async function redeemVoucherSessionAction(
   fallbackCertificate?: IssuedCertificate
 ): Promise<{ success: boolean; updated?: IssuedCertificate; error?: string }> {
   try {
+    const user = await ensureAdminFromSession();
     const adminDb = getAdminDb();
     const backupDb = getBackupDb();
-    const user = await getAuthUserFromSessionCookie();
-    const staffEmail = user?.email || "staff@bkgalabovo.bg";
-    const staffName = user?.name || "Служител";
+    const staffEmail = user.email || "staff@bkgalabovo.bg";
+    const staffName = user.name || "Служител";
 
     const cleanId = (certificateId || "").trim();
     if (!cleanId && !fallbackCertificate) {
@@ -688,13 +688,7 @@ export async function deleteIssuedCertificateAction(
   idOrSerial: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    if (!user) {
-      return {
-        success: false,
-        error: "Неоторизиран достъп. Моля, влезте отново.",
-      };
-    }
+    await ensureAdminFromSession();
 
     const adminDb = getAdminDb();
     const backupDb = getBackupDb();

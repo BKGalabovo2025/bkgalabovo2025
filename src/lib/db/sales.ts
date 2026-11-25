@@ -1,4 +1,4 @@
-﻿/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from "firebase-admin";
 
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -60,7 +60,13 @@ export async function getCachedSalesForBranch(
       const snapshot = await salesQuery.get();
       return snapshot.docs
         .map((doc) => snapToData<Sale>(doc))
-        .filter((sale): sale is Sale => sale !== null)
+        .filter((sale): sale is Sale => {
+          if (!sale) return false;
+          if (activeBranch === "bkgalabovo" && sale.siteId === "recoveryzone") {
+            return false;
+          }
+          return true;
+        })
         .sort(
           (a, b) =>
             new Date(b.saleDate).getTime() - new Date(a.saleDate).getTime()

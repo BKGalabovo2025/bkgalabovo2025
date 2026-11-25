@@ -225,7 +225,119 @@ export async function updateSaleAction(
     }
     dataToUpdate.updatedAt = FieldValue.serverTimestamp();
 
-    await saleRef.update(dataToUpdate);
+    // Reconcile product stock atomically when sale items are modified
+    const hasItemsUpdate = Array.isArray(data.items);
+    if (hasItemsUpdate) {
+      await adminDb.runTransaction(async (transaction) => {
+        const freshSaleSnap = await transaction.get(saleRef);
+        if (!freshSaleSnap.exists) {
+          throw new Error("Продажбата не бе намерена.");
+        }
+
+        const oldItems = (freshSaleSnap.data()?.items || []) as Array<{
+          productId?: string;
+          name?: string;
+          quantity?: number;
+        }>;
+        const newItems = (data.items || []) as Array<{
+          productId?: string;
+          name?: string;
+          quantity?: number;
+        }>;
+
+        const oldQtyByProduct = new Map<
+          string,
+          { qty: number; name: string }
+        >();
+        for (const item of oldItems) {
+          if (!item.productId) continue;
+          const prev = oldQtyByProduct.get(item.productId);
+          oldQtyByProduct.set(item.productId, {
+            qty: (prev?.qty || 0) + (item.quantity || 0),
+            name: item.name || prev?.name || "",
+          });
+        }
+
+        const newQtyByProduct = new Map<
+          string,
+          { qty: number; name: string }
+        >();
+        for (const item of newItems) {
+          if (!item.productId) continue;
+          const prev = newQtyByProduct.get(item.productId);
+          newQtyByProduct.set(item.productId, {
+            qty: (prev?.qty || 0) + (item.quantity || 0),
+            name: item.name || prev?.name || "",
+          });
+        }
+
+        const allProductIds = new Set<string>([
+          ...oldQtyByProduct.keys(),
+          ...newQtyByProduct.keys(),
+        ]);
+
+        const stockUpdates: Array<{
+          ref: FirebaseFirestore.DocumentReference;
+          newStock: number;
+          delta: number;
+          productId: string;
+          productName: string;
+        }> = [];
+
+        for (const productId of allProductIds) {
+          const oldEntry = oldQtyByProduct.get(productId);
+          const newEntry = newQtyByProduct.get(productId);
+          const delta = (newEntry?.qty || 0) - (oldEntry?.qty || 0);
+          if (delta === 0) continue;
+
+          const productRef = adminDb.collection("products").doc(productId);
+          const productDoc = await transaction.get(productRef);
+          if (!productDoc.exists) continue;
+
+          const productData = productDoc.data()!;
+          const currentStock = Number(productData.stock) || 0;
+          const newStock = currentStock - delta;
+          const productName =
+            newEntry?.name ||
+            oldEntry?.name ||
+            (productData.name as string) ||
+            productId;
+
+          if (newStock < 0) {
+            throw new Error(`Недостатъчна наличност за ${productName}.`);
+          }
+
+          stockUpdates.push({
+            ref: productRef,
+            newStock,
+            delta,
+            productId,
+            productName,
+          });
+        }
+
+        transaction.update(saleRef, dataToUpdate);
+
+        for (const upd of stockUpdates) {
+          transaction.update(upd.ref, { stock: upd.newStock });
+          const eventRef = adminDb.collection("inventory_events").doc();
+          transaction.set(eventRef, {
+            id: eventRef.id,
+            productId: upd.productId,
+            productName: upd.productName,
+            type: "correction",
+            quantityChange: -upd.delta,
+            createdAt: new Date().toISOString(),
+            userId: user.uid,
+            userName: user.displayName || user.email,
+            relatedSaleId: id,
+            notes: `Корекция при редакция на продажба № ${id}`,
+          });
+        }
+      });
+    } else {
+      await saleRef.update(dataToUpdate);
+    }
 
     // If payment status changed to PAID, update attendances
     if (dataToUpdate.isPaid && existingSale && !existingSale.isPaid) {
@@ -345,6 +457,13 @@ export async function updateSaleAction(
     revalidatePath("/sales");
     revalidatePath(`/sales/${id}`);
     revalidatePath("/club/parents");
+    if (hasItemsUpdate) {
+      revalidatePath("/catalogs/shop");
+      revalidatePath("/reports");
+      revalidatePath("/reports/restock");
+      serverCache.invalidatePattern("products:");
+      serverCache.invalidatePattern("catalog:products");
+    }
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
     serverCache.invalidatePattern("parent-dashboard:");
@@ -357,7 +476,11 @@ export async function updateSaleAction(
     console.error("updateSaleAction Error:", error);
     return {
       success: false,
-      message: "Грешка при актуализиране на продажбата.",
+      message:
+        error instanceof Error &&
+        error.message.startsWith("Недостатъчна наличност")
+          ? error.message
+          : "Грешка при актуализиране на продажбата.",
     };
   }
 }

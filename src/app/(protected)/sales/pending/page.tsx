@@ -70,7 +70,13 @@ export default async function PendingSalesPage() {
     initialSales = salesResult || [];
     initialMembers = membersSnap.docs
       .map(snapToMember)
-      .filter((m): m is Member => m !== null);
+      .filter((m): m is Member => {
+        if (!m) return false;
+        if (activeBranch === "bkgalabovo" && m.siteId === "recoveryzone") {
+          return false;
+        }
+        return true;
+      });
   } catch (error) {
     console.error("Failed to load initial pending sales/members:", error);
   }

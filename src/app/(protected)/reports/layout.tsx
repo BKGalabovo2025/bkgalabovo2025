@@ -85,7 +85,13 @@ export default async function ReportsLayout({
         const snap = await membersQuery.get();
         return snap.docs
           .map((doc) => snapToData<Member>(doc))
-          .filter((m): m is Member => m !== null);
+          .filter((m): m is Member => {
+            if (!m) return false;
+            if (activeBranch === "bkgalabovo" && m.siteId === "recoveryzone") {
+              return false;
+            }
+            return true;
+          });
       },
       60000
     ),
@@ -103,7 +109,14 @@ export default async function ReportsLayout({
         const snap = await eventsQuery.get();
         return snap.docs
           .map((doc) => snapToData<ScheduleEvent>(doc))
-          .filter((e): e is ScheduleEvent => e !== null);
+          .filter((e): e is ScheduleEvent => {
+            if (!e) return false;
+            const siteId = (e as ScheduleEvent & { siteId?: string }).siteId;
+            if (activeBranch === "bkgalabovo" && siteId === "recoveryzone") {
+              return false;
+            }
+            return true;
+          });
       },
       30000
     ),
@@ -119,7 +132,13 @@ export default async function ReportsLayout({
         const snap = await productsQuery.get();
         return snap.docs
           .map((doc) => snapToData<Product>(doc))
-          .filter((p): p is Product => p !== null);
+          .filter((p): p is Product => {
+            if (!p) return false;
+            if (activeBranch === "bkgalabovo" && p.siteId === "recoveryzone") {
+              return false;
+            }
+            return true;
+          });
       },
       60000
     ),
