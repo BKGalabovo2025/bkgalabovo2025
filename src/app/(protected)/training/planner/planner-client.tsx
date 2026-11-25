@@ -16,6 +16,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Sparkles,
   Trash2,
   Users,
   X,
@@ -26,6 +27,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CoachNotesCard } from "@/components/training/CoachNotesCard";
+import { SmartSessionBuilderDialog } from "@/components/training/planner/SmartSessionBuilderDialog";
 import { SessionDetailsDialog } from "@/components/training/SessionDetailsDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,6 +102,7 @@ function PlannerClientContent({
   const [isWizardOpen, setIsWizardOpen] = useState(
     !!campIdParam || !!importTemplateParam || newParam === "true"
   );
+  const [isSmartBuilderOpen, setIsSmartBuilderOpen] = useState(false);
 
   useEffect(() => {
     loadSessions();
@@ -299,6 +302,13 @@ function PlannerClientContent({
     <div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
       {/* Action Buttons */}
       <div className="flex w-full flex-wrap items-center justify-end gap-2">
+        <Button
+          onClick={() => setIsSmartBuilderOpen(true)}
+          className="w-full sm:w-auto rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
+        >
+          <Sparkles className="mr-2 size-4" />
+          Умен BWF Генератор
+        </Button>
         <Button
           asChild
           variant="outline"
@@ -716,6 +726,13 @@ function PlannerClientContent({
       />
 
       {/* Wizard */}
+      <SmartSessionBuilderDialog
+        open={isSmartBuilderOpen}
+        onOpenChange={setIsSmartBuilderOpen}
+        recentSessions={sessions}
+        onSaved={loadSessions}
+      />
+
       <CreateSessionWizard
         open={isWizardOpen}
         onOpenChange={(open) => {

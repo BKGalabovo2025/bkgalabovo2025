@@ -185,6 +185,7 @@ export interface PlannerSession {
   blocks?: SessionBlock[]; // The new Time-Budget / Station structure
   eventId?: string; // Link to public schedule
   campId?: string; // Link to the camp this session belongs to
+  smartPlan?: Record<string, unknown>; // Saved Smart BWF Court Board state
 
   // Methodological tracking
   focus?: string;
