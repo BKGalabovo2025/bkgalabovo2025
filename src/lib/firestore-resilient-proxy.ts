@@ -173,6 +173,28 @@ function setCache(cacheKey: string, result: unknown): void {
   memoryReadCache.set(cacheKey, { result, timestamp: Date.now() });
 }
 
+function invalidateCacheForCollection(collectionName?: string): void {
+  if (!collectionName) {
+    memoryReadCache.clear();
+    return;
+  }
+  const needle = `collection(["${collectionName}"])`;
+  for (const key of memoryReadCache.keys()) {
+    if (key.includes(needle)) {
+      memoryReadCache.delete(key);
+    }
+  }
+}
+
+function invalidateCacheForSteps(steps: ChainStep[]): void {
+  const colStep = steps.find((s) => s.method === "collection");
+  const colName =
+    colStep && typeof colStep.args[0] === "string"
+      ? colStep.args[0]
+      : undefined;
+  invalidateCacheForCollection(colName);
+}
+
 function getSafeFallbackForGet(steps: ChainStep[], cacheKey: string): unknown {
   // 1. Първи приоритет: връщане на кеширани данни (дори да са леко остарели), за да се запази потребителското изживяване
   const cached = memoryReadCache.get(cacheKey);
@@ -439,6 +461,8 @@ async function handleQuotaExhaustionOnExecution(
     const backupResult = await executeOnBackup(backupDb, steps, prop, args);
     if (prop === "get" && backupResult) {
       setCache(cacheKey, backupResult);
+    } else if (WRITE_METHODS.has(prop)) {
+      invalidateCacheForSteps(steps);
     }
     return backupResult;
   } catch (backupErr) {
@@ -495,6 +519,8 @@ async function handleExecutionMethod(
         const backupResult = await executeOnBackup(backupDb, steps, prop, args);
         if (prop === "get" && backupResult) {
           setCache(cacheKey, backupResult);
+        } else if (WRITE_METHODS.has(prop)) {
+          invalidateCacheForSteps(steps);
         }
         return backupResult;
       } catch (backupErr) {
@@ -524,6 +550,7 @@ async function handleExecutionMethod(
 
     // Asynchronous dual-write replication: keep backup DB in sync with primary
     if (WRITE_METHODS.has(prop)) {
+      invalidateCacheForSteps(steps);
       const backupDb = getBackupDb();
       if (backupDb) {
         executeOnBackup(backupDb, steps, prop, args).catch((repErr) => {
@@ -688,15 +715,29 @@ function wrapWriteBatch(
       );
     },
     async commit(): Promise<admin.firestore.WriteResult[]> {
+      const invalidateTouchedCollections = () => {
+        const cols = new Set(
+          ops.map((o) => o.path.split("/")[0]).filter(Boolean)
+        );
+        if (cols.size === 0) {
+          memoryReadCache.clear();
+        } else {
+          cols.forEach((c) => invalidateCacheForCollection(c));
+        }
+      };
+
       if (isPrimaryQuotaCurrentlyExhausted()) {
         const backupDb = getBackupDb();
         if (backupDb) {
-          return await replayBatchOps(backupDb, ops);
+          const res = await replayBatchOps(backupDb, ops);
+          invalidateTouchedCollections();
+          return res;
         }
       }
 
       try {
         const result = await primaryBatch.commit();
+        invalidateTouchedCollections();
         const backupDb = getBackupDb();
         if (backupDb) {
           replayBatchOps(backupDb, ops).catch((repErr) => {
@@ -715,7 +756,9 @@ function wrapWriteBatch(
           console.warn(
             "[firestore-failover] 🔀 Batch commit exceeded quota. Replaying on backup Firestore..."
           );
-          return await replayBatchOps(backupDb, ops);
+          const res = await replayBatchOps(backupDb, ops);
+          invalidateTouchedCollections();
+          return res;
         }
         throw err;
       }
