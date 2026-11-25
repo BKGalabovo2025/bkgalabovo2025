@@ -20,12 +20,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { SmartCourtBoardView } from "@/components/training/active/SmartCourtBoardView";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { SmartTrainingPlan } from "@/lib/smart-session-generator";
 import { cn } from "@/lib/utils";
 import { getAllMembers } from "@/services/member-service";
 import { plannerService } from "@/services/planner-service";
@@ -450,6 +452,16 @@ export default function ActiveSessionClient({ sessionId }: Props) {
           Обратно към Планьора
         </Button>
       </div>
+    );
+  }
+
+  if (session.smartPlan) {
+    return (
+      <SmartCourtBoardView
+        session={session}
+        initialPlan={session.smartPlan as unknown as SmartTrainingPlan}
+        allMembers={members}
+      />
     );
   }
 
