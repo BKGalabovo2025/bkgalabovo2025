@@ -46,9 +46,15 @@ export function SignaturePadDialog({
       return;
     }
     try {
-      const dataURL = sigCanvas.current
-        ?.getTrimmedCanvas()
-        .toDataURL("image/png");
+      let canvas: HTMLCanvasElement | undefined;
+      try {
+        canvas = sigCanvas.current?.getTrimmedCanvas();
+      } catch {
+        canvas = sigCanvas.current?.getCanvas();
+      }
+      const dataURL = (canvas || sigCanvas.current?.getCanvas())?.toDataURL(
+        "image/png"
+      );
       if (dataURL) {
         onSave(dataURL);
         onOpenChange(false);

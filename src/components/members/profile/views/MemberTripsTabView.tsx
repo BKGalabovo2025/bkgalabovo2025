@@ -103,6 +103,7 @@ export function MemberTripsTabView() {
           propagateAll: true,
         });
         if (res.success) {
+          setOptimisticSignature(base64);
           toast.success(
             res.message || "Подписът е запазен и приложен към командировките!"
           );
@@ -117,6 +118,7 @@ export function MemberTripsTabView() {
           siteId: member.siteId,
         });
         if (res.success) {
+          setOptimisticSignature(base64);
           toast.success(
             res.message || "Подписът е запазен в профила на състезателя!"
           );
@@ -127,6 +129,7 @@ export function MemberTripsTabView() {
 
       setIsPadOpen(false);
       setTargetTripId(null);
+      router.refresh();
       await Promise.all([refetch(), loadTrips()]);
     } catch (err) {
       console.error(err);
@@ -135,7 +138,7 @@ export function MemberTripsTabView() {
   };
 
   const handleBatchApply = async () => {
-    if (!member.signature) {
+    if (!effectiveSignature) {
       toast.error("Състезателят няма съхранен подпис в профила.");
       return;
     }
@@ -149,6 +152,7 @@ export function MemberTripsTabView() {
         toast.success(
           res.message || "Подписът беше приложен към всички командировки!"
         );
+        router.refresh();
         await loadTrips();
       } else {
         toast.error(res.error || "Грешка при прилагане на подписа.");
@@ -162,17 +166,18 @@ export function MemberTripsTabView() {
   };
 
   const handleApplySingleTrip = async (tripId: string) => {
-    if (!member.signature) return;
+    if (!effectiveSignature) return;
     try {
       const res = await saveDirectAthleteSignatureAction({
         tripId,
         memberId,
-        signatureBase64: member.signature,
+        signatureBase64: effectiveSignature,
         siteId: member.siteId,
         propagateAll: true,
       });
       if (res.success) {
         toast.success("Подписът беше успешно приложен към тази ведомост!");
+        router.refresh();
         await loadTrips();
       } else {
         toast.error(res.error || "Грешка при прилагане на подписа.");
@@ -195,7 +200,9 @@ export function MemberTripsTabView() {
       setIsClearing(true);
       const res = await clearMemberStoredSignatureAction({ memberId });
       if (res.success) {
+        setOptimisticSignature(null);
         toast.success(res.message || "Подписът беше премахнат от профила.");
+        router.refresh();
         await refetch();
       } else {
         toast.error(res.error || "Грешка при премахване на подписа.");
@@ -800,7 +807,7 @@ export function MemberTripsTabView() {
                               Чака подпис
                             </span>
 
-                            {member.signature ? (
+                            {effectiveSignature ? (
                               <Button
                                 type="button"
                                 size="sm"
