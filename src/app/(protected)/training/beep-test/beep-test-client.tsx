@@ -335,7 +335,7 @@ export default function BeepTestClient({
 
       await Promise.all(promises);
       toast.success("Резултатите са запазени успешно в досиетата!");
-      router.push("/training/assessments"); // Redirect back to general tests or stay
+      router.push("/training/beep-test/history");
     } catch (error) {
       console.error(error);
       toast.error("Грешка при запазване");

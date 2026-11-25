@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   >("idle");
   const [currentSet, setCurrentSet] = useState(1);
   const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Global Notes
@@ -312,10 +314,10 @@ export default function ActiveSessionClient({ sessionId }: Props) {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
-      // Note: A true pause would need a third state "paused", but for simplicity we just clear the interval
-      // and let the UI know. We'll add a pseudo-pause by nullifying the ref and checking it.
+      setIsTimerPaused(true);
     } else {
       // Resume
+      setIsTimerPaused(false);
       timerRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
@@ -423,6 +425,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       router.push("/training/planner");
     } catch (error) {
       console.error(error);
+      toast.error("Грешка при запазване на тренировъчната сесия.");
     } finally {
       setIsSaving(false);
     }
@@ -578,9 +581,16 @@ export default function ActiveSessionClient({ sessionId }: Props) {
             <Button
               size="lg"
               onClick={() => toggleTimerPause()}
+              aria-label={
+                isTimerPaused ? "Продължи таймера" : "Пауза на таймера"
+              }
               className="min-h-14 min-w-14 bg-white text-zinc-950 hover:bg-zinc-200 dark:bg-zinc-100 dark:text-zinc-950"
             >
-              <Pause className="size-5" />
+              {isTimerPaused ? (
+                <Play className="size-5" />
+              ) : (
+                <Pause className="size-5" />
+              )}
             </Button>
           )}
           {timerState !== "finished" && (

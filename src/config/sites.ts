@@ -62,6 +62,13 @@ const BKG_EXCLUSIVE_PREFIXES = [
   "/tournaments",
   "/rankings",
   "/inventory",
+  "/parents",
+  "/schedule/courts",
+  "/catalogs/trainings",
+  "/catalogs/club-services",
+  "/catalogs/shop",
+  "/members/club",
+  "/members/families",
 ];
 
 // Маршрути, валидни САМО за Recovery Zone
@@ -69,6 +76,11 @@ const RZ_EXCLUSIVE_PREFIXES = [
   "/recovery-zone",
   "/recovery",
   "/finances/recovery",
+  "/declarations",
+  "/schedule/recovery",
+  "/catalogs/recovery",
+  "/settings/recovery",
+  "/members/recovery",
 ];
 
 /**

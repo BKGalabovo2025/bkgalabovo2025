@@ -35,6 +35,12 @@ export default async function MembersListLayout({
         async () => {
           try {
             const adminDb = getAdminDb();
+            if (activeBranch === "bkgalabovo") {
+              const snap = await adminDb.collection("families").get();
+              return snap.docs.filter(
+                (d) => d.data()?.siteId !== "recoveryzone"
+              ).length;
+            }
             const snap = await adminDb
               .collection("families")
               .where("siteId", "==", activeBranch)

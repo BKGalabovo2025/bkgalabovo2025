@@ -83,23 +83,20 @@ export function SettingsLayoutClient({ children }: SettingsLayoutClientProps) {
         },
       });
     } catch (error) {
-      console.warn("Cloud save warning:", error);
-      toast.success(
-        "Настройките са съхранени локално в браузъра (ще се синхронизират в облака при зануляване на квотата)!",
-        {
-          style: {
-            borderRadius: "1.5rem",
-            background: "#18181b",
-            color: "#fff",
-            fontWeight: 400,
-            fontSize: "0.875rem",
-          },
-        }
+      console.error("Cloud save error:", error);
+      toast.error(
+        "Грешка при запазване на настройките в облака. Моля, опитайте отново."
       );
     } finally {
       setIsSaving(false);
     }
   };
+
+  const showGlobalSaveButton =
+    !activeSectionId ||
+    activeSectionId === "general" ||
+    activeSectionId === "branding" ||
+    activeSectionId === "recovery";
 
   if (isLoading) {
     return (
@@ -119,14 +116,16 @@ export function SettingsLayoutClient({ children }: SettingsLayoutClientProps) {
         description="Управление на системните параметри, сигурността и брандирането на клуба."
         breadcrumbs={breadcrumbs}
       >
-        <Button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="h-12 w-full sm:w-auto rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
-        >
-          {isSaving ? "Запазване..." : "Запази промените"}
-          {!isSaving && <Save className="ml-3 size-4" strokeWidth={1.5} />}
-        </Button>
+        {showGlobalSaveButton && (
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="h-12 w-full sm:w-auto rounded-xl bg-primary px-8 text-[11px] font-medium tracking-widest text-white uppercase shadow-none transition-all hover:bg-primary/90"
+          >
+            {isSaving ? "Запазване..." : "Запази промените"}
+            {!isSaving && <Save className="ml-3 size-4" strokeWidth={1.5} />}
+          </Button>
+        )}
       </PageHeader>
 
       <div className="flex flex-col gap-4 lg:gap-6 lg:flex-row">

@@ -364,6 +364,16 @@ export function TournamentDetailsProvider({
       await tournamentService.updateTournament(tournament.id, data);
       toast.success("Турнирът е обновен!");
       setIsEditDialogOpen(false);
+      if (
+        data.countsForRanking !== undefined ||
+        data.status !== undefined ||
+        data.pointsMultiplier !== undefined
+      ) {
+        const syncResult = await syncRankingsAction();
+        if (!syncResult.success) {
+          toast.error("Грешка при автоматичното обновяване на ранкинга.");
+        }
+      }
       await loadData();
     } catch (error) {
       toast.error("Грешка при обновяване");
@@ -440,6 +450,11 @@ export function TournamentDetailsProvider({
         if (shouldComplete) {
           await handleCompleteTournament();
         }
+      } else if (
+        tournament?.status === "completed" &&
+        tournament?.countsForRanking
+      ) {
+        await syncRankingsAction();
       }
     } catch {
       toast.error("Грешка при записване");

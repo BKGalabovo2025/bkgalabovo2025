@@ -180,7 +180,8 @@ export async function createClubService(
     revalidatePath("/catalogs", "layout");
     revalidatePath("/club/catalog");
     revalidatePath("/recovery-zone/catalog");
-    revalidatePath("/finances/services");
+    revalidatePath("/catalogs/trainings");
+    revalidatePath("/catalogs/recovery");
     revalidatePath("/documents");
     revalidatePath("/members");
     return {
@@ -254,7 +255,8 @@ export async function updateClubService(
     revalidatePath("/catalogs", "layout");
     revalidatePath("/club/catalog");
     revalidatePath("/recovery-zone/catalog");
-    revalidatePath("/finances/services");
+    revalidatePath("/catalogs/trainings");
+    revalidatePath("/catalogs/recovery");
     revalidatePath(`/finances/services/${id}`);
     revalidatePath("/documents");
     revalidatePath("/members");
@@ -306,7 +308,8 @@ export async function deleteClubService(idToken: string, id: string) {
     revalidatePath("/catalogs", "layout");
     revalidatePath("/club/catalog");
     revalidatePath("/recovery-zone/catalog");
-    revalidatePath("/finances/services");
+    revalidatePath("/catalogs/trainings");
+    revalidatePath("/catalogs/recovery");
     revalidatePath("/documents");
     revalidatePath("/members");
     return {

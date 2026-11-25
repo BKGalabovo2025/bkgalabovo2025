@@ -485,7 +485,8 @@ export async function createReservationAction(
       });
     }
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
@@ -639,7 +640,8 @@ export async function updateReservationAction(
       updatedAt: Timestamp.now(),
     });
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
@@ -726,7 +728,8 @@ export async function deleteReservationAction(
       await db.collection("reservations").doc(resId).delete();
     }
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
 
     // cache imported at top
     serverCache.invalidatePattern("sales:");
@@ -769,7 +772,8 @@ export async function createBlockedSlotAction(
       createdAt: Timestamp.now(),
     });
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     return { success: true, message: "Периодът е блокиран успешно." };
   } catch (error: unknown) {
     console.error("Create Blocked Slot Error:", error);
@@ -806,7 +810,8 @@ export async function updateBlockedSlotAction(
         updatedAt: Timestamp.now(),
       });
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     return {
       success: true,
       message: "Блокираният период е актуализиран успешно.",
@@ -828,7 +833,8 @@ export async function deleteBlockedSlotAction(idToken: string, slotId: string) {
     await ensureAdmin(idToken);
     const db = getAdminDb();
     await db.collection("blockedSlots").doc(slotId).delete();
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     return { success: true, message: "Блокираният период е изтрит." };
   } catch (error: unknown) {
     console.error("Delete Blocked Slot Error:", error);
@@ -907,7 +913,8 @@ export async function markReservationAsPaidAction(
         },
       });
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     // cache imported at top
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
@@ -1222,7 +1229,8 @@ export async function createPackageReservationsAction(
 
     await batch.commit();
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 
@@ -1326,7 +1334,8 @@ export async function updatePackageReservationsAction(
 
     await batch.commit();
 
-    revalidatePath("/reservations");
+    revalidatePath("/schedule/courts");
+    revalidatePath("/schedule/recovery");
     serverCache.invalidatePattern("sales:");
     serverCache.invalidatePattern("dashboard:");
 

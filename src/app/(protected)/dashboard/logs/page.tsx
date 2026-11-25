@@ -72,7 +72,20 @@ export default async function SystemLogsPage() {
                       </h4>
                       <div className="flex items-center gap-1.5 text-[11px] whitespace-nowrap text-zinc-500 dark:text-zinc-400">
                         <Clock className="size-3" />
-                        {new Date(log.timestamp).toLocaleString("bg-BG")}
+                        {(() => {
+                          const ts = log.timestamp as unknown;
+                          const date =
+                            ts &&
+                            typeof ts === "object" &&
+                            "toDate" in ts &&
+                            typeof (ts as { toDate: () => Date }).toDate ===
+                              "function"
+                              ? (ts as { toDate: () => Date }).toDate()
+                              : new Date(log.timestamp);
+                          return Number.isNaN(date.getTime())
+                            ? "—"
+                            : date.toLocaleString("bg-BG");
+                        })()}
                       </div>
                     </div>
 

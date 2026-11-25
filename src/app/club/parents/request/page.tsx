@@ -156,7 +156,8 @@ export default function ParentRequestPage() {
                 активира вашия профил.
               </p>
               <p>
-                2. Веднага след одобрението ще получите **потвърдителен имейл**
+                2. Веднага след одобрението ще получите{" "}
+                <strong className="text-zinc-200">потвърдителен имейл</strong>{" "}
                 на <span className="text-white">{parentEmail}</span>.
               </p>
               <p>

@@ -142,8 +142,10 @@ export async function createProductAction(data: {
     });
 
     serverCache.invalidate("catalog:products");
-    serverCache.invalidate("products");
+    serverCache.invalidatePattern("products:");
     revalidatePath("/club/catalog");
+    revalidatePath("/catalogs/shop");
+    revalidatePath("/reports/restock");
     revalidateTag("catalog", "max");
 
     await logAuditEvent({
@@ -266,8 +268,10 @@ export async function updateProductAction(
     await recordProductEvents(adminDb, id, data, oldData, user);
 
     serverCache.invalidate("catalog:products");
-    serverCache.invalidate("products");
+    serverCache.invalidatePattern("products:");
     revalidatePath("/club/catalog");
+    revalidatePath("/catalogs/shop");
+    revalidatePath("/reports/restock");
     revalidateTag("catalog", "max");
 
     await logAuditEvent({
@@ -318,8 +322,10 @@ export async function deleteProductAction(id: string) {
     });
 
     serverCache.invalidate("catalog:products");
-    serverCache.invalidate("products");
+    serverCache.invalidatePattern("products:");
     revalidatePath("/club/catalog");
+    revalidatePath("/catalogs/shop");
+    revalidatePath("/reports/restock");
     revalidateTag("catalog", "max");
 
     await logAuditEvent({

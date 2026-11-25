@@ -130,7 +130,7 @@ export async function createSaleAction(
       targetCollection: "sales",
       targetId: newSaleId,
       siteId: (data.siteId as string) || "bkgalabovo",
-      details: `Регистрирана продажба № ${newSaleId} за ${data.totalAmount || 0} лв. (${data.paymentMethod || "В брой"})`,
+      details: `Регистрирана продажба № ${newSaleId} за ${data.totalAmount || 0} EUR (${data.paymentMethod || "В брой"})`,
       userId: user.uid,
       userEmail: user.email || undefined,
       metadata: {
@@ -693,7 +693,7 @@ export async function deleteSaleAction(
       targetCollection: "sales",
       targetId: id,
       siteId: (deletedSaleData?.siteId as string) || "bkgalabovo",
-      details: `Анулирана/изтрита продажба № ${id} за ${deletedSaleData?.totalAmount || 0} лв.`,
+      details: `Анулирана/изтрита продажба № ${id} за ${deletedSaleData?.totalAmount || 0} EUR`,
       userId: user.uid,
       userEmail: user.email || undefined,
       metadata: {

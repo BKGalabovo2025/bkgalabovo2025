@@ -38,11 +38,11 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/tournaments"
+            href="/club/catalog"
             className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-3 text-xs font-medium tracking-wider text-zinc-200 uppercase transition-all hover:bg-zinc-800 hover:text-white"
           >
             <Trophy className="size-4 text-amber-400" strokeWidth={1.5} />
-            Турнири
+            Каталог
           </Link>
 
           <Link

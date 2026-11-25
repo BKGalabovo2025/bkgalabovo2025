@@ -12,9 +12,12 @@ import { Attendee } from "@/types";
 
 function invalidateClubScheduleCaches() {
   serverCache.invalidate("club:public-data");
+  serverCache.invalidatePattern("events:");
   revalidatePath("/club");
   revalidatePath("/club/schedule");
   revalidatePath("/club/team");
+  revalidatePath("/schedule");
+  revalidatePath("/reports");
 }
 
 async function findMatchingSaleForAttendee(

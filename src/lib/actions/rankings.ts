@@ -100,11 +100,42 @@ export async function syncRankingsAction(siteId?: string): Promise<{
     }));
 
     const existingMemberIds = new Set(membersSnap.docs.map((d) => d.id));
+    const membersWithExistingRanking = membersSnap.docs
+      .filter((d) => {
+        const mData = d.data();
+        return (
+          (typeof mData.rankingPoints === "number" &&
+            mData.rankingPoints > 0) ||
+          (typeof mData.rankingPosition === "number" &&
+            mData.rankingPosition > 0) ||
+          (Array.isArray(mData.tournamentResults) &&
+            mData.tournamentResults.length > 0)
+        );
+      })
+      .map((d) => d.id);
 
     if (tournaments.length === 0) {
+      const chunkSize = 400;
+      const nowIso = new Date().toISOString();
+      for (let i = 0; i < membersWithExistingRanking.length; i += chunkSize) {
+        const chunk = membersWithExistingRanking.slice(i, i + chunkSize);
+        const batch = db.batch();
+        for (const memberId of chunk) {
+          batch.update(db.collection("members").doc(memberId), {
+            rankingPoints: 0,
+            rankingPosition: null,
+            tournamentResults: [],
+            updatedAt: nowIso,
+          });
+        }
+        await batch.commit();
+      }
+      serverCache.invalidatePattern("members:");
+      revalidatePath("/rankings", "layout");
+      revalidatePath("/members");
       return {
         success: true,
-        message: "Няма приключени турнири за синхронизация.",
+        message: "Няма приключени турнири — ранглистата е изчистена.",
       };
     }
 
@@ -205,8 +236,13 @@ export async function syncRankingsAction(siteId?: string): Promise<{
     const validRankings = rankings.filter((r) =>
       existingMemberIds.has(r.memberId)
     );
+    const rankedMemberIds = new Set(validRankings.map((r) => r.memberId));
+    const staleRankedMemberIds = membersWithExistingRanking.filter(
+      (id) => !rankedMemberIds.has(id)
+    );
 
     const chunkSize = 400;
+    const nowIso = new Date().toISOString();
     for (let i = 0; i < validRankings.length; i += chunkSize) {
       const chunk = validRankings.slice(i, i + chunkSize);
       const batch = db.batch();
@@ -217,14 +253,28 @@ export async function syncRankingsAction(siteId?: string): Promise<{
           rankingPosition: entry.position,
           tournamentResults:
             tournamentResultsByMember.get(entry.memberId) || [],
-          updatedAt: new Date().toISOString(),
+          updatedAt: nowIso,
+        });
+      }
+      await batch.commit();
+    }
+
+    for (let i = 0; i < staleRankedMemberIds.length; i += chunkSize) {
+      const chunk = staleRankedMemberIds.slice(i, i + chunkSize);
+      const batch = db.batch();
+      for (const memberId of chunk) {
+        batch.update(db.collection("members").doc(memberId), {
+          rankingPoints: 0,
+          rankingPosition: null,
+          tournamentResults: [],
+          updatedAt: nowIso,
         });
       }
       await batch.commit();
     }
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/rankings");
+    revalidatePath("/rankings", "layout");
     revalidatePath("/members");
 
     return {

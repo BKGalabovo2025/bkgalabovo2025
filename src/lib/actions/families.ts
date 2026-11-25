@@ -34,10 +34,12 @@ export async function addMemberToFamilyAction(
     });
 
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("families:");
     serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath(`/families/${familyId}`);
     revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
+    revalidatePath("/members/families");
 
     return { success: true, message: "Членът бе добавен към семейството." };
   } catch (error) {
@@ -88,10 +90,12 @@ export async function removeMemberFromFamilyAction(
     });
 
     serverCache.invalidatePattern("members:");
+    serverCache.invalidatePattern("families:");
     serverCache.invalidatePattern("parent-dashboard:");
     revalidatePath(`/families/${familyId}`);
     revalidatePath(`/members/${memberId}`);
     revalidatePath("/members");
+    revalidatePath("/members/families");
 
     return {
       success: true,
@@ -109,20 +113,27 @@ export async function removeMemberFromFamilyAction(
   }
 }
 
-export async function createFamilyAction(name: string, idToken: string) {
+export async function createFamilyAction(
+  name: string,
+  idToken: string,
+  siteId: string = "bkgalabovo"
+) {
   try {
     const user = await ensureAdmin(idToken);
     const adminDb = getAdminDb();
 
     const familyRef = await adminDb.collection("families").add({
       name,
+      siteId,
       memberIds: [],
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       createdBy: { uid: user.uid, email: user.email },
     });
 
+    serverCache.invalidatePattern("families:");
     revalidatePath("/members");
+    revalidatePath("/members/families");
 
     return {
       success: true,
@@ -156,8 +167,10 @@ export async function updateFamilyNameAction(
         updatedBy: { uid: user.uid, email: user.email },
       });
 
+    serverCache.invalidatePattern("families:");
     revalidatePath(`/families/${familyId}`);
     revalidatePath("/members");
+    revalidatePath("/members/families");
 
     return { success: true, message: "Името на семейството бе обновено." };
   } catch (error) {

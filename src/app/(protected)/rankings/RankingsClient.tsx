@@ -247,7 +247,9 @@ export default function RankingsClient({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Всички турнири</SelectItem>
-                <SelectItem value="year">Текуща година (2026)</SelectItem>
+                <SelectItem value="year">
+                  Текуща година ({new Date().getFullYear()})
+                </SelectItem>
                 <SelectItem value="h1">Първо полугодие</SelectItem>
                 <SelectItem value="h2">Второ полугодие</SelectItem>
               </SelectContent>
@@ -322,10 +324,16 @@ export default function RankingsClient({
                 <TrendingUp className="size-4 sm:size-5 text-emerald-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
-                    {rankings[0]?.totalPoints ?? 0}
+                    {
+                      rankings.filter((r) =>
+                        r.categoryBreakdown.some(
+                          (c) => c.category === "Единично"
+                        )
+                      ).length
+                    }
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Единично / Точки
+                    Единично / Играчи
                   </p>
                 </div>
               </BentoCard>
@@ -345,10 +353,14 @@ export default function RankingsClient({
                 <Trophy className="size-4 sm:size-5 text-yellow-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
-                    {rankings.reduce((s, r) => s + r.tournamentsPlayed, 0)}
+                    {
+                      rankings.filter((r) =>
+                        r.categoryBreakdown.some((c) => c.category === "Двойки")
+                      ).length
+                    }
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Двойки / Участия
+                    Двойки / Играчи
                   </p>
                 </div>
               </BentoCard>
@@ -368,10 +380,16 @@ export default function RankingsClient({
                 <Star className="size-4 sm:size-5 text-purple-500" />
                 <div>
                   <p className="text-xl sm:text-2xl font-light tracking-tight text-zinc-900 dark:text-white">
-                    {rankings.reduce((s, r) => s + r.wins, 0)}
+                    {
+                      rankings.filter((r) =>
+                        r.categoryBreakdown.some(
+                          (c) => c.category === "Смесени"
+                        )
+                      ).length
+                    }
                   </p>
                   <p className="mt-0.5 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">
-                    Смесени / Победи
+                    Смесени / Играчи
                   </p>
                 </div>
               </BentoCard>

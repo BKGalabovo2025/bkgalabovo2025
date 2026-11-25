@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/use-app-store";
 
 import { getActiveReportSectionId, REPORT_SECTIONS } from "./report-sections";
 
@@ -12,8 +13,15 @@ interface ReportsNavProps {
   className?: string;
 }
 
+const RZ_REPORT_SECTION_IDS = new Set(["financial", "liabilities"]);
+
 export function ReportsNav({ className }: ReportsNavProps) {
   const pathname = usePathname();
+  const { activeBranch } = useAppStore();
+  const isRecoveryZone = activeBranch === "recoveryzone";
+  const visibleSections = isRecoveryZone
+    ? REPORT_SECTIONS.filter((s) => RZ_REPORT_SECTION_IDS.has(s.id))
+    : REPORT_SECTIONS;
   const activeSection = getActiveReportSectionId(pathname) || "financial";
 
   return (
@@ -24,7 +32,7 @@ export function ReportsNav({ className }: ReportsNavProps) {
         className
       )}
     >
-      {REPORT_SECTIONS.map((section) => {
+      {visibleSections.map((section) => {
         const Icon = section.icon;
         const isActive = activeSection === section.id;
         const href = `/reports/${section.pathSuffix}`;
