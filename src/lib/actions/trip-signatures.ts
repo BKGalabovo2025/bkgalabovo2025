@@ -362,7 +362,11 @@ async function propagateAthleteSignatureInternal(
       );
     }
   } catch (err) {
-    console.warn(`Failed to update member ${memberId} profile signature:`, err);
+    console.error(
+      `Failed to update member ${memberId} profile signature:`,
+      err
+    );
+    throw err;
   }
 
   // 2. Query all business trips and filter by participant or coach/chairman roles
@@ -550,8 +554,9 @@ export async function submitPublicTripSignatureAction(input: {
         : "Подписът беше записан успешно във ведомостта!";
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,
@@ -659,8 +664,10 @@ export async function saveDirectAthleteSignatureAction(input: {
         : "Подписът беше записан успешно!";
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,
@@ -724,8 +731,10 @@ export async function batchApplyAthleteSignatureToTripsAction(input: {
         : "Всички ведомости за този състезател вече са подписани.";
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,
@@ -780,8 +789,10 @@ export async function saveMemberStoredSignatureAction(input: {
         : "Подписът беше съхранен успешно в профила на състезателя!";
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,
@@ -819,8 +830,10 @@ export async function clearMemberStoredSignatureAction(input: {
     });
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,
@@ -853,8 +866,10 @@ export async function clearTripAthleteSignatureAction(input: {
     });
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${input.memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return { success: true, message: "Подписът беше премахнат." };
   } catch (error) {
@@ -1021,8 +1036,10 @@ export async function syncMemberSignatureFromTripsAction(input: {
         : `Подписът от „${foundTripTitle}“ беше успешно запазен в профила на състезателя!`;
 
     serverCache.invalidatePattern("members:");
-    revalidatePath("/members");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${memberId}`, "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,

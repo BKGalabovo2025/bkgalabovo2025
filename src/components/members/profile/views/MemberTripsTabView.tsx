@@ -19,6 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ import { BusinessTrip } from "@/types/business-trip.types";
 import { useMemberProfileContext } from "../MemberProfileContext";
 
 export function MemberTripsTabView() {
+  const router = useRouter();
   const { memberId, member, fullName, refetch } = useMemberProfileContext();
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,19 @@ export function MemberTripsTabView() {
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [signingLinkUrl, setSigningLinkUrl] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [optimisticSignature, setOptimisticSignature] = useState<
+    string | null | undefined
+  >(undefined);
   const hasAutoSyncedRef = useRef(false);
+
+  const effectiveSignature =
+    optimisticSignature !== undefined
+      ? optimisticSignature
+      : member.signature || null;
+
+  useEffect(() => {
+    setOptimisticSignature(undefined);
+  }, [memberId, member.signature]);
 
   const loadTrips = useCallback(async () => {
     try {
@@ -270,10 +284,16 @@ export function MemberTripsTabView() {
           siteId: member.siteId,
         });
         if (res.success) {
+          const savedSig =
+            res.data?.signatureBase64 || sigBase64 || clientSignature || null;
+          if (savedSig) {
+            setOptimisticSignature(savedSig);
+          }
           toast.success(
             res.message ||
               "Подписът беше успешно запазен в профила на състезателя!"
           );
+          router.refresh();
           await Promise.all([refetch(), loadTrips()]);
         } else {
           toast.error(res.error || "Грешка при синхронизиране на подписа.");
@@ -285,14 +305,14 @@ export function MemberTripsTabView() {
         setIsSyncingFromTrip(false);
       }
     },
-    [memberId, member.siteId, clientSignature, refetch, loadTrips]
+    [memberId, member.siteId, clientSignature, refetch, loadTrips, router]
   );
 
   // Auto-sync: If member has no signature in profile, but has an existing signature in one of their trips, auto-migrate it!
   useEffect(() => {
     if (
       !loading &&
-      !member.signature &&
+      !effectiveSignature &&
       signedTrip?.id &&
       clientSignature &&
       !isSyncingFromTrip &&
@@ -303,7 +323,7 @@ export function MemberTripsTabView() {
     }
   }, [
     loading,
-    member.signature,
+    effectiveSignature,
     signedTrip?.id,
     clientSignature,
     isSyncingFromTrip,
@@ -399,7 +419,7 @@ export function MemberTripsTabView() {
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
                 Електронен подпис за командировки и ведомости
               </h3>
-              {member.signature ? (
+              {effectiveSignature ? (
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                   <CheckCircle2 className="size-3" />
                   Активен в профила
@@ -412,7 +432,7 @@ export function MemberTripsTabView() {
               )}
             </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {member.signature
+              {effectiveSignature
                 ? `Подписът на ${fullName} се прилага автоматично във всяка ведомост за състезания. Последно обновен: ${member.signatureUpdatedAt ? formatDateShort(member.signatureUpdatedAt) : "Наскоро"}.`
                 : signedTrip
                   ? `Открит е положен подпис във ведомостта за „${signedTrip.title}“! Можете директно да го запазите в профила и да го приложите към всички командировки.`
@@ -421,7 +441,7 @@ export function MemberTripsTabView() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {member.signature ? (
+            {effectiveSignature ? (
               <>
                 <div
                   title="Съхранен официален подпис"
@@ -429,7 +449,7 @@ export function MemberTripsTabView() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={member.signature}
+                    src={effectiveSignature}
                     alt={`Подпис на ${fullName}`}
                     className="max-h-full max-w-full object-contain"
                   />
