@@ -1799,8 +1799,7 @@ export function BusinessTripPdfTemplates({
             }}
           >
             Разходите за командировката са за сметка на{" "}
-            {formatOrgName(site.shortName)} гр. Гълъбово
-            {site.bulstat ? ` (ЕИК/БУЛСТАТ: ${site.bulstat})` : ""}.
+            {formatOrgName(site.shortName)} гр. Гълъбово.
           </p>
           <div
             style={{
