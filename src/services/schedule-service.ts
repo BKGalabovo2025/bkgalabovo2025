@@ -1,4 +1,5 @@
 import {
+  DocumentData,
   DocumentSnapshot,
   getDocs,
   query,
@@ -10,10 +11,21 @@ import { toISOStringOrUndefined } from "@/lib/date-utils";
 import { getEventsQuery } from "@/lib/firebase-collections";
 import { Attendee, ScheduleEvent, ScheduleEventType } from "@/types";
 
+type ScheduleEventDocLike =
+  | DocumentSnapshot
+  | QueryDocumentSnapshot
+  | {
+      id: string;
+      exists?: boolean | (() => boolean);
+      data: () => DocumentData | undefined;
+    };
+
 export const docToScheduleEvent = (
-  doc: DocumentSnapshot | QueryDocumentSnapshot
+  doc: ScheduleEventDocLike
 ): ScheduleEvent | null => {
-  if (!doc.id || !doc.exists()) return null;
+  const exists =
+    typeof doc.exists === "function" ? doc.exists() : doc.exists !== false;
+  if (!doc.id || !exists) return null;
   const data = doc.data() || {};
 
   const attendees = (Array.isArray(data.attendees) ? data.attendees : [])

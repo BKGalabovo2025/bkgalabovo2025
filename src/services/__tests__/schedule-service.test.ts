@@ -103,6 +103,33 @@ describe("schedule-service", () => {
       expect(result?.isCancelled).toBe(false);
       expect(result?.tournamentUrl).toBeNull();
     });
+
+    it("supports Firebase Admin SDK snapshots where exists is a boolean property", () => {
+      const adminDoc = {
+        id: "admin_event_1",
+        exists: true,
+        data: () => ({
+          title: "Държавно първенство",
+          type: "competition",
+          location: "Стара Загора",
+          startDate: "2026-11-24T09:00:00.000Z",
+          endDate: "2026-11-24T18:00:00.000Z",
+        }),
+      };
+
+      const result = docToScheduleEvent(adminDoc);
+      expect(result).not.toBeNull();
+      expect(result?.id).toBe("admin_event_1");
+      expect(result?.title).toBe("Държавно първенство");
+      expect(result?.type).toBe("competition");
+
+      const missingAdminDoc = {
+        id: "admin_event_missing",
+        exists: false,
+        data: () => undefined,
+      };
+      expect(docToScheduleEvent(missingAdminDoc)).toBeNull();
+    });
   });
 
   describe("getEventsForPeriod", () => {
