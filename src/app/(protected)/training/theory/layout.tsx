@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { TheoryNav } from "@/components/training/theory/TheoryNav";
 
@@ -17,6 +18,7 @@ export default function TheoryLayout({
 }) {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-24 duration-700 animate-in fade-in">
+      <ModuleHubBar hub="testing" />
       <PageHeader
         title="Теория и Викторини"
         description="Конструктор на интерактивни тестове, правила на бадминтона, тактика и проверка на знанията."

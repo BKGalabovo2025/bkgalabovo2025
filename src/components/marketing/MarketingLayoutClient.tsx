@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { CallLogDialog } from "@/components/marketing/CallLogDialog";
 import { QuickEmailDialog } from "@/components/marketing/QuickEmailDialog";
@@ -46,6 +47,7 @@ export function MarketingLayoutClient({
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 px-3 sm:px-6 lg:px-8 pb-12 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="communication" />
       {/* 1. Page Header */}
       <PageHeader
         title="Маркетинг & CRM Център"

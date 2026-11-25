@@ -4,6 +4,7 @@ import { ExternalLink, Handshake, Sparkles } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function CertificatesLayoutClient({
 
   return (
     <div className="mx-auto max-w-7xl space-y-3.5 pb-6 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="recognition" />
       <PageHeader
         className="mb-2 space-y-1.5"
         title="Сертификати, Грамоти & Ваучери"

@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import React, { Suspense } from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { PartnersNav } from "@/components/partners/PartnersNav";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export default function PartnersLayout({
 }) {
   return (
     <div className="space-y-6 pb-12 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="recognition" />
       <PageHeader
         title="Партньори & Спонсори"
         description="Официални институционални, спортни и търговски партньори на клуба, лога и присъствие в издаваните документи и ваучери."

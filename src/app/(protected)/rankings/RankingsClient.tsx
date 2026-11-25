@@ -18,6 +18,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   getRankingSectionHref,
@@ -229,6 +230,7 @@ export default function RankingsClient({
         </div>
       )}
 
+      <ModuleHubBar hub="competitions" />
       <PageHeader
         title="Ранглиста"
         description="Глобално класиране по натрупани точки от всички официални турнири."

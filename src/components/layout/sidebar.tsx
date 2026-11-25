@@ -1,6 +1,5 @@
 "use client";
 import {
-  Activity,
   Award,
   BarChart,
   Box,
@@ -8,17 +7,12 @@ import {
   Calendar,
   CalendarCheck,
   CalendarRange,
-  Dumbbell,
   FileSignature,
   FileText,
-  GraduationCap,
-  Handshake,
   HeartHandshake,
   Home,
-  Inbox,
   ListTree,
   LogOut,
-  Medal,
   MessageSquareHeart,
   Moon,
   PanelLeft,
@@ -108,7 +102,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-900">
-              <Link prefetch={false} href="/" aria-label="Начална страница" className="relative size-10">
+              <Link
+                prefetch={false}
+                href="/"
+                aria-label="Начална страница"
+                className="relative size-10"
+              >
                 <Image
                   src={brandLogo}
                   alt="Logo"
@@ -309,17 +308,21 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith("/marketing")}
+                isActive={
+                  pathname.startsWith("/inquiries") ||
+                  pathname.startsWith("/marketing") ||
+                  pathname.startsWith("/feedback")
+                }
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
                   prefetch={false}
-                  href="/marketing"
+                  href="/inquiries"
                   className="flex w-full items-center gap-3"
                   onClick={() => isMobile && setOpen(false)}
                 >
-                  <Target size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Маркетинг и Комуникация</span>
+                  <MessageSquareHeart size={18} strokeWidth={1.5} />
+                  <span className="text-[14px]">Комуникация & CRM</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -327,7 +330,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith("/certificates")}
+                isActive={
+                  pathname.startsWith("/certificates") ||
+                  pathname.startsWith("/partners")
+                }
                 className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
               >
                 <Link
@@ -337,61 +343,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   onClick={() => isMobile && setOpen(false)}
                 >
                   <Award size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Сертификати & Ваучери</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/partners")}
-                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-              >
-                <Link
-                  prefetch={false}
-                  href="/partners"
-                  className="flex w-full items-center gap-3"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <Handshake size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Партньори & Спонсори</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/feedback")}
-                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-              >
-                <Link
-                  prefetch={false}
-                  href="/feedback"
-                  className="flex w-full items-center gap-3"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <MessageSquareHeart size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Отзиви и Анкети</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith("/inquiries")}
-                className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-              >
-                <Link
-                  prefetch={false}
-                  href="/inquiries"
-                  className="flex w-full items-center gap-3"
-                  onClick={() => isMobile && setOpen(false)}
-                >
-                  <Inbox size={18} strokeWidth={1.5} />
-                  <span className="text-[14px]">Запитвания от сайта</span>
+                  <span className="text-[14px]">Сертификати & Партньори</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -467,6 +419,26 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            {!isRecoveryZone && (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname.startsWith("/inventory")}
+                  className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
+                >
+                  <Link
+                    prefetch={false}
+                    href="/inventory"
+                    className="flex w-full items-center gap-3"
+                    onClick={() => isMobile && setOpen(false)}
+                  >
+                    <Box size={18} strokeWidth={1.5} />
+                    <span className="text-[14px]">Инвентар</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
 
             <SidebarMenuItem>
               <SidebarMenuButton
@@ -549,25 +521,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith("/inventory")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/inventory"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <Box size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Инвентар</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith("/training/planner")}
+                    isActive={
+                      pathname.startsWith("/training/planner") ||
+                      pathname.startsWith("/training/annual-plans") ||
+                      pathname.startsWith("/training/exercises")
+                    }
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
@@ -578,7 +536,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     >
                       <CalendarRange size={18} strokeWidth={1.5} />
                       <span className="text-[14px]">
-                        Универсален Планировчик
+                        Планиране и Тренировки
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -605,42 +563,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith("/training/annual-plans")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/training/annual-plans"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <CalendarRange size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Годишни Планове</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith("/training/exercises")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/training/exercises"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <Dumbbell size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">База с Упражнения</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
                     isActive={pathname.startsWith("/training/shadow")}
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
@@ -659,25 +581,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith("/training/beep-test")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/training/beep-test"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <Activity size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Бийп Тест Аналитика</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith("/training/assessments")}
+                    isActive={
+                      pathname.startsWith("/training/assessments") ||
+                      pathname.startsWith("/training/beep-test") ||
+                      pathname.startsWith("/training/theory")
+                    }
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
@@ -687,7 +595,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Target size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Тестове и Оценяване</span>
+                      <span className="text-[14px]">Тестове и Теория</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -695,25 +603,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith("/training/theory")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/training/theory"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <GraduationCap size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Теория и Викторини</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith("/tournaments")}
+                    isActive={
+                      pathname.startsWith("/tournaments") ||
+                      pathname.startsWith("/rankings")
+                    }
                     className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
                   >
                     <Link
@@ -723,25 +616,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                       onClick={() => isMobile && setOpen(false)}
                     >
                       <Trophy size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Турнири</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith("/rankings")}
-                    className="h-11 rounded-xl border-none px-3 transition-all hover:bg-primary/5 hover:text-primary dark:hover:bg-primary/10"
-                  >
-                    <Link
-                      prefetch={false}
-                      href="/rankings"
-                      className="flex w-full items-center gap-3"
-                      onClick={() => isMobile && setOpen(false)}
-                    >
-                      <Medal size={18} strokeWidth={1.5} />
-                      <span className="text-[14px]">Ранглиста</span>
+                      <span className="text-[14px]">Турнири & Ранглиста</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

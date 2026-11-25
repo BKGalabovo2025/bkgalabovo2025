@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { AnnualPlansNav } from "@/components/training/annual-plans/AnnualPlansNav";
 
@@ -17,6 +18,7 @@ export default function AnnualPlansLayout({
 }) {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-24 duration-700 animate-in fade-in">
+      <ModuleHubBar hub="planning" />
       <PageHeader
         title="Едногодишни Планове (BWF)"
         description="Макроцикли, мезоцикли и микроцикли за периодизация на състезателната подготовка."

@@ -7,6 +7,7 @@ import {
   getActiveInquirySectionId,
   getInquirySectionHref,
 } from "@/components/inquiries/inquiry-sections";
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { InquiriesTab } from "@/components/schedule/InquiriesTab";
 import { useAppStore } from "@/store/use-app-store";
@@ -26,6 +27,7 @@ export default function InquiriesPageClient() {
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="communication" />
       <PageHeader
         title={isRecovery ? "Запитвания за сесии" : "Запитвания от сайта"}
         description={

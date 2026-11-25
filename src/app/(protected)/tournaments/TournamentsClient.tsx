@@ -31,6 +31,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { TournamentListSectionId } from "@/components/tournaments/tournament-list-sections";
 import { TournamentsNav } from "@/components/tournaments/TournamentsNav";
@@ -183,6 +184,7 @@ export default function TournamentsClient({
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="competitions" />
       <PageHeader
         title="Турнири"
         description="Организирайте и управлявайте спортни събития, схеми на игра и класирания."

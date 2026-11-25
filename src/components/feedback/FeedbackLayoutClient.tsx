@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import React from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ export function FeedbackLayoutClient({ children }: FeedbackLayoutClientProps) {
 
   return (
     <div className="space-y-4 pb-12 duration-500 animate-in fade-in">
+      <ModuleHubBar hub="communication" />
       {/* Page Header */}
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <PageHeader

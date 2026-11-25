@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
+import { ModuleHubBar } from "@/components/layout/ModuleHubBar";
 import { PageHeader } from "@/components/layout/page-header";
 import { ExercisesNav } from "@/components/training/exercises/ExercisesNav";
 
@@ -16,6 +17,7 @@ export default function ExercisesLayout({
 }) {
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-24 duration-700 animate-in fade-in">
+      <ModuleHubBar hub="planning" />
       <PageHeader
         title="База с Упражнения"
         description="Официални упражнения и твои собствени методики."
