@@ -224,6 +224,7 @@ export function TripProtocolDialog({
       const mergedTrip: BusinessTrip = {
         ...trip,
         ...updatedPayload,
+        updatedAt: new Date().toISOString(),
       };
 
       toast.success("Протоколът от заседание на УС беше успешно запазен!");

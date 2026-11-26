@@ -195,6 +195,7 @@ export function BusinessTripManagerDialog({
   initialTrip,
   initialMembersDict,
   initialExpenses,
+  onTripDeleted,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -203,6 +204,7 @@ export function BusinessTripManagerDialog({
   initialTrip?: BusinessTrip;
   initialMembersDict?: Record<string, Member>;
   initialExpenses?: TripExpense[];
+  onTripDeleted?: (tripId: string) => void;
 }) {
   const [businessTrips, setBusinessTrips] = useState<BusinessTrip[]>(() =>
     initialTrip ? [initialTrip] : []
@@ -343,23 +345,27 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-order-template");
+      const el = document.getElementById("pdf-order-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripOrderNumber(trip);
-          m.generatePdfFromElement(
-            el,
-            `Нареждане_${num}_${trip.title}`
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            // Записваме дата на изтегляне
-            businessTripService
-              .updateTrip(trip.id!, {
-                orderDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          m.generatePdfFromElement(el, `Нареждане_${num}_${trip.title}`)
+            .then(() => {
+              // Записваме дата на изтегляне
+              businessTripService
+                .updateTrip(trip.id!, {
+                  orderDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -371,7 +377,7 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-board-protocol-template");
+      const el = document.getElementById("pdf-board-protocol-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripProtocolNumber(trip);
@@ -379,15 +385,22 @@ export function BusinessTripManagerDialog({
             el,
             `Протокол_УС_${num}_${trip.title}`,
             "portrait"
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            businessTripService
-              .updateTrip(trip.id!, {
-                protocolDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          )
+            .then(() => {
+              businessTripService
+                .updateTrip(trip.id!, {
+                  protocolDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -399,7 +412,7 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-board-decision-template");
+      const el = document.getElementById("pdf-board-decision-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripDecisionNumber(trip);
@@ -407,15 +420,22 @@ export function BusinessTripManagerDialog({
             el,
             `Решение_УС_${num}_${trip.title}`,
             "portrait"
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            businessTripService
-              .updateTrip(trip.id!, {
-                decisionDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          )
+            .then(() => {
+              businessTripService
+                .updateTrip(trip.id!, {
+                  decisionDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -427,7 +447,7 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-statement-template");
+      const el = document.getElementById("pdf-statement-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripStatementNumber(trip);
@@ -435,16 +455,23 @@ export function BusinessTripManagerDialog({
             el,
             `Ведомост_${num}_${trip.title}`,
             "landscape"
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            // Записваме дата на изтегляне
-            businessTripService
-              .updateTrip(trip.id!, {
-                statementDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          )
+            .then(() => {
+              // Записваме дата на изтегляне
+              businessTripService
+                .updateTrip(trip.id!, {
+                  statementDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -467,22 +494,26 @@ export function BusinessTripManagerDialog({
     setSelectedTripForPdf(trip);
 
     setTimeout(() => {
-      let elId = "pdf-fuel-report-template";
-      if (type === "protocol") elId = "pdf-board-protocol-template";
-      else if (type === "decision") elId = "pdf-board-decision-template";
-      else if (type === "order") elId = "pdf-order-template";
-      else if (type === "statement") elId = "pdf-statement-template";
-      else if (type === "attendance") elId = "pdf-attendance-template";
-      else if (type === "report") elId = "pdf-report-template";
+      let elId = "pdf-fuel-report-template-manager";
+      if (type === "protocol") elId = "pdf-board-protocol-template-manager";
+      else if (type === "decision")
+        elId = "pdf-board-decision-template-manager";
+      else if (type === "order") elId = "pdf-order-template-manager";
+      else if (type === "statement") elId = "pdf-statement-template-manager";
+      else if (type === "attendance") elId = "pdf-attendance-template-manager";
+      else if (type === "report") elId = "pdf-report-template-manager";
 
       const el = document.getElementById(elId);
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const orientation =
             type === "statement" || type === "fuel" ? "landscape" : "portrait";
-          m.previewPdfFromElement(el, orientation).finally(() =>
-            setIsGeneratingPdf(false)
-          );
+          m.previewPdfFromElement(el, orientation)
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => setIsGeneratingPdf(false));
         });
       } else {
         setIsGeneratingPdf(false);
@@ -495,7 +526,7 @@ export function BusinessTripManagerDialog({
     setSelectedTripForPdf(trip);
 
     setTimeout(() => {
-      const el = document.getElementById("pdf-fuel-report-template");
+      const el = document.getElementById("pdf-fuel-report-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripFuelNumber(trip);
@@ -503,15 +534,22 @@ export function BusinessTripManagerDialog({
             el,
             `Отчет_Гориво_${num}_${trip.title}`,
             "landscape"
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            businessTripService
-              .updateTrip(trip.id!, {
-                fuelDownloadedAt: new Date().toISOString(),
-              })
-              .then(() => loadData())
-              .catch(console.error);
-          });
+          )
+            .then(() => {
+              businessTripService
+                .updateTrip(trip.id!, {
+                  fuelDownloadedAt: new Date().toISOString(),
+                })
+                .then(() => loadData())
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -523,22 +561,26 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-attendance-template");
+      const el = document.getElementById("pdf-attendance-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripAttendanceNumber(trip);
-          m.generatePdfFromElement(
-            el,
-            `Присъствен_Лист_${num}_${trip.title}`
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            businessTripService
-              .updateTrip(trip.id!, {
-                attendanceDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          m.generatePdfFromElement(el, `Присъствен_Лист_${num}_${trip.title}`)
+            .then(() => {
+              businessTripService
+                .updateTrip(trip.id!, {
+                  attendanceDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -550,7 +592,7 @@ export function BusinessTripManagerDialog({
     setIsGeneratingPdf(true);
     setSelectedTripForPdf(trip);
     setTimeout(() => {
-      const el = document.getElementById("pdf-report-template");
+      const el = document.getElementById("pdf-report-template-manager");
       if (el) {
         import("@/lib/html-to-pdf").then((m) => {
           const num = getTripReportNumber(trip);
@@ -558,15 +600,22 @@ export function BusinessTripManagerDialog({
             el,
             `Доклад_Отчет_${num}_${trip.title}`,
             "portrait"
-          ).finally(() => {
-            setIsGeneratingPdf(false);
-            businessTripService
-              .updateTrip(trip.id!, {
-                reportDownloadedAt: new Date().toISOString(),
-              })
-              .then(loadData)
-              .catch(console.error);
-          });
+          )
+            .then(() => {
+              businessTripService
+                .updateTrip(trip.id!, {
+                  reportDownloadedAt: new Date().toISOString(),
+                })
+                .then(loadData)
+                .catch(console.error);
+            })
+            .catch((e) => {
+              console.error(e);
+              toast.error("Грешка при генериране на PDF документ.");
+            })
+            .finally(() => {
+              setIsGeneratingPdf(false);
+            });
         });
       } else {
         setIsGeneratingPdf(false);
@@ -600,13 +649,14 @@ export function BusinessTripManagerDialog({
     setSelectedTripForPdf(trip);
 
     setTimeout(() => {
-      let elId = "pdf-fuel-report-template";
-      if (type === "protocol") elId = "pdf-board-protocol-template";
-      else if (type === "decision") elId = "pdf-board-decision-template";
-      else if (type === "order") elId = "pdf-order-template";
-      else if (type === "statement") elId = "pdf-statement-template";
-      else if (type === "attendance") elId = "pdf-attendance-template";
-      else if (type === "report") elId = "pdf-report-template";
+      let elId = "pdf-fuel-report-template-manager";
+      if (type === "protocol") elId = "pdf-board-protocol-template-manager";
+      else if (type === "decision")
+        elId = "pdf-board-decision-template-manager";
+      else if (type === "order") elId = "pdf-order-template-manager";
+      else if (type === "statement") elId = "pdf-statement-template-manager";
+      else if (type === "attendance") elId = "pdf-attendance-template-manager";
+      else if (type === "report") elId = "pdf-report-template-manager";
 
       const el = document.getElementById(elId);
       if (el) {
@@ -676,6 +726,7 @@ export function BusinessTripManagerDialog({
     try {
       await businessTripService.deleteTrip(tripId);
       toast.success("Командировката е изтрита успешно.");
+      onTripDeleted?.(tripId);
       loadData();
     } catch {
       toast.error("Възникна грешка при изтриването.");
@@ -818,1068 +869,1118 @@ export function BusinessTripManagerDialog({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {businessTrips.map((trip) => (
-                    <div
-                      key={trip.id}
-                      className="flex flex-col gap-3 rounded-xl border border-zinc-100 p-5 dark:border-zinc-800"
-                    >
-                      {/* Trip title + info */}
-                      <div>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                              {trip.title}
-                            </p>
-                            {trip.orderNumber ? (
-                              <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-                                Командировка № {trip.orderNumber}
-                              </span>
-                            ) : null}
+                  {businessTrips.map((trip) => {
+                    const isTripLocked = trip.status === "completed";
+                    return (
+                      <div
+                        key={trip.id}
+                        className="flex flex-col gap-3 rounded-xl border border-zinc-100 p-5 dark:border-zinc-800"
+                      >
+                        {/* Trip title + info */}
+                        <div>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                {trip.title}
+                              </p>
+                              {trip.orderNumber ? (
+                                <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-xs font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+                                  Командировка № {trip.orderNumber}
+                                </span>
+                              ) : null}
+                            </div>
+
+                            {trip.id && (
+                              <Button
+                                asChild
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300"
+                              >
+                                <Link href={`/accounting/trips/${trip.id}`}>
+                                  Детайли &amp; Счетоводство
+                                  <ExternalLink className="ml-1 size-3 opacity-60" />
+                                </Link>
+                              </Button>
+                            )}
                           </div>
+                          <p className="text-sm text-zinc-500">
+                            До: {trip.destination} (
+                            {formatDateShort(trip.startDate)} -{" "}
+                            {formatDateShort(trip.endDate)})
+                          </p>
 
-                          {trip.id && (
-                            <Button
-                              asChild
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300"
-                            >
-                              <Link href={`/accounting/trips/${trip.id}`}>
-                                Детайли &amp; Счетоводство
-                                <ExternalLink className="ml-1 size-3 opacity-60" />
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-                        <p className="text-sm text-zinc-500">
-                          До: {trip.destination} (
-                          {formatDateShort(trip.startDate)} -{" "}
-                          {formatDateShort(trip.endDate)})
-                        </p>
-
-                        {/* Номера на съпътстващите документи */}
-                        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
-                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                            Заповед:{" "}
-                            <strong className="text-zinc-900 dark:text-zinc-100">
-                              {getTripOrderNumber(trip)}
-                            </strong>
-                          </span>
-                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                            Решение:{" "}
-                            <strong className="text-zinc-900 dark:text-zinc-100">
-                              {getTripDecisionNumber(trip)}
-                            </strong>
-                          </span>
-                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                            Ведомост:{" "}
-                            <strong className="text-zinc-900 dark:text-zinc-100">
-                              {getTripStatementNumber(trip)}
-                            </strong>
-                          </span>
-                          {trip.transportType === "fuel_only" && (
+                          {/* Номера на съпътстващите документи */}
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-zinc-600 dark:text-zinc-400">
                             <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                              Пътен лист:{" "}
+                              Заповед:{" "}
                               <strong className="text-zinc-900 dark:text-zinc-100">
-                                {getTripFuelNumber(trip)}
+                                {getTripOrderNumber(trip)}
                               </strong>
                             </span>
-                          )}
-                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                            Списък:{" "}
-                            <strong className="text-zinc-900 dark:text-zinc-100">
-                              {getTripAttendanceNumber(trip)}
-                            </strong>
-                          </span>
-                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
-                            Доклад:{" "}
-                            <strong className="text-zinc-900 dark:text-zinc-100">
-                              {getTripReportNumber(trip)}
-                            </strong>
-                          </span>
-                        </div>
-                        {/* ── Checklist panel ── */}
-                        <TripChecklistPanel
-                          trip={trip}
-                          expenses={expensesMap[trip.id!] || []}
-                        />
-
-                        {/* ── Подсказка за отпадане / съкратен престой / ежедневно пътуване ── */}
-                        <div className="mt-2.5 rounded-lg border border-blue-200/80 bg-blue-50/60 p-2.5 text-xs dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 text-blue-950 dark:text-blue-200">
-                            <span className="text-sm">💡</span>
-                            <div>
-                              <span className="font-semibold">
-                                {trip.vehicle?.commuteMode === "daily_commute"
-                                  ? "Ежедневно пътуване (без нощувка): "
-                                  : "Отпадане на състезатели по-рано? "}
+                            <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                              Решение:{" "}
+                              <strong className="text-zinc-900 dark:text-zinc-100">
+                                {getTripDecisionNumber(trip)}
+                              </strong>
+                            </span>
+                            <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                              Ведомост:{" "}
+                              <strong className="text-zinc-900 dark:text-zinc-100">
+                                {getTripStatementNumber(trip)}
+                              </strong>
+                            </span>
+                            {trip.transportType === "fuel_only" && (
+                              <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                                Пътен лист:{" "}
+                                <strong className="text-zinc-900 dark:text-zinc-100">
+                                  {getTripFuelNumber(trip)}
+                                </strong>
                               </span>
-                              <span className="text-[11px] text-blue-800 dark:text-blue-300">
-                                {trip.vehicle?.commuteMode === "daily_commute"
-                                  ? `При отпадане курсовете и дневните се преизчисляват автоматично (текущо: ${trip.vehicle.actualTripsCount ?? trip.actualDays ?? 1} курса = ${trip.vehicle.distanceKm ?? 0} км).`
-                                  : "Коригирайте присъствените дни във ведомостта — системата автоматично актуализира доклада и сумите."}
-                              </span>
-                            </div>
+                            )}
+                            <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                              Списък:{" "}
+                              <strong className="text-zinc-900 dark:text-zinc-100">
+                                {getTripAttendanceNumber(trip)}
+                              </strong>
+                            </span>
+                            <span className="rounded bg-zinc-100 px-1.5 py-0.5 dark:bg-zinc-800">
+                              Доклад:{" "}
+                              <strong className="text-zinc-900 dark:text-zinc-100">
+                                {getTripReportNumber(trip)}
+                              </strong>
+                            </span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 text-[11px] font-medium border-blue-300 bg-white hover:bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 shrink-0"
-                            onClick={() => {
-                              setSelectedTripForStatement(trip);
-                              setIsStatementEditOpen(true);
-                            }}
-                          >
-                            ✏️ Корекция дни / курсове
-                          </Button>
-                        </div>
-                      </div>
+                          {/* ── Checklist panel ── */}
+                          <TripChecklistPanel
+                            trip={trip}
+                            expenses={expensesMap[trip.id!] || []}
+                          />
 
-                      {/* Action buttons */}
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setExpenseToEdit(null);
-                            setSelectedTripForExpense(trip.id!);
-                            setIsExpenseDialogOpen(true);
-                          }}
-                        >
-                          <Plus className="mr-2 size-4" /> Разход
-                        </Button>
-
-                        {/* Протокол от заседание на УС */}
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.protocolDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Преглед на Протокол от заседание на УС"
-                            className={
-                              trip.protocolDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "protocol")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.protocolDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintProtocol(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.protocolDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.protocolDownloadedAt
-                              ? `Протокол ${getTripProtocolNumber(trip)} (Изтеглен ${format(new Date(trip.protocolDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Протокол ${getTripProtocolNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            title="Редактирай протокола (дата, членове, място, текст)"
-                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
-                            onClick={() => {
-                              setSelectedTripForProtocol(trip);
-                              setIsProtocolDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.protocolDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.protocolDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "protocol")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        {/* Решение на УС */}
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.decisionDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Преглед на Решение на УС"
-                            className={
-                              trip.decisionDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "decision")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.decisionDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintDecision(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.decisionDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.decisionDownloadedAt
-                              ? `Решение ${getTripDecisionNumber(trip)} (Изтеглено ${format(new Date(trip.decisionDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Решение ${getTripDecisionNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            title="Редактирай Решение на УС (мотиви, решение, дата)"
-                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
-                            onClick={() => {
-                              setSelectedTripForProtocol(trip);
-                              setIsProtocolDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.decisionDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.decisionDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "decision")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.orderDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="icon"
-                            title="Преглед"
-                            className={
-                              trip.orderDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "order")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.orderDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintOrder(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.orderDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.orderDownloadedAt
-                              ? `Нареждане ${getTripOrderNumber(trip)} (Изтеглено ${format(new Date(trip.orderDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Нареждане ${getTripOrderNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            title="Редактирай нареждането (събитие, дати, командирован, транспорт)"
-                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
-                            onClick={() => {
-                              setTripToEdit(trip);
-                            }}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.orderDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.orderDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "order")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.statementDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Преглед"
-                            className={
-                              trip.statementDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "statement")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.statementDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintStatement(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.statementDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.statementDownloadedAt
-                              ? `Ведомост ${getTripStatementNumber(trip)} (Изтеглено ${format(new Date(trip.statementDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Ведомост ${getTripStatementNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant={
-                              trip.statementDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Редактирай ведомост (реални дни/нощи)"
-                            className={
-                              trip.statementDownloadedAt
-                                ? "size-8 rounded-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-none border-r-0 px-0"
-                            }
-                            onClick={() => {
-                              setSelectedTripForStatement(trip);
-                              setIsStatementEditOpen(true);
-                            }}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.statementDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.statementDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "statement")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        {/* Присъствен лист */}
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.attendanceDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Преглед"
-                            className={
-                              trip.attendanceDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "attendance")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.attendanceDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintAttendance(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.attendanceDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.attendanceDownloadedAt
-                              ? `Списък ${getTripAttendanceNumber(trip)} (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Списък ${getTripAttendanceNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            title="Редактирай присъствения списък (състезатели)"
-                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
-                            onClick={() => {
-                              setTripToEdit(trip);
-                            }}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.attendanceDownloadedAt
-                                ? "secondary"
-                                : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.attendanceDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "attendance")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        {/* Доклад за извършената работа (НКС) */}
-                        <div className="flex items-center">
-                          <Button
-                            variant={
-                              trip.reportDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="icon"
-                            title="Преглед на Доклад за извършената работа"
-                            className={
-                              trip.reportDownloadedAt
-                                ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-r-none border-r-0 px-0"
-                            }
-                            onClick={() => handlePreviewPdf(trip, "report")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.reportDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="sm"
-                            onClick={() => handlePrintReport(trip)}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                            className={
-                              trip.reportDownloadedAt
-                                ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "rounded-none border-x-0"
-                            }
-                          >
-                            <FileDown className="mr-2 size-4" />
-                            {trip.reportDownloadedAt
-                              ? `Доклад ${getTripReportNumber(trip)} (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                              : `Доклад ${getTripReportNumber(trip)} (PDF)`}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            title="Редактирай текст на Доклада"
-                            className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
-                            onClick={() => {
-                              setSelectedTripForReport(trip);
-                              setIsReportDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant={
-                              trip.reportDownloadedAt ? "secondary" : "outline"
-                            }
-                            size="icon"
-                            title="Изпрати по имейл"
-                            className={
-                              trip.reportDownloadedAt
-                                ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                : "size-8 rounded-l-none px-0"
-                            }
-                            onClick={() => handleEmailPdf(trip, "report")}
-                            disabled={isGeneratingPdf || isSendingEmail}
-                          >
-                            <Mail className="size-4" />
-                          </Button>
-                        </div>
-
-                        {/* Официално класиране от състезанието */}
-                        {trip.attachMatchProtocols &&
-                          trip.matchProtocols &&
-                          trip.matchProtocols.length > 0 &&
-                          trip.matchProtocols.map((proto, pIdx) => {
-                            const isProtoDownloaded = Boolean(
-                              proto.downloadedAt
-                            );
-                            const baseName =
-                              proto.name.length > 18
-                                ? `${proto.name.slice(0, 18)}...`
-                                : proto.name;
-                            let protoLabel = `Класиране (${baseName})`;
-                            if (isProtoDownloaded && proto.downloadedAt) {
-                              protoLabel += ` (Изтеглен ${format(new Date(proto.downloadedAt), "dd.MM, HH:mm")})`;
-                            }
-
-                            return (
-                              <div
-                                key={proto.id || pIdx}
-                                className="flex items-center"
-                              >
-                                <Button
-                                  variant={
-                                    isProtoDownloaded ? "secondary" : "outline"
-                                  }
-                                  size="icon"
-                                  title={`Преглед на протокол: ${proto.name}`}
-                                  className={
-                                    isProtoDownloaded
-                                      ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                      : "size-8 rounded-r-none border-r-0 px-0 text-indigo-600 hover:text-indigo-700"
-                                  }
-                                  onClick={() => {
-                                    const isPdf =
-                                      proto.url
-                                        .toLowerCase()
-                                        .includes(".pdf") ||
-                                      proto.name.toLowerCase().endsWith(".pdf");
-                                    const isImg =
-                                      /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(
-                                        proto.url
-                                      ) ||
-                                      /\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(
-                                        proto.name
-                                      );
-                                    const isWord =
-                                      /\.(docx?|rtf|odt|txt)$/i.test(
-                                        proto.name
-                                      ) ||
-                                      /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
-                                        proto.url
-                                      );
-                                    const isExcel =
-                                      /\.(xlsx?|csv)$/i.test(proto.name) ||
-                                      /\.(xlsx?|csv)(\?.*)?$/i.test(proto.url);
-                                    let docType:
-                                      DocumentAttachmentType | undefined;
-                                    if (isPdf) {
-                                      docType = "pdf";
-                                    } else if (isWord) {
-                                      docType = "word";
-                                    } else if (isExcel) {
-                                      docType = "excel";
-                                    } else if (isImg) {
-                                      docType = "image";
-                                    }
-                                    setExpenseViewerDoc({
-                                      url: proto.url,
-                                      name: proto.name,
-                                      type: docType,
-                                      protocolId: proto.id,
-                                      tripId: trip.id,
-                                    });
-                                  }}
-                                >
-                                  <Eye className="size-4" />
-                                </Button>
-                                <Button
-                                  variant={
-                                    isProtoDownloaded ? "secondary" : "outline"
-                                  }
-                                  size="sm"
-                                  onClick={async () => {
-                                    if (trip.id && proto.id) {
-                                      try {
-                                        await businessTripService.logTripProtocolDownload(
-                                          trip.id,
-                                          proto.id
-                                        );
-                                        loadData();
-                                      } catch {
-                                        // non-critical
-                                      }
-                                    }
-                                    const a = document.createElement("a");
-                                    a.href = proto.url;
-                                    a.download = proto.name;
-                                    a.target = "_blank";
-                                    a.rel = "noopener noreferrer";
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
-                                  }}
-                                  className={
-                                    isProtoDownloaded
-                                      ? "rounded-l-none border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
-                                      : "rounded-l-none text-indigo-700 hover:text-indigo-800"
-                                  }
-                                >
-                                  <FileDown className="mr-2 size-4" />
-                                  {protoLabel}
-                                </Button>
+                          {/* ── Подсказка за отпадане / съкратен престой / ежедневно пътуване ── */}
+                          <div className="mt-2.5 rounded-lg border border-blue-200/80 bg-blue-50/60 p-2.5 text-xs dark:border-blue-900/50 dark:bg-blue-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 text-blue-950 dark:text-blue-200">
+                              <span className="text-sm">💡</span>
+                              <div>
+                                <span className="font-semibold">
+                                  {trip.vehicle?.commuteMode === "daily_commute"
+                                    ? "Ежедневно пътуване (без нощувка): "
+                                    : "Отпадане на състезатели по-рано? "}
+                                </span>
+                                <span className="text-[11px] text-blue-800 dark:text-blue-300">
+                                  {trip.vehicle?.commuteMode === "daily_commute"
+                                    ? `При отпадане курсовете и дневните се преизчисляват автоматично (текущо: ${trip.vehicle.actualTripsCount ?? trip.actualDays ?? 1} курса = ${trip.vehicle.distanceKm ?? 0} км).`
+                                    : "Коригирайте присъствените дни във ведомостта — системата автоматично актуализира доклада и сумите."}
+                                </span>
                               </div>
-                            );
-                          })}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={isTripLocked}
+                              className="h-7 text-[11px] font-medium border-blue-300 bg-white hover:bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 shrink-0"
+                              onClick={() => {
+                                setSelectedTripForStatement(trip);
+                                setIsStatementEditOpen(true);
+                              }}
+                            >
+                              ✏️ Корекция дни / курсове
+                            </Button>
+                          </div>
+                        </div>
 
-                        {trip.transportType === "fuel_only" && (
+                        {/* Action buttons */}
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isTripLocked}
+                            onClick={() => {
+                              setExpenseToEdit(null);
+                              setSelectedTripForExpense(trip.id!);
+                              setIsExpenseDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="mr-2 size-4" /> Разход
+                          </Button>
+
+                          {/* Протокол от заседание на УС */}
                           <div className="flex items-center">
                             <Button
                               variant={
-                                trip.fuelDownloadedAt ? "secondary" : "outline"
+                                trip.protocolDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
                               }
                               size="icon"
-                              title="Преглед"
+                              title="Преглед на Протокол от заседание на УС"
                               className={
-                                trip.fuelDownloadedAt
+                                trip.protocolDownloadedAt
                                   ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
                                   : "size-8 rounded-r-none border-r-0 px-0"
                               }
-                              onClick={() => handlePreviewPdf(trip, "fuel")}
+                              onClick={() => handlePreviewPdf(trip, "protocol")}
                               disabled={isGeneratingPdf || isSendingEmail}
                             >
                               <Eye className="size-4" />
                             </Button>
                             <Button
                               variant={
-                                trip.fuelDownloadedAt ? "secondary" : "outline"
+                                trip.protocolDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
                               }
                               size="sm"
-                              onClick={() => handlePrintFuelReport(trip)}
+                              onClick={() => handlePrintProtocol(trip)}
                               disabled={isGeneratingPdf || isSendingEmail}
                               className={
-                                trip.fuelDownloadedAt
+                                trip.protocolDownloadedAt
                                   ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
                                   : "rounded-none border-x-0"
                               }
                             >
                               <FileDown className="mr-2 size-4" />
-                              {trip.fuelDownloadedAt
-                                ? `Пътен лист ${getTripFuelNumber(trip)} (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
-                                : `Пътен лист ${getTripFuelNumber(trip)} (PDF)`}
+                              {trip.protocolDownloadedAt
+                                ? `Протокол ${getTripProtocolNumber(trip)} (Изтеглен ${format(new Date(trip.protocolDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Протокол ${getTripProtocolNumber(trip)} (PDF)`}
                             </Button>
                             <Button
                               variant="outline"
                               size="icon"
-                              title="Редактирай пътен лист (курсове, км, разход на гориво)"
+                              disabled={isTripLocked}
+                              title="Редактирай протокола (дата, членове, място, текст)"
                               className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
                               onClick={() => {
-                                setSelectedTripForStatement(trip);
-                                setIsStatementEditOpen(true);
+                                setSelectedTripForProtocol(trip);
+                                setIsProtocolDialogOpen(true);
                               }}
                             >
                               <Pencil className="size-3.5" />
                             </Button>
                             <Button
                               variant={
-                                trip.fuelDownloadedAt ? "secondary" : "outline"
+                                trip.protocolDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
                               }
                               size="icon"
                               title="Изпрати по имейл"
                               className={
-                                trip.fuelDownloadedAt
+                                trip.protocolDownloadedAt
                                   ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
                                   : "size-8 rounded-l-none px-0"
                               }
-                              onClick={() => handleEmailPdf(trip, "fuel")}
+                              onClick={() => handleEmailPdf(trip, "protocol")}
                               disabled={isGeneratingPdf || isSendingEmail}
                             >
                               <Mail className="size-4" />
                             </Button>
                           </div>
-                        )}
-                        {/* Подписи */}
-                        {trip.signatures?.coach ? (
-                          <div className="flex items-center gap-1">
+
+                          {/* Решение на УС */}
+                          <div className="flex items-center">
                             <Button
-                              variant="secondary"
-                              size="sm"
-                              className="pointer-events-none border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              variant={
+                                trip.decisionDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Преглед на Решение на УС"
+                              className={
+                                trip.decisionDownloadedAt
+                                  ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-r-none border-r-0 px-0"
+                              }
+                              onClick={() => handlePreviewPdf(trip, "decision")}
+                              disabled={isGeneratingPdf || isSendingEmail}
                             >
-                              <Pencil className="mr-2 size-4" /> Подписано
-                              (Командирован)
+                              <Eye className="size-4" />
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Изчисти подпис"
-                              className="size-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
-                              onClick={() =>
-                                handleClearSignature(trip.id!, "coach")
+                              variant={
+                                trip.decisionDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePrintDecision(trip)}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                              className={
+                                trip.decisionDownloadedAt
+                                  ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "rounded-none border-x-0"
                               }
                             >
-                              <Trash2 className="size-4" />
+                              <FileDown className="mr-2 size-4" />
+                              {trip.decisionDownloadedAt
+                                ? `Решение ${getTripDecisionNumber(trip)} (Изтеглено ${format(new Date(trip.decisionDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Решение ${getTripDecisionNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              disabled={isTripLocked}
+                              title="Редактирай Решение на УС (мотиви, решение, дата)"
+                              className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                              onClick={() => {
+                                setSelectedTripForProtocol(trip);
+                                setIsProtocolDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.decisionDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Изпрати по имейл"
+                              className={
+                                trip.decisionDownloadedAt
+                                  ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-l-none px-0"
+                              }
+                              onClick={() => handleEmailPdf(trip, "decision")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Mail className="size-4" />
                             </Button>
                           </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSignatureTripId(trip.id!);
-                              setSignatureRole("coach");
-                              setSignaturePadOpen(true);
-                            }}
-                          >
-                            <Pencil className="mr-2 size-4" /> Подпиши
-                            (Командирован)
-                          </Button>
-                        )}
 
-                        {trip.signatures?.chairman ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center">
                             <Button
-                              variant="secondary"
-                              size="sm"
-                              className="pointer-events-none border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              variant={
+                                trip.orderDownloadedAt ? "secondary" : "outline"
+                              }
+                              size="icon"
+                              title="Преглед"
+                              className={
+                                trip.orderDownloadedAt
+                                  ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-r-none border-r-0 px-0"
+                              }
+                              onClick={() => handlePreviewPdf(trip, "order")}
+                              disabled={isGeneratingPdf || isSendingEmail}
                             >
-                              <Pencil className="mr-2 size-4" /> Подписано
-                              (Председател)
+                              <Eye className="size-4" />
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="icon"
-                              title="Изчисти подпис"
-                              className="size-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
-                              onClick={() =>
-                                handleClearSignature(trip.id!, "chairman")
+                              variant={
+                                trip.orderDownloadedAt ? "secondary" : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePrintOrder(trip)}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                              className={
+                                trip.orderDownloadedAt
+                                  ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "rounded-none border-x-0"
                               }
                             >
-                              <Trash2 className="size-4" />
+                              <FileDown className="mr-2 size-4" />
+                              {trip.orderDownloadedAt
+                                ? `Нареждане ${getTripOrderNumber(trip)} (Изтеглено ${format(new Date(trip.orderDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Нареждане ${getTripOrderNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              disabled={isTripLocked}
+                              title="Редактирай нареждането (събитие, дати, командирован, транспорт)"
+                              className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                              onClick={() => {
+                                setTripToEdit(trip);
+                              }}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.orderDownloadedAt ? "secondary" : "outline"
+                              }
+                              size="icon"
+                              title="Изпрати по имейл"
+                              className={
+                                trip.orderDownloadedAt
+                                  ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-l-none px-0"
+                              }
+                              onClick={() => handleEmailPdf(trip, "order")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Mail className="size-4" />
                             </Button>
                           </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSignatureTripId(trip.id!);
-                              setSignatureRole("chairman");
-                              setSignaturePadOpen(true);
-                            }}
-                          >
-                            <Pencil className="mr-2 size-4" /> Подпиши
-                            (Председател)
-                          </Button>
-                        )}
 
-                        {/* Подписи на състезатели */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/60 dark:text-indigo-300 dark:hover:bg-indigo-950/40"
-                          onClick={() => {
-                            setSelectedTripForAthletesSignatures(trip);
-                          }}
-                        >
-                          <Users className="mr-2 size-4" /> Подписи на
-                          състезатели
-                          {(() => {
-                            const athletesList = (
-                              trip.participantsIds || []
-                            ).filter((id) => !membersDict[id]?.isCoach);
-                            const athleteCount = athletesList.length;
-                            const signedCount = athletesList.filter((id) =>
-                              Boolean(trip.signatures?.athletes?.[id])
-                            ).length;
-                            return athleteCount > 0 ? (
-                              <Badge
-                                variant="secondary"
-                                className={`ml-2 px-1.5 py-0 text-[10px] font-semibold ${
-                                  signedCount === athleteCount
-                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
-                                    : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300"
-                                }`}
-                              >
-                                {signedCount}/{athleteCount}
-                              </Badge>
-                            ) : null;
-                          })()}
-                        </Button>
+                          <div className="flex items-center">
+                            <Button
+                              variant={
+                                trip.statementDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Преглед"
+                              className={
+                                trip.statementDownloadedAt
+                                  ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-r-none border-r-0 px-0"
+                              }
+                              onClick={() =>
+                                handlePreviewPdf(trip, "statement")
+                              }
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Eye className="size-4" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.statementDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePrintStatement(trip)}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                              className={
+                                trip.statementDownloadedAt
+                                  ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "rounded-none border-x-0"
+                              }
+                            >
+                              <FileDown className="mr-2 size-4" />
+                              {trip.statementDownloadedAt
+                                ? `Ведомост ${getTripStatementNumber(trip)} (Изтеглено ${format(new Date(trip.statementDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Ведомост ${getTripStatementNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant={
+                                trip.statementDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              disabled={isTripLocked}
+                              title="Редактирай ведомост (реални дни/нощи)"
+                              className={
+                                trip.statementDownloadedAt
+                                  ? "size-8 rounded-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-none border-r-0 px-0"
+                              }
+                              onClick={() => {
+                                setSelectedTripForStatement(trip);
+                                setIsStatementEditOpen(true);
+                              }}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.statementDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Изпрати по имейл"
+                              className={
+                                trip.statementDownloadedAt
+                                  ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-l-none px-0"
+                              }
+                              onClick={() => handleEmailPdf(trip, "statement")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Mail className="size-4" />
+                            </Button>
+                          </div>
 
-                        {/* Редакция */}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300 dark:hover:bg-blue-950/40"
-                          onClick={() => setTripToEdit(trip)}
-                        >
-                          <Pencil className="mr-2 size-4" /> Редактирай Решение
-                          / Заповед
-                        </Button>
-                        {/* Изтриване */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                          onClick={() => setTripPendingDelete(trip.id!)}
-                        >
-                          <Trash2 className="mr-2 size-4" /> Изтрий
-                        </Button>
-                      </div>
+                          {/* Присъствен лист */}
+                          <div className="flex items-center">
+                            <Button
+                              variant={
+                                trip.attendanceDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Преглед"
+                              className={
+                                trip.attendanceDownloadedAt
+                                  ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-r-none border-r-0 px-0"
+                              }
+                              onClick={() =>
+                                handlePreviewPdf(trip, "attendance")
+                              }
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Eye className="size-4" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.attendanceDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePrintAttendance(trip)}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                              className={
+                                trip.attendanceDownloadedAt
+                                  ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "rounded-none border-x-0"
+                              }
+                            >
+                              <FileDown className="mr-2 size-4" />
+                              {trip.attendanceDownloadedAt
+                                ? `Списък ${getTripAttendanceNumber(trip)} (Изтеглено ${format(new Date(trip.attendanceDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Списък ${getTripAttendanceNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              disabled={isTripLocked}
+                              title="Редактирай присъствения списък (състезатели)"
+                              className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                              onClick={() => {
+                                setTripToEdit(trip);
+                              }}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.attendanceDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Изпрати по имейл"
+                              className={
+                                trip.attendanceDownloadedAt
+                                  ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-l-none px-0"
+                              }
+                              onClick={() => handleEmailPdf(trip, "attendance")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Mail className="size-4" />
+                            </Button>
+                          </div>
 
-                      {/* Инлайн потвърждение за изтриване */}
-                      {tripPendingDelete === trip.id && (
-                        <div className="col-span-full flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950">
-                          <Trash2 className="size-4 shrink-0 text-red-500" />
-                          <p className="flex-1 text-red-700 dark:text-red-300">
-                            Сигурни ли сте? Това ще изтрие командировката
-                            завинаги от базата данни.
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setTripPendingDelete(null)}
-                            disabled={isDeleting}
-                          >
-                            Отказ
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="bg-red-600 text-white hover:bg-red-700"
-                            onClick={() => handleDelete(trip.id!)}
-                            disabled={isDeleting}
-                          >
-                            {isDeleting ? "Изтриване..." : "Да, изтрий"}
-                          </Button>
-                        </div>
-                      )}
-                      {expensesMap[trip.id!] &&
-                        expensesMap[trip.id!].length > 0 && (
-                          <div className="mt-4 flex flex-col gap-2 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
-                            <p className="text-sm font-medium text-zinc-500">
-                              Добавени разходи:
-                            </p>
-                            {expensesMap[trip.id!].map((exp) => (
-                              <div
-                                key={exp.id}
-                                className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
-                              >
-                                <div>
-                                  <span className="font-medium">
-                                    {(() => {
-                                      switch (exp.expenseType) {
-                                        case "fuel":
-                                          return "Гориво";
-                                        case "transport":
-                                          return "Транспорт";
-                                        case "accommodation":
-                                          return "Нощувка";
-                                        case "food":
-                                          return "Храна";
-                                        case "entry_fee":
-                                          return "Входна такса";
-                                        default:
-                                          return "Други";
-                                      }
-                                    })()}
-                                  </span>
-                                  <span className="ml-2 text-zinc-500">
-                                    {exp.expenseType === "fuel"
-                                      ? `Цена/л: ${exp.amountEUR} EUR`
-                                      : `${exp.amountEUR} EUR`}
-                                  </span>
-                                  {exp.documentNumber && (
-                                    <span className="ml-2 text-xs text-zinc-400">
-                                      Фактура/Бон: {exp.documentNumber}
-                                    </span>
-                                  )}
-                                  {exp.stayDate && (
-                                    <span className="ml-2 inline-flex items-center gap-1 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-                                      🌙 {exp.stayDate}
-                                    </span>
-                                  )}
-                                  {exp.notes && (
-                                    <span className="ml-2 text-xs text-zinc-500">
-                                      ({exp.notes})
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  {exp.attachmentUrl && (
-                                    <div className="flex flex-col items-end gap-0.5">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        title="Преглед на прикачен документ"
-                                        className="size-7 text-zinc-400 hover:text-emerald-600"
-                                        onClick={() => {
-                                          const name = exp.documentNumber
-                                            ? `Фактура_${exp.documentNumber}`
-                                            : `Документ_${exp.expenseType}`;
-                                          const url = exp.attachmentUrl!;
-                                          const isPdf =
-                                            url
-                                              .toLowerCase()
-                                              .includes(".pdf") ||
-                                            Boolean(
-                                              exp.attachmentName
-                                                ?.toLowerCase()
-                                                .endsWith(".pdf")
-                                            );
-                                          const isImg =
-                                            /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
-                                              url
-                                            ) ||
-                                            Boolean(
-                                              exp.attachmentName &&
-                                              /\.(png|jpe?g|webp|gif|svg)$/i.test(
-                                                exp.attachmentName
-                                              )
-                                            );
-                                          const isWord =
-                                            Boolean(
-                                              exp.attachmentName &&
-                                              /\.(docx?|rtf|odt|txt)$/i.test(
-                                                exp.attachmentName
-                                              )
-                                            ) ||
-                                            /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
-                                              url
-                                            );
-                                          const isExcel =
-                                            Boolean(
-                                              exp.attachmentName &&
-                                              /\.(xlsx?|csv)$/i.test(
-                                                exp.attachmentName
-                                              )
-                                            ) ||
-                                            /\.(xlsx?|csv)(\?.*)?$/i.test(url);
-                                          let docType:
-                                            DocumentAttachmentType | undefined;
-                                          if (isPdf) {
-                                            docType = "pdf";
-                                          } else if (isWord) {
-                                            docType = "word";
-                                          } else if (isExcel) {
-                                            docType = "excel";
-                                          } else if (isImg) {
-                                            docType = "image";
-                                          }
-                                          setExpenseViewerDoc({
-                                            url,
-                                            name,
-                                            type: docType,
-                                            expenseId: exp.id,
-                                          });
-                                        }}
-                                      >
-                                        <Eye className="size-3" />
-                                      </Button>
-                                      {exp.attachmentDownloadedAt && (
-                                        <span
-                                          className="text-[9px] text-zinc-400"
-                                          title={`Свалено: ${format(new Date(exp.attachmentDownloadedAt), "dd.MM.yyyy HH:mm")}`}
-                                        >
-                                          ↓{" "}
-                                          {format(
-                                            new Date(
-                                              exp.attachmentDownloadedAt
-                                            ),
-                                            "dd.MM HH:mm"
-                                          )}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )}
+                          {/* Доклад за извършената работа (НКС) */}
+                          <div className="flex items-center">
+                            <Button
+                              variant={
+                                trip.reportDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Преглед на Доклад за извършената работа"
+                              className={
+                                trip.reportDownloadedAt
+                                  ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-r-none border-r-0 px-0"
+                              }
+                              onClick={() => handlePreviewPdf(trip, "report")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Eye className="size-4" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.reportDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => handlePrintReport(trip)}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                              className={
+                                trip.reportDownloadedAt
+                                  ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "rounded-none border-x-0"
+                              }
+                            >
+                              <FileDown className="mr-2 size-4" />
+                              {trip.reportDownloadedAt
+                                ? `Доклад ${getTripReportNumber(trip)} (Изтеглен ${format(new Date(trip.reportDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                : `Доклад ${getTripReportNumber(trip)} (PDF)`}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              disabled={isTripLocked}
+                              title="Редактирай текст на Доклада"
+                              className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                              onClick={() => {
+                                setSelectedTripForReport(trip);
+                                setIsReportDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant={
+                                trip.reportDownloadedAt
+                                  ? "secondary"
+                                  : "outline"
+                              }
+                              size="icon"
+                              title="Изпрати по имейл"
+                              className={
+                                trip.reportDownloadedAt
+                                  ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                  : "size-8 rounded-l-none px-0"
+                              }
+                              onClick={() => handleEmailPdf(trip, "report")}
+                              disabled={isGeneratingPdf || isSendingEmail}
+                            >
+                              <Mail className="size-4" />
+                            </Button>
+                          </div>
+
+                          {/* Официално класиране от състезанието */}
+                          {trip.attachMatchProtocols &&
+                            trip.matchProtocols &&
+                            trip.matchProtocols.length > 0 &&
+                            trip.matchProtocols.map((proto, pIdx) => {
+                              const isProtoDownloaded = Boolean(
+                                proto.downloadedAt
+                              );
+                              const baseName =
+                                proto.name.length > 18
+                                  ? `${proto.name.slice(0, 18)}...`
+                                  : proto.name;
+                              let protoLabel = `Класиране (${baseName})`;
+                              if (isProtoDownloaded && proto.downloadedAt) {
+                                protoLabel += ` (Изтеглен ${format(new Date(proto.downloadedAt), "dd.MM, HH:mm")})`;
+                              }
+
+                              return (
+                                <div
+                                  key={proto.id || pIdx}
+                                  className="flex items-center"
+                                >
                                   <Button
-                                    variant="ghost"
+                                    variant={
+                                      isProtoDownloaded
+                                        ? "secondary"
+                                        : "outline"
+                                    }
                                     size="icon"
-                                    title="Редактирай разход"
-                                    className="size-7 text-zinc-400 hover:text-blue-600"
+                                    title={`Преглед на протокол: ${proto.name}`}
+                                    className={
+                                      isProtoDownloaded
+                                        ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                        : "size-8 rounded-r-none border-r-0 px-0 text-indigo-600 hover:text-indigo-700"
+                                    }
                                     onClick={() => {
-                                      setExpenseToEdit(exp);
-                                      setSelectedTripForExpense(trip.id!);
-                                      setIsExpenseDialogOpen(true);
+                                      const isPdf =
+                                        proto.url
+                                          .toLowerCase()
+                                          .includes(".pdf") ||
+                                        proto.name
+                                          .toLowerCase()
+                                          .endsWith(".pdf");
+                                      const isImg =
+                                        /\.(png|jpe?g|webp|gif|svg|bmp|avif)(\?.*)?$/i.test(
+                                          proto.url
+                                        ) ||
+                                        /\.(png|jpe?g|webp|gif|svg|bmp|avif)$/i.test(
+                                          proto.name
+                                        );
+                                      const isWord =
+                                        /\.(docx?|rtf|odt|txt)$/i.test(
+                                          proto.name
+                                        ) ||
+                                        /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
+                                          proto.url
+                                        );
+                                      const isExcel =
+                                        /\.(xlsx?|csv)$/i.test(proto.name) ||
+                                        /\.(xlsx?|csv)(\?.*)?$/i.test(
+                                          proto.url
+                                        );
+                                      let docType:
+                                        DocumentAttachmentType | undefined;
+                                      if (isPdf) {
+                                        docType = "pdf";
+                                      } else if (isWord) {
+                                        docType = "word";
+                                      } else if (isExcel) {
+                                        docType = "excel";
+                                      } else if (isImg) {
+                                        docType = "image";
+                                      }
+                                      setExpenseViewerDoc({
+                                        url: proto.url,
+                                        name: proto.name,
+                                        type: docType,
+                                        protocolId: proto.id,
+                                        tripId: trip.id,
+                                      });
                                     }}
                                   >
-                                    <Pencil className="size-3" />
+                                    <Eye className="size-4" />
                                   </Button>
                                   <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    title="Изтрий разход"
-                                    className="size-7 text-zinc-400 hover:text-red-600"
-                                    onClick={() => handleDeleteExpense(exp.id!)}
+                                    variant={
+                                      isProtoDownloaded
+                                        ? "secondary"
+                                        : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={async () => {
+                                      if (trip.id && proto.id) {
+                                        try {
+                                          await businessTripService.logTripProtocolDownload(
+                                            trip.id,
+                                            proto.id
+                                          );
+                                          loadData();
+                                        } catch {
+                                          // non-critical
+                                        }
+                                      }
+                                      const a = document.createElement("a");
+                                      a.href = proto.url;
+                                      a.download = proto.name;
+                                      a.target = "_blank";
+                                      a.rel = "noopener noreferrer";
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      document.body.removeChild(a);
+                                    }}
+                                    className={
+                                      isProtoDownloaded
+                                        ? "rounded-l-none border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                        : "rounded-l-none text-indigo-700 hover:text-indigo-800"
+                                    }
                                   >
-                                    <Trash2 className="size-3" />
+                                    <FileDown className="mr-2 size-4" />
+                                    {protoLabel}
                                   </Button>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
+
+                          {trip.transportType === "fuel_only" && (
+                            <div className="flex items-center">
+                              <Button
+                                variant={
+                                  trip.fuelDownloadedAt
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                size="icon"
+                                title="Преглед"
+                                className={
+                                  trip.fuelDownloadedAt
+                                    ? "size-8 rounded-r-none border-r-0 border-emerald-200 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                    : "size-8 rounded-r-none border-r-0 px-0"
+                                }
+                                onClick={() => handlePreviewPdf(trip, "fuel")}
+                                disabled={isGeneratingPdf || isSendingEmail}
+                              >
+                                <Eye className="size-4" />
+                              </Button>
+                              <Button
+                                variant={
+                                  trip.fuelDownloadedAt
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                size="sm"
+                                onClick={() => handlePrintFuelReport(trip)}
+                                disabled={isGeneratingPdf || isSendingEmail}
+                                className={
+                                  trip.fuelDownloadedAt
+                                    ? "rounded-none border-x-0 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                    : "rounded-none border-x-0"
+                                }
+                              >
+                                <FileDown className="mr-2 size-4" />
+                                {trip.fuelDownloadedAt
+                                  ? `Пътен лист ${getTripFuelNumber(trip)} (Изтеглено ${format(new Date(trip.fuelDownloadedAt), "dd.MM.yyyy, HH:mm")})`
+                                  : `Пътен лист ${getTripFuelNumber(trip)} (PDF)`}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                disabled={isTripLocked}
+                                title="Редактирай пътен лист (курсове, км, разход на гориво)"
+                                className="size-8 rounded-none border-r-0 px-0 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/30"
+                                onClick={() => {
+                                  setSelectedTripForStatement(trip);
+                                  setIsStatementEditOpen(true);
+                                }}
+                              >
+                                <Pencil className="size-3.5" />
+                              </Button>
+                              <Button
+                                variant={
+                                  trip.fuelDownloadedAt
+                                    ? "secondary"
+                                    : "outline"
+                                }
+                                size="icon"
+                                title="Изпрати по имейл"
+                                className={
+                                  trip.fuelDownloadedAt
+                                    ? "size-8 rounded-l-none border-l border-emerald-200 border-l-emerald-300 bg-emerald-50 px-0 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:border-l-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                                    : "size-8 rounded-l-none px-0"
+                                }
+                                onClick={() => handleEmailPdf(trip, "fuel")}
+                                disabled={isGeneratingPdf || isSendingEmail}
+                              >
+                                <Mail className="size-4" />
+                              </Button>
+                            </div>
+                          )}
+                          {/* Подписи */}
+                          {trip.signatures?.coach ? (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="pointer-events-none border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              >
+                                <Pencil className="mr-2 size-4" /> Подписано
+                                (Командирован)
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isTripLocked}
+                                title="Изчисти подпис"
+                                className="size-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() =>
+                                  handleClearSignature(trip.id!, "coach")
+                                }
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isTripLocked}
+                              onClick={() => {
+                                setSignatureTripId(trip.id!);
+                                setSignatureRole("coach");
+                                setSignaturePadOpen(true);
+                              }}
+                            >
+                              <Pencil className="mr-2 size-4" /> Подпиши
+                              (Командирован)
+                            </Button>
+                          )}
+
+                          {trip.signatures?.chairman ? (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                className="pointer-events-none border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"
+                              >
+                                <Pencil className="mr-2 size-4" /> Подписано
+                                (Председател)
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                disabled={isTripLocked}
+                                title="Изчисти подпис"
+                                className="size-8 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 dark:hover:text-red-400"
+                                onClick={() =>
+                                  handleClearSignature(trip.id!, "chairman")
+                                }
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={isTripLocked}
+                              onClick={() => {
+                                setSignatureTripId(trip.id!);
+                                setSignatureRole("chairman");
+                                setSignaturePadOpen(true);
+                              }}
+                            >
+                              <Pencil className="mr-2 size-4" /> Подпиши
+                              (Председател)
+                            </Button>
+                          )}
+
+                          {/* Подписи на състезатели */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isTripLocked}
+                            className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark:border-indigo-900/60 dark:text-indigo-300 dark:hover:bg-indigo-950/40"
+                            onClick={() => {
+                              setSelectedTripForAthletesSignatures(trip);
+                            }}
+                          >
+                            <Users className="mr-2 size-4" /> Подписи на
+                            състезатели
+                            {(() => {
+                              const athletesList = (
+                                trip.participantsIds || []
+                              ).filter((id) => !membersDict[id]?.isCoach);
+                              const athleteCount = athletesList.length;
+                              const signedCount = athletesList.filter((id) =>
+                                Boolean(trip.signatures?.athletes?.[id])
+                              ).length;
+                              return athleteCount > 0 ? (
+                                <Badge
+                                  variant="secondary"
+                                  className={`ml-2 px-1.5 py-0 text-[10px] font-semibold ${
+                                    signedCount === athleteCount
+                                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                                      : "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300"
+                                  }`}
+                                >
+                                  {signedCount}/{athleteCount}
+                                </Badge>
+                              ) : null;
+                            })()}
+                          </Button>
+
+                          {/* Редакция */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isTripLocked}
+                            className="border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-900/60 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                            onClick={() => setTripToEdit(trip)}
+                          >
+                            <Pencil className="mr-2 size-4" /> Редактирай
+                            Решение / Заповед
+                          </Button>
+                          {/* Изтриване */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={isTripLocked}
+                            className="text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                            onClick={() => setTripPendingDelete(trip.id!)}
+                          >
+                            <Trash2 className="mr-2 size-4" /> Изтрий
+                          </Button>
+                        </div>
+
+                        {/* Инлайн потвърждение за изтриване */}
+                        {tripPendingDelete === trip.id && (
+                          <div className="col-span-full flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950">
+                            <Trash2 className="size-4 shrink-0 text-red-500" />
+                            <p className="flex-1 text-red-700 dark:text-red-300">
+                              Сигурни ли сте? Това ще изтрие командировката
+                              завинаги от базата данни.
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setTripPendingDelete(null)}
+                              disabled={isDeleting}
+                            >
+                              Отказ
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="bg-red-600 text-white hover:bg-red-700"
+                              onClick={() => handleDelete(trip.id!)}
+                              disabled={isDeleting}
+                            >
+                              {isDeleting ? "Изтриване..." : "Да, изтрий"}
+                            </Button>
                           </div>
                         )}
-                    </div>
-                  ))}
+                        {expensesMap[trip.id!] &&
+                          expensesMap[trip.id!].length > 0 && (
+                            <div className="mt-4 flex flex-col gap-2 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
+                              <p className="text-sm font-medium text-zinc-500">
+                                Добавени разходи:
+                              </p>
+                              {expensesMap[trip.id!].map((exp) => (
+                                <div
+                                  key={exp.id}
+                                  className="flex items-center justify-between rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-950"
+                                >
+                                  <div>
+                                    <span className="font-medium">
+                                      {(() => {
+                                        switch (exp.expenseType) {
+                                          case "fuel":
+                                            return "Гориво";
+                                          case "transport":
+                                            return "Транспорт";
+                                          case "accommodation":
+                                            return "Нощувка";
+                                          case "food":
+                                            return "Храна";
+                                          case "entry_fee":
+                                            return "Входна такса";
+                                          default:
+                                            return "Други";
+                                        }
+                                      })()}
+                                    </span>
+                                    <span className="ml-2 text-zinc-500">
+                                      {exp.expenseType === "fuel"
+                                        ? `Цена/л: ${exp.amountEUR} EUR`
+                                        : `${exp.amountEUR} EUR`}
+                                    </span>
+                                    {exp.documentNumber && (
+                                      <span className="ml-2 text-xs text-zinc-400">
+                                        Фактура/Бон: {exp.documentNumber}
+                                      </span>
+                                    )}
+                                    {exp.stayDate && (
+                                      <span className="ml-2 inline-flex items-center gap-1 rounded bg-indigo-50 px-1.5 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
+                                        🌙 {exp.stayDate}
+                                      </span>
+                                    )}
+                                    {exp.notes && (
+                                      <span className="ml-2 text-xs text-zinc-500">
+                                        ({exp.notes})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    {exp.attachmentUrl && (
+                                      <div className="flex flex-col items-end gap-0.5">
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          title="Преглед на прикачен документ"
+                                          className="size-7 text-zinc-400 hover:text-emerald-600"
+                                          onClick={() => {
+                                            const name = exp.documentNumber
+                                              ? `Фактура_${exp.documentNumber}`
+                                              : `Документ_${exp.expenseType}`;
+                                            const url = exp.attachmentUrl!;
+                                            const isPdf =
+                                              url
+                                                .toLowerCase()
+                                                .includes(".pdf") ||
+                                              Boolean(
+                                                exp.attachmentName
+                                                  ?.toLowerCase()
+                                                  .endsWith(".pdf")
+                                              );
+                                            const isImg =
+                                              /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(
+                                                url
+                                              ) ||
+                                              Boolean(
+                                                exp.attachmentName &&
+                                                /\.(png|jpe?g|webp|gif|svg)$/i.test(
+                                                  exp.attachmentName
+                                                )
+                                              );
+                                            const isWord =
+                                              Boolean(
+                                                exp.attachmentName &&
+                                                /\.(docx?|rtf|odt|txt)$/i.test(
+                                                  exp.attachmentName
+                                                )
+                                              ) ||
+                                              /\.(docx?|rtf|odt|txt)(\?.*)?$/i.test(
+                                                url
+                                              );
+                                            const isExcel =
+                                              Boolean(
+                                                exp.attachmentName &&
+                                                /\.(xlsx?|csv)$/i.test(
+                                                  exp.attachmentName
+                                                )
+                                              ) ||
+                                              /\.(xlsx?|csv)(\?.*)?$/i.test(
+                                                url
+                                              );
+                                            let docType:
+                                              | DocumentAttachmentType
+                                              | undefined;
+                                            if (isPdf) {
+                                              docType = "pdf";
+                                            } else if (isWord) {
+                                              docType = "word";
+                                            } else if (isExcel) {
+                                              docType = "excel";
+                                            } else if (isImg) {
+                                              docType = "image";
+                                            }
+                                            setExpenseViewerDoc({
+                                              url,
+                                              name,
+                                              type: docType,
+                                              expenseId: exp.id,
+                                            });
+                                          }}
+                                        >
+                                          <Eye className="size-3" />
+                                        </Button>
+                                        {exp.attachmentDownloadedAt && (
+                                          <span
+                                            className="text-[9px] text-zinc-400"
+                                            title={`Свалено: ${format(new Date(exp.attachmentDownloadedAt), "dd.MM.yyyy HH:mm")}`}
+                                          >
+                                            ↓{" "}
+                                            {format(
+                                              new Date(
+                                                exp.attachmentDownloadedAt
+                                              ),
+                                              "dd.MM HH:mm"
+                                            )}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={isTripLocked}
+                                      title="Редактирай разход"
+                                      className="size-7 text-zinc-400 hover:text-blue-600"
+                                      onClick={() => {
+                                        setExpenseToEdit(exp);
+                                        setSelectedTripForExpense(trip.id!);
+                                        setIsExpenseDialogOpen(true);
+                                      }}
+                                    >
+                                      <Pencil className="size-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={isTripLocked}
+                                      title="Изтрий разход"
+                                      className="size-7 text-zinc-400 hover:text-red-600"
+                                      onClick={() =>
+                                        handleDeleteExpense(exp.id!)
+                                      }
+                                    >
+                                      <Trash2 className="size-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1908,6 +2009,7 @@ export function BusinessTripManagerDialog({
               : []
           }
           showBgn={showBgnInPdf}
+          idSuffix="-manager"
         />
       )}
 
@@ -2087,6 +2189,7 @@ export function BusinessTripManagerDialog({
               : []
           }
           event={event}
+          onRefresh={loadData}
           onSuccess={(savedReportText) => {
             if (selectedTripForReport?.id) {
               setBusinessTrips((prev) =>

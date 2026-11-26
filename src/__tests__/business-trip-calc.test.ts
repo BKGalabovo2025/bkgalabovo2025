@@ -1215,4 +1215,105 @@ describe("Business Trip Per Diem & Accounting Calculations", () => {
       expect(getDriverDistanceKmForTrip(multiTrip, "ath-3")).toBe(0);
     });
   });
+
+  describe("Audit regression guards (deduplication, fuel gating, public transport, hasEntryFee, isFemalePerson)", () => {
+    it("deduplicates participantsIds, falls back to overrides[coachId], and honors stayedOvernight=false before actualNights", () => {
+      const trip: BusinessTrip = {
+        id: "trip-audit-1",
+        siteId: "bkgalabovo",
+        title: "Тест",
+        destination: "София",
+        startDate: "2026-06-01T08:00:00.000Z",
+        endDate: "2026-06-03T18:00:00.000Z",
+        coachId: "coach-1",
+        participantsIds: ["ath-1", "ath-1", "ath-2"],
+        transportType: "club_paid",
+        expensesCoverage: "food_and_sleep",
+        financials: {
+          perDiemRateEUR: 22,
+          accommodationRateEUR: 20,
+          isCommercialActivity: false,
+        },
+        participantOverrides: {
+          "coach-1": { actualDays: 2, actualNights: 1 },
+          "ath-1": { actualDays: 2, actualNights: 2, stayedOvernight: false },
+        },
+        status: "approved",
+      };
+
+      const res = calculateTripStatementTotals(trip);
+      expect(res.activePeopleCount).toBe(3);
+      const coach = res.personTotals.find((p) => p.id === "coach")!;
+      expect(coach.days).toBe(2);
+      expect(coach.nights).toBe(1);
+      const ath1 = res.personTotals.find((p) => p.id === "ath-1")!;
+      expect(ath1.nights).toBe(0);
+      expect(ath1.stayedOvernight).toBe(false);
+      expect(ath1.perDiemRateEUR).toBe(11);
+    });
+
+    it("gates fuel liters/cost to fuel_only while preserving distanceKm, avoids double-counting public transport, and respects hasEntryFee=false", () => {
+      const trip: BusinessTrip = {
+        id: "trip-audit-2",
+        siteId: "bkgalabovo",
+        title: "Тест транспорт",
+        destination: "София",
+        startDate: "2026-06-01T08:00:00.000Z",
+        endDate: "2026-06-02T18:00:00.000Z",
+        coachId: "coach-1",
+        participantsIds: ["ath-1"],
+        transportType: "public",
+        publicTransportDailyFareEUR: 15,
+        expensesCoverage: "transport_and_food",
+        vehicle: {
+          fuelNorm: 8,
+          distanceKm: 300,
+        },
+        financials: {
+          perDiemRateEUR: 11,
+          accommodationRateEUR: 0,
+          entryFeeEUR: 50,
+          hasEntryFee: false,
+          isCommercialActivity: false,
+        },
+        status: "approved",
+      };
+
+      const transport = calculateTripTransportTotals(trip, 1.5);
+      expect(transport.effectiveDistanceKm).toBe(300);
+      expect(transport.calcFuelLiters).toBe(0);
+      expect(transport.calcFuelEUR).toBe(0);
+
+      const breakdown = calculateTripVehiclesBreakdown(trip, 1.5);
+      expect(breakdown[0].distanceKm).toBe(300);
+      expect(breakdown[0].calcFuelLiters).toBe(0);
+      expect(breakdown[0].calcFuelEUR).toBe(0);
+
+      const summary = calculateTripExpensesSummary(trip, [
+        {
+          id: "exp-ticket",
+          tripId: "trip-audit-2",
+          siteId: "bkgalabovo",
+          expenseType: "transport",
+          amountEUR: 40,
+        },
+      ]);
+      // 40 (transport invoice) + 44 (2 people * 2 days * 11 EUR), NO publicTransport double-count, NO 50 EUR entryFee
+      expect(summary.totalEstimatedCostEUR).toBe(84);
+      expect(summary.calcFuelLiters).toBe(0);
+    });
+
+    it("does not false-match substring first names in isFemalePerson", () => {
+      const membersDict: Record<string, Member> = {
+        mira: {
+          id: "mira",
+          firstName: "Мира",
+          lastName: "Георгиева",
+          gender: "female",
+        } as Member,
+      };
+      expect(isFemalePerson("Мирослав Петров", membersDict)).toBe(false);
+      expect(isFemalePerson("Мира Георгиева", membersDict)).toBe(true);
+    });
+  });
 });

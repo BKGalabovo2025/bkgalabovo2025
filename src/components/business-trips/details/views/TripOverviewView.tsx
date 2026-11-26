@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import {
   buildTripRouteLabel,
   calculateTripExpensesSummary,
+  calculateTripStatementTotals,
   calculateTripTransportTotals,
   EUR_TO_BGN_RATE,
   getEffectiveTripRates,
@@ -42,8 +43,15 @@ import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 
 export function TripOverviewView() {
-  const { trip, event, expenses, membersDict, openDialog, refreshData } =
-    useTripDetails();
+  const {
+    trip,
+    event,
+    expenses,
+    membersDict,
+    isLocked,
+    openDialog,
+    refreshData,
+  } = useTripDetails();
   const [isSyncingEvent, setIsSyncingEvent] = useState(false);
 
   const coach = trip.coachId ? membersDict[trip.coachId] : null;
@@ -53,6 +61,7 @@ export function TripOverviewView() {
 
   const expenseSummary = calculateTripExpensesSummary(trip, expenses);
   const transportCalc = calculateTripTransportTotals(trip);
+  const statementTotals = calculateTripStatementTotals(trip);
 
   const coverage = trip.expensesCoverage || "transport_food_sleep";
   const hasFoodCoverage = coverage !== "transport_only";
@@ -64,10 +73,25 @@ export function TripOverviewView() {
   const effectiveRates = getEffectiveTripRates(basePerDiemEUR);
 
   const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
-  const displayPerDiemEUR = isDailyCommute
-    ? effectiveRates.noStayRate
-    : effectiveRates.fullRate;
+  const displayPerDiemEUR =
+    statementTotals.personTotals[0]?.perDiemRateEUR ??
+    (hasFoodCoverage
+      ? isDailyCommute
+        ? effectiveRates.noStayRate
+        : effectiveRates.fullRate
+      : 0);
   const displayPerDiemBGN = displayPerDiemEUR * EUR_TO_BGN_RATE;
+  const displayedNights =
+    trip.actualNights != null
+      ? trip.actualNights
+      : statementTotals.plannedNights;
+
+  const activeAthleteIds = (trip.participantsIds || []).filter(
+    (id) => !membersDict[id]?.isCoach
+  );
+  const signedAthletesCount = activeAthleteIds.filter((id) =>
+    Boolean(trip.signatures?.athletes?.[id])
+  ).length;
 
   const getCoverageInfo = (cov?: string) => {
     switch (cov) {
@@ -190,7 +214,7 @@ export function TripOverviewView() {
             type="button"
             size="sm"
             variant="outline"
-            disabled={isSyncingEvent}
+            disabled={isLocked || isSyncingEvent}
             onClick={handleSyncFromSchedule}
             className="shrink-0 rounded-xl border-amber-400 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/60"
           >
@@ -222,6 +246,7 @@ export function TripOverviewView() {
             type="button"
             size="sm"
             variant="outline"
+            disabled={isLocked}
             onClick={() => openDialog("edit")}
             className="shrink-0 rounded-xl border-amber-400 bg-white text-xs font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-zinc-900 dark:text-amber-300 dark:hover:bg-amber-950/60"
           >
@@ -236,7 +261,7 @@ export function TripOverviewView() {
           <span className="text-xs font-bold uppercase tracking-wider text-indigo-900 dark:text-indigo-200">
             Бърз треньорски режим (в залата / на път)
           </span>
-          {trip.status === "completed" && (
+          {isLocked && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
               <Lock className="size-3" />
               Приключена и отчетена
@@ -244,40 +269,76 @@ export function TripOverviewView() {
           )}
         </div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <Button
-            asChild
-            variant="outline"
-            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
-          >
-            <Link
-              href={`/accounting/trips/${trip.id}/expenses?action=add-expense`}
-            >
-              <Camera className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
-              <span>Качи / Сканирай разход</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
-          >
-            <Link
-              href={`/accounting/trips/${trip.id}/athletes?action=signatures`}
-            >
-              <PenTool className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>Подписи на състезатели</span>
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
-          >
-            <Link href={`/accounting/trips/${trip.id}/report?action=report`}>
-              <FileText className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              <span>Спортен доклад</span>
-            </Link>
-          </Button>
+          {isLocked ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                <Camera className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                <span>Качи / Сканирай разход</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                <PenTool className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Подписи на състезатели</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100"
+              >
+                <FileText className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Спортен доклад</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+              >
+                <Link
+                  href={`/accounting/trips/${trip.id}/expenses?action=add-expense`}
+                >
+                  <Camera className="size-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                  <span>Качи / Сканирай разход</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+              >
+                <Link
+                  href={`/accounting/trips/${trip.id}/athletes?action=signatures`}
+                >
+                  <PenTool className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span>Подписи на състезатели</span>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 justify-start gap-2.5 rounded-xl border-indigo-200 bg-white px-3.5 text-xs font-semibold text-zinc-900 hover:bg-indigo-50 dark:border-indigo-800/60 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-indigo-950/50"
+              >
+                <Link
+                  href={`/accounting/trips/${trip.id}/report?action=report`}
+                >
+                  <FileText className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>Спортен доклад</span>
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -383,7 +444,7 @@ export function TripOverviewView() {
               )}
             </div>
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              {Object.keys(trip.signatures?.athletes || {}).length} подписани
+              {signedAthletesCount} подписани
             </p>
           </div>
         </BentoCard>
@@ -444,9 +505,14 @@ export function TripOverviewView() {
               type="button"
               variant="outline"
               size="sm"
+              disabled={isLocked}
               onClick={() => openDialog("statement")}
               className="h-8 rounded-xl border-blue-300 bg-white text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:bg-zinc-900 dark:text-blue-300 dark:hover:bg-blue-950/50"
-              title="Корекция на присъствени дни, курсове на пътуване или отпадане на състезатели"
+              title={
+                isLocked
+                  ? "Командировката е заключена. Отключете я за корекции."
+                  : "Корекция на присъствени дни, курсове на пътуване или отпадане на състезатели"
+              }
             >
               <Pencil className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
               Корекция дни / курсове
@@ -456,9 +522,14 @@ export function TripOverviewView() {
               type="button"
               variant="outline"
               size="sm"
+              disabled={isLocked}
               onClick={() => openDialog("edit")}
               className="h-8 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-              title="Редактирай покритие на разходи, автомобил или ставки"
+              title={
+                isLocked
+                  ? "Командировката е заключена. Отключете я за корекции."
+                  : "Редактирай покритие на разходи, автомобил или ставки"
+              }
             >
               <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
               Редактирай параметри
@@ -491,7 +562,7 @@ export function TripOverviewView() {
             <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
               {isDailyCommute
                 ? `Отборът пътува всеки състезателен ден и се прибира в гр. Гълъбово без преспиване. Курсове: ${transportCalc.plannedTripsCount} план. (${transportCalc.actualTripsCount} реализирани) • ${transportCalc.effectiveDistanceKm} км.`
-                : `Отборът пътува еднократно и преспива на място (${trip.actualNights ?? 0} нощувки).`}
+                : `Отборът пътува еднократно и преспива на място (${displayedNights} нощувки).`}
             </p>
           </div>
 

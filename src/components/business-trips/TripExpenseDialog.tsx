@@ -196,15 +196,18 @@ export function TripExpenseDialog({
         }
       }
 
+      const { attachmentFile: _ignored, ...expensePayload } = values;
+      void _ignored;
+
       if (expenseToEdit && expenseToEdit.id) {
         await businessTripService.updateExpense(expenseToEdit.id, {
-          ...values,
+          ...expensePayload,
           attachmentUrl: finalAttachmentUrl,
         } as any);
         toast.success("Разходът е обновен успешно!");
       } else {
         await businessTripService.addExpense({
-          ...values,
+          ...expensePayload,
           attachmentUrl: finalAttachmentUrl,
         } as any);
         toast.success("Разходът е добавен успешно!");

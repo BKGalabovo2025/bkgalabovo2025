@@ -55,6 +55,7 @@ export function TripAthletesSignaturesDialog({
 }: TripAthletesSignaturesDialogProps) {
   const [copiedMemberId, setCopiedMemberId] = useState<string | null>(null);
   const [isCopyingAll, setIsCopyingAll] = useState(false);
+  const [isApplyingAll, setIsApplyingAll] = useState(false);
   const [previewSig, setPreviewSig] = useState<{
     name: string;
     url: string;
@@ -209,7 +210,8 @@ export function TripAthletesSignaturesDialog({
   };
 
   const handleApplyAllProfileSignatures = async () => {
-    if (athletesWithStoredSig.length === 0) return;
+    if (athletesWithStoredSig.length === 0 || isApplyingAll) return;
+    setIsApplyingAll(true);
     try {
       let count = 0;
       for (const a of athletesWithStoredSig) {
@@ -229,6 +231,8 @@ export function TripAthletesSignaturesDialog({
     } catch (e) {
       console.error(e);
       toast.error("Грешка при прилагане на съхранените подписи.");
+    } finally {
+      setIsApplyingAll(false);
     }
   };
 
@@ -304,12 +308,15 @@ export function TripAthletesSignaturesDialog({
                       <Button
                         variant="outline"
                         size="sm"
+                        disabled={isApplyingAll}
                         onClick={handleApplyAllProfileSignatures}
                         className="h-7 text-xs bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-300 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300"
                         title="Приложи съхранените подписи от профилите"
                       >
                         <Sparkles className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
-                        Приложи съхранени ({athletesWithStoredSig.length})
+                        {isApplyingAll
+                          ? "Прилагане..."
+                          : `Приложи съхранени (${athletesWithStoredSig.length})`}
                       </Button>
                     )}
                     <Button

@@ -32,20 +32,6 @@ async function renderElementToCanvas(
         }
       }
 
-      // Also unhide any hidden wrapper ancestors in the cloned document
-      const hiddenParents = clonedDoc.querySelectorAll(
-        ".hidden, [style*='display: none'], [style*='display:none']"
-      );
-      hiddenParents.forEach((el) => {
-        const htmlEl = el as HTMLElement;
-        if (htmlEl.classList.contains("hidden")) {
-          htmlEl.classList.remove("hidden");
-        }
-        if (htmlEl.style.display === "none") {
-          htmlEl.style.display = "block";
-        }
-      });
-
       // Remove dark theme so exported PDF always renders clean white print layout
       clonedDoc.documentElement.classList.remove("dark");
       clonedDoc.body.classList.remove("dark");

@@ -10,7 +10,7 @@ import {
   Unlock,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { Suspense, useState } from "react";
 import { toast } from "sonner";
 
@@ -42,12 +42,13 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
     expenses,
     membersDict,
     refreshData,
+    isLocked,
     activeDialog,
     openDialog,
     closeDialog,
   } = useTripDetails();
+  const router = useRouter();
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const isLocked = trip.status === "completed";
 
   const handleUnlockTrip = async () => {
     if (!trip.id) return;
@@ -211,7 +212,7 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
         </div>
       )}
 
-      {activeDialog === "edit" && (
+      {!isLocked && activeDialog === "edit" && (
         <CreateBusinessTripDialog
           open={true}
           onOpenChange={(open) => {
@@ -241,10 +242,15 @@ function TripDetailsHeaderInner({ tripId }: { tripId: string }) {
               refreshData();
             }
           }}
+          onTripDeleted={(deletedTripId) => {
+            if (deletedTripId === trip.id) {
+              router.push("/accounting");
+            }
+          }}
         />
       )}
 
-      {activeDialog === "statement" && (
+      {!isLocked && activeDialog === "statement" && (
         <TripStatementEditDialog
           open={true}
           onOpenChange={(open) => {

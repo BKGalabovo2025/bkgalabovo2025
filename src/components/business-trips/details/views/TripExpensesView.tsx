@@ -38,6 +38,7 @@ export function TripExpensesView() {
     trip,
     expenses,
     refreshData,
+    isLocked,
     activeDialog,
     activeExpenseId,
     openDialog,
@@ -51,7 +52,6 @@ export function TripExpensesView() {
 
   const summary = calculateTripExpensesSummary(trip, expenses);
   const hasFuelExpense = summary.hasFuelReceipts;
-  const isLocked = trip.status === "completed";
 
   const isExpenseDialogOpen =
     activeDialog === "add-expense" || activeDialog === "edit-expense";
@@ -250,7 +250,7 @@ export function TripExpensesView() {
         </div>
       </BentoCard>
 
-      {trip.id && isExpenseDialogOpen && (
+      {!isLocked && trip.id && isExpenseDialogOpen && (
         <TripExpenseDialog
           open={true}
           onOpenChange={(open) => {

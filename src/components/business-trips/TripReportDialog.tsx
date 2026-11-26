@@ -60,6 +60,7 @@ interface TripReportDialogProps {
   expenses?: TripExpense[];
   event?: ScheduleEvent | null;
   onSuccess?: (savedReportText?: string) => void;
+  onRefresh?: () => void;
 }
 
 export function TripReportDialog({
@@ -70,6 +71,7 @@ export function TripReportDialog({
   expenses = [],
   event,
   onSuccess,
+  onRefresh,
 }: TripReportDialogProps) {
   const { idToken } = useAuth();
   const [reportText, setReportText] = useState("");
@@ -236,7 +238,7 @@ export function TripReportDialog({
       });
 
       toast.success("Протоколите бяха качени успешно!", { id: uploadToast });
-      onSuccess?.();
+      onRefresh?.();
     } catch (err) {
       console.error(err);
       toast.error("Грешка при качване на протокола.", { id: uploadToast });
@@ -255,7 +257,7 @@ export function TripReportDialog({
         matchProtocols: updated,
       });
       toast.success("Протоколът беше премахнат.");
-      onSuccess?.();
+      onRefresh?.();
     } catch (err) {
       console.error(err);
       setProtocols(prevProtocols);
@@ -304,7 +306,7 @@ export function TripReportDialog({
           item.id === p.id ? { ...item, downloadedAt: now } : item
         )
       );
-      onSuccess?.();
+      onRefresh?.();
     } catch {
       // non-critical
     }
@@ -694,7 +696,7 @@ export function TripReportDialog({
                       : item
                   )
                 );
-                onSuccess?.();
+                onRefresh?.();
               } catch {
                 // non-critical
               }

@@ -23,6 +23,7 @@ export function TripProtocolView() {
     membersDict,
     setTrip,
     refreshData,
+    isLocked,
     activeDialog,
     openDialog,
     closeDialog,
@@ -106,9 +107,14 @@ export function TripProtocolView() {
           <Button
             variant="outline"
             size="sm"
+            disabled={isLocked}
             onClick={() => openDialog("protocol")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            title="Редактирай протокола и решението (дата, членове, място, мотиви)"
+            title={
+              isLocked
+                ? "Командировката е заключена. Отключете я за корекции."
+                : "Редактирай протокола и решението (дата, членове, място, мотиви)"
+            }
           >
             <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
             Редактирай Протокол & Решение
@@ -212,7 +218,7 @@ export function TripProtocolView() {
         expenses={expenses}
       />
 
-      {activeDialog === "protocol" && (
+      {!isLocked && activeDialog === "protocol" && (
         <TripProtocolDialog
           open={true}
           onOpenChange={(open) => {

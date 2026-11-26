@@ -63,7 +63,7 @@ const VehicleInfoSchema = z.object({
   distanceKm: z.number().min(0).optional(), // Общо разстояние в км
   fuelType: z.string().optional(), // Вид гориво (напр. бензин А-95, дизелово гориво, газ)
   /** Режим на пътуване: "single" = еднократно с престой на място; "daily_commute" = ежедневно прибиране без преспиване */
-  commuteMode: z.enum(["single", "daily_commute"]).default("single").optional(),
+  commuteMode: z.enum(["single", "daily_commute"]).optional(),
   /** Разстояние за 1 пълен курс отиване и връщане (км) */
   singleRoundTripKm: z.number().min(0).optional(),
   /** Първоначално планиран брой курсове (отиване + връщане) */

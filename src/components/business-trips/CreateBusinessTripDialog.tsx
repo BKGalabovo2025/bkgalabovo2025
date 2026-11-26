@@ -130,7 +130,11 @@ export function CreateBusinessTripDialog({
       const member = membersDict[id];
       return member && !member.isCoach;
     });
-  const participantsCount = participantIds.length;
+  const initialParticipantsCount = (
+    initialData?.participantsIds && initialData.participantsIds.length > 0
+      ? initialData.participantsIds
+      : participantIds
+  ).length;
 
   const coachOptions: Member[] = Object.values(membersDict).filter(
     (m: Member) => m.isCoach
@@ -179,8 +183,8 @@ export function CreateBusinessTripDialog({
               initialData.financials.entryFeeEUR > 0
             ),
           entryFeePerPersonEUR:
-            initialData.financials.entryFeeEUR && participantsCount > 0
-              ? initialData.financials.entryFeeEUR / participantsCount
+            initialData.financials.entryFeeEUR && initialParticipantsCount > 0
+              ? initialData.financials.entryFeeEUR / initialParticipantsCount
               : initialData.financials.entryFeeEUR || 0,
         }
       : {
@@ -897,7 +901,7 @@ export function CreateBusinessTripDialog({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              <div className="grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-2">
                 <FormField
                   control={form.control as any}
                   name="transportType"
@@ -1290,12 +1294,21 @@ export function CreateBusinessTripDialog({
                               size="sm"
                               variant="outline"
                               onClick={() => {
+                                const normalizedFuelType =
+                                  vp.fuelType === "бензин"
+                                    ? "бензин А-95"
+                                    : vp.fuelType === "дизел"
+                                      ? "дизелово гориво"
+                                      : vp.fuelType;
                                 form.setValue("vehicle.brand", vp.brand);
                                 form.setValue(
                                   "vehicle.regNumber",
                                   vp.regNumber
                                 );
-                                form.setValue("vehicle.fuelType", vp.fuelType);
+                                form.setValue(
+                                  "vehicle.fuelType",
+                                  normalizedFuelType
+                                );
                                 form.setValue("vehicle.fuelNorm", vp.fuelNorm);
                                 toast.success(`Приложено МПС: ${vp.label}`);
                               }}
@@ -1786,7 +1799,7 @@ export function CreateBusinessTripDialog({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t pt-4">
+              <div className="grid grid-cols-1 gap-4 border-t pt-4 sm:grid-cols-2">
                 <FormField
                   control={form.control as any}
                   name="expensesCoverage"
@@ -1892,7 +1905,7 @@ export function CreateBusinessTripDialog({
                           step="0.01"
                           placeholder={`По закон: €${form.watch("financials.perDiemRateEUR")}`}
                           {...field}
-                          value={field.value || ""}
+                          value={field.value ?? ""}
                           onChange={(e) =>
                             field.onChange(
                               e.target.value
@@ -1992,12 +2005,13 @@ export function CreateBusinessTripDialog({
                         </FormControl>
                         <FormDescription className="text-[11px]">
                           Смята се автоматично: {field.value || 0} EUR ×{" "}
-                          {participantsCount} състезатели =
+                          {effectiveParticipantsList.length} състезатели =
                           <strong className="ml-1 text-emerald-600">
                             Общо{" "}
-                            {((field.value || 0) * participantsCount).toFixed(
-                              2
-                            )}{" "}
+                            {(
+                              (field.value || 0) *
+                              effectiveParticipantsList.length
+                            ).toFixed(2)}{" "}
                             EUR
                           </strong>
                         </FormDescription>
@@ -2008,7 +2022,7 @@ export function CreateBusinessTripDialog({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control as any}
                   name="financials.isCommercialActivity"

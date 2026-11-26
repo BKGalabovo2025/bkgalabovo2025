@@ -23,6 +23,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 
 import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
 import { PageHeader } from "@/components/layout/page-header";
@@ -49,7 +50,8 @@ export function NewBusinessTripClient() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [trips, setTrips] = useState<BusinessTrip[]>([]);
-  const searchQuery = searchParams.get("q") || "";
+  const urlSearchQuery = searchParams.get("q") || "";
+  const [localSearch, setLocalSearch] = useState(urlSearchQuery);
   const rawFilter = searchParams.get("filter");
   const tripFilter: TripFilterMode =
     rawFilter === "new" || rawFilter === "existing" ? rawFilter : "all";
@@ -72,7 +74,18 @@ export function NewBusinessTripClient() {
     [router, searchParams]
   );
 
-  const setSearchQuery = (q: string) => updateUrl({ q: q || null });
+  useEffect(() => {
+    setLocalSearch(urlSearchQuery);
+  }, [urlSearchQuery]);
+
+  useEffect(() => {
+    if (localSearch === urlSearchQuery) return;
+    const timer = setTimeout(() => {
+      updateUrl({ q: localSearch || null });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localSearch, urlSearchQuery, updateUrl]);
+
   const setTripFilter = (f: TripFilterMode) =>
     updateUrl({ filter: f === "all" ? null : f });
 
@@ -111,6 +124,7 @@ export function NewBusinessTripClient() {
         "Грешка при зареждане на събития за нова командировка:",
         err
       );
+      toast.error("Грешка при зареждане на събитията.");
     } finally {
       setLoading(false);
     }
@@ -126,6 +140,11 @@ export function NewBusinessTripClient() {
 
   const relevantEvents = useMemo(() => {
     return events
+      .filter((ev) => {
+        const evSiteId = (ev as { siteId?: string }).siteId;
+        if (evSiteId) return evSiteId === siteId;
+        return siteId === "bkgalabovo";
+      })
       .filter(
         (ev) =>
           ev.type === "competition" ||
@@ -136,15 +155,15 @@ export function NewBusinessTripClient() {
         const hasTrip = existingTripEventIds.has(ev.id);
         if (tripFilter === "new" && hasTrip) return false;
         if (tripFilter === "existing" && !hasTrip) return false;
-        if (!searchQuery) return true;
-        const q = searchQuery.toLowerCase();
+        if (!localSearch) return true;
+        const q = localSearch.toLowerCase();
         return (
           ev.title.toLowerCase().includes(q) ||
           (ev.location && ev.location.toLowerCase().includes(q))
         );
       })
       .sort((a, b) => b.startDate.localeCompare(a.startDate));
-  }, [events, searchQuery, tripFilter, existingTripEventIds]);
+  }, [events, siteId, localSearch, tripFilter, existingTripEventIds]);
 
   const activeStep = selectedEvent && isTripManagerOpen ? 2 : 1;
 
@@ -243,14 +262,17 @@ export function NewBusinessTripClient() {
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Търсене по събитие или град..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               className="h-10 rounded-xl px-9 text-xs"
             />
-            {searchQuery && (
+            {localSearch && (
               <button
                 type="button"
-                onClick={() => setSearchQuery("")}
+                onClick={() => {
+                  setLocalSearch("");
+                  updateUrl({ q: null });
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Изчисти търсенето"
               >
@@ -305,11 +327,7 @@ export function NewBusinessTripClient() {
               return (
                 <BentoCard
                   key={ev.id}
-                  onClick={() => {
-                    setSelectedEvent(ev);
-                    setIsTripManagerOpen(true);
-                  }}
-                  className="group flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-none transition-all hover:border-blue-400 cursor-pointer dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-500"
+                  className="group flex flex-col justify-between rounded-2xl border border-zinc-200/80 bg-white p-3.5 shadow-none transition-all hover:border-blue-400 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-blue-500"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
@@ -365,7 +383,6 @@ export function NewBusinessTripClient() {
                     {hasTrip && trip?.id ? (
                       <Link
                         href={`/accounting/trips/${trip.id}`}
-                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400"
                       >
                         <FileText className="size-3" />
@@ -377,8 +394,13 @@ export function NewBusinessTripClient() {
                       </span>
                     )}
                     <Button
+                      type="button"
                       size="sm"
                       variant={hasTrip ? "outline" : "default"}
+                      onClick={() => {
+                        setSelectedEvent(ev);
+                        setIsTripManagerOpen(true);
+                      }}
                       className="h-7 text-xs font-semibold"
                     >
                       {hasTrip ? "Бърз преглед" : "Създай командировка"}

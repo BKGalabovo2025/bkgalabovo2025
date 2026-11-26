@@ -103,7 +103,8 @@ export const businessTripService = {
       (trip) =>
         trip.coachId === memberId ||
         (Array.isArray(trip.participantsIds) &&
-          trip.participantsIds.includes(memberId))
+          trip.participantsIds.includes(memberId)) ||
+        Boolean(trip.additionalVehicles?.some((av) => av.driverId === memberId))
     );
   },
 
@@ -185,7 +186,9 @@ export const businessTripService = {
     file: File,
     idToken?: string | null
   ): Promise<string> {
-    const fileExtension = file.name.split(".").pop();
+    const rawExt = file.name.includes(".") ? file.name.split(".").pop() : "";
+    const fileExtension =
+      (rawExt || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
     const fileName = `${uuidv4()}.${fileExtension}`;
 
     // Използва server-side /api/upload за да избегне CORS проблеми
@@ -201,7 +204,9 @@ export const businessTripService = {
     file: File,
     idToken?: string | null
   ): Promise<string> {
-    const fileExtension = file.name.split(".").pop();
+    const rawExt = file.name.includes(".") ? file.name.split(".").pop() : "";
+    const fileExtension =
+      (rawExt || "").replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "bin";
     const fileName = `${uuidv4()}.${fileExtension}`;
     const storagePath = `sites/${siteId}/business-trips/${tripId}/protocols/${fileName}`;
     return await uploadFile(storagePath, file, idToken);

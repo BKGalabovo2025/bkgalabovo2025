@@ -14,6 +14,7 @@ export interface AccountingKpiData {
   totalAccommodation: number;
   totalPerDiem: number;
   totalEntryFees: number;
+  totalOther?: number;
 }
 
 export function AccountingKpiRibbon({ kpis }: { kpis: AccountingKpiData }) {
@@ -34,6 +35,11 @@ export function AccountingKpiRibbon({ kpis }: { kpis: AccountingKpiData }) {
           </p>
           <p className="text-[10px] font-medium text-blue-600/90 dark:text-blue-400">
             {kpis.totalBgn.toFixed(2)} лв.
+            {(kpis.totalOther ?? 0) > 0 && (
+              <span className="ml-1 text-blue-700/80 dark:text-blue-300">
+                · + €{(kpis.totalOther ?? 0).toFixed(2)} други
+              </span>
+            )}
           </p>
         </div>
       </BentoCard>

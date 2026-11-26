@@ -7,7 +7,6 @@ import React, { cache } from "react";
 
 import { TripDetailsLayoutClient } from "@/components/business-trips/details/TripDetailsLayoutClient";
 import { Button } from "@/components/ui/button";
-import { getSiteConfig } from "@/config/sites";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { getAllMembersServer } from "@/services/member-service.server";
@@ -32,13 +31,8 @@ const getInitialTripData = cache(async (id: string) => {
     const membersDict: Record<string, Member> = {};
 
     try {
-      const effectiveSiteId = trip.siteId || getSiteConfig().id;
       const [expSnap, members, eventDoc] = await Promise.all([
-        db
-          .collection("trip_expenses")
-          .where("tripId", "==", id)
-          .where("siteId", "==", effectiveSiteId)
-          .get(),
+        db.collection("trip_expenses").where("tripId", "==", id).get(),
         getAllMembersServer(),
         trip.eventId
           ? db.collection("events").doc(trip.eventId).get()

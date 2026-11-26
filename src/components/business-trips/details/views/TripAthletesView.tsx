@@ -27,6 +27,7 @@ export function TripAthletesView() {
     trip,
     membersDict,
     refreshData,
+    isLocked,
     activeDialog,
     openDialog,
     closeDialog,
@@ -166,10 +167,14 @@ export function TripAthletesView() {
               type="button"
               variant="outline"
               size="sm"
-              disabled={isApplyingStored}
+              disabled={isLocked || isApplyingStored}
               onClick={handleBatchApplyStoredSignatures}
               className="rounded-xl border-emerald-300 bg-emerald-50 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60"
-              title="Приложи съхранените подписи от профилите на състезателите"
+              title={
+                isLocked
+                  ? "Командировката е заключена. Отключете я за корекции."
+                  : "Приложи съхранените подписи от профилите на състезателите"
+              }
             >
               <Sparkles className="mr-1.5 size-3.5 text-emerald-600 dark:text-emerald-400" />
               {isApplyingStored
@@ -182,11 +187,11 @@ export function TripAthletesView() {
             type="button"
             variant="outline"
             size="sm"
-            disabled={trip.status === "completed"}
+            disabled={isLocked}
             onClick={() => openDialog("statement")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
             title={
-              trip.status === "completed"
+              isLocked
                 ? "Командировката е заключена. Отключете я за корекции."
                 : "Корекция на присъствени дни или отпадане на състезатели от ведомостта"
             }
@@ -196,7 +201,7 @@ export function TripAthletesView() {
           </Button>
 
           <Button
-            disabled={trip.status === "completed"}
+            disabled={isLocked}
             onClick={() => openDialog("signatures")}
             className="rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700"
           >
@@ -335,6 +340,7 @@ export function TripAthletesView() {
                         <Button
                           variant="outline"
                           size="sm"
+                          disabled={isLocked}
                           onClick={() =>
                             handleApplyStoredSignature(
                               id,
@@ -352,6 +358,7 @@ export function TripAthletesView() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={isLocked}
                         onClick={() => setDirectSignMember({ id, name })}
                         className="h-7 px-2 text-[10px] text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
                         title="Положи подпис на екрана"
@@ -368,7 +375,7 @@ export function TripAthletesView() {
         )}
       </div>
 
-      {activeDialog === "signatures" && (
+      {!isLocked && activeDialog === "signatures" && (
         <TripAthletesSignaturesDialog
           open={true}
           onOpenChange={(open) => {
@@ -384,7 +391,7 @@ export function TripAthletesView() {
         />
       )}
 
-      {directSignMember && (
+      {!isLocked && directSignMember && (
         <SignaturePadDialog
           open={Boolean(directSignMember)}
           onOpenChange={(open) => {

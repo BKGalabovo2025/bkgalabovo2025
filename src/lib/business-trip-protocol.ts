@@ -77,22 +77,23 @@ export function isFemalePerson(
   if (!name) return false;
   const clean = name.trim();
 
+  const parts = clean.split(/\s+/).filter(Boolean);
+  const firstName = parts[0]?.toLowerCase() || "";
+  const lastName = parts[parts.length - 1]?.toLowerCase() || "";
+
   // 1. Проверка в картотеката с членове
   if (membersDict) {
     const member = Object.values(membersDict).find(
       (m) =>
         `${m.firstName} ${m.lastName}`.toLowerCase() === clean.toLowerCase() ||
         `${m.lastName} ${m.firstName}`.toLowerCase() === clean.toLowerCase() ||
-        clean.toLowerCase().includes(m.firstName.toLowerCase())
+        firstName === m.firstName.toLowerCase()
     );
     if (member?.gender === "female") return true;
     if (member?.gender === "male") return false;
   }
 
   // 2. Български ономастични правила:
-  const parts = clean.split(/\s+/).filter(Boolean);
-  const firstName = parts[0]?.toLowerCase() || "";
-  const lastName = parts[parts.length - 1]?.toLowerCase() || "";
 
   // Мъжки имена с традиционно окончание на -а / -я:
   const maleExceptions = new Set([
@@ -287,7 +288,8 @@ export function generateDefaultProtocolText(
     ? [`${coachName} (ръководител и състезател)`, ...otherPlayers].join(", ")
     : otherPlayers.join(", ") || "представителни състезатели на клуба";
 
-  const totalPeople = (coach ? 1 : 0) + otherPlayers.length;
+  const hasCoach = Boolean(coach || trip.coachName?.trim());
+  const totalPeople = (hasCoach ? 1 : 0) + otherPlayers.length;
   const countStr =
     totalPeople > 0
       ? `${totalPeople} ${totalPeople === 1 ? "човек" : "души"}`

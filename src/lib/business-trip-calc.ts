@@ -105,8 +105,8 @@ function resolvePersonNights(
   defNights: number
 ): number {
   if (coverageExcludesAccom) return 0;
-  if (ovNights != null) return ovNights;
   if (ovStayed === false) return 0;
+  if (ovNights != null) return ovNights;
   return defNights;
 }
 
@@ -224,10 +224,14 @@ export function calculateTripStatementTotals(
   const overrides = trip.participantOverrides ?? {};
   // Треньорът винаги е отделен запис с ключ "coach".
   // Защита от дублиране: ако coachId или "coach" присъства и в participantsIds,
-  // го филтрираме, за да гарантираме, че при треньор-състезател (напр. Мира Георгиева)
-  // НЯМА двойно начисляване на дневни/нощувки за едно и също лице.
-  const filteredParticipantIds = (trip.participantsIds || []).filter(
-    (id) => id !== "coach" && id !== trip.coachId
+  // го филтрираме и дедупликираме, за да гарантираме, че при треньор-състезател (напр. Мира Георгиева)
+  // или дублиран ID НЯМА двойно начисляване на дневни/нощувки за едно и също лице.
+  const filteredParticipantIds = Array.from(
+    new Set(
+      (trip.participantsIds || []).filter(
+        (id) => id && id !== "coach" && id !== trip.coachId
+      )
+    )
   );
   const allIds = ["coach", ...filteredParticipantIds];
 
@@ -237,7 +241,11 @@ export function calculateTripStatementTotals(
   const personTotals: PersonStatementCalculation[] = [];
 
   for (const id of allIds) {
-    const ov = overrides[id];
+    const ov =
+      id === "coach"
+        ? (overrides["coach"] ??
+          (trip.coachId ? overrides[trip.coachId] : undefined))
+        : overrides[id];
     if (ov?.excluded) continue;
 
     activePeopleCount++;
@@ -310,13 +318,24 @@ function getActivePersonDays(
 ): number[] {
   const overrides = trip.participantOverrides ?? {};
   const teamDays = trip.actualDays != null ? trip.actualDays : plannedDays;
-  const filteredParticipantIds = (trip.participantsIds || []).filter(
-    (id) => id !== "coach" && id !== trip.coachId
+  const filteredParticipantIds = Array.from(
+    new Set(
+      (trip.participantsIds || []).filter(
+        (id) => id && id !== "coach" && id !== trip.coachId
+      )
+    )
   );
   const ids = ["coach", ...filteredParticipantIds];
   return ids
-    .filter((id) => !overrides[id]?.excluded)
-    .map((id) => overrides[id]?.actualDays ?? teamDays);
+    .map((id) => ({
+      ov:
+        id === "coach"
+          ? (overrides["coach"] ??
+            (trip.coachId ? overrides[trip.coachId] : undefined))
+          : overrides[id],
+    }))
+    .filter(({ ov }) => !ov?.excluded)
+    .map(({ ov }) => ov?.actualDays ?? teamDays);
 }
 
 /**
@@ -391,9 +410,10 @@ export function calculateTripTransportTotals(
     ? Math.round(actualTripsCount * singleRoundTripKm * 10) / 10
     : (vehicle?.distanceKm ?? singleRoundTripKm);
 
+  const isFuelOnly = trip.transportType === "fuel_only";
   const primaryFuelNorm = vehicle?.fuelNorm ?? 0;
   const primaryFuelLiters =
-    effectiveDistanceKm > 0 && primaryFuelNorm > 0
+    isFuelOnly && effectiveDistanceKm > 0 && primaryFuelNorm > 0
       ? (effectiveDistanceKm / 100) * primaryFuelNorm
       : 0;
 
@@ -415,7 +435,7 @@ export function calculateTripTransportTotals(
         : effectiveDistanceKm;
     const avNorm = av.fuelNorm ?? 0;
     extraDistanceKm += avDist;
-    if (avDist > 0 && avNorm > 0) {
+    if (isFuelOnly && avDist > 0 && avNorm > 0) {
       extraFuelLiters += (avDist / 100) * avNorm;
     }
   }
@@ -483,9 +503,12 @@ export function calculateTripVehiclesBreakdown(
     return { calcFuelLiters: exactLiters, calcFuelBGN: bgn, calcFuelEUR: eur };
   };
 
+  const isFuelOnly = trip.transportType === "fuel_only";
   const primaryNorm = trip.vehicle?.fuelNorm ?? 0;
   const primaryLiters =
-    primaryDist > 0 && primaryNorm > 0 ? (primaryDist / 100) * primaryNorm : 0;
+    isFuelOnly && primaryDist > 0 && primaryNorm > 0
+      ? (primaryDist / 100) * primaryNorm
+      : 0;
 
   const items: VehicleFuelBreakdownItem[] = [
     {
@@ -519,7 +542,8 @@ export function calculateTripVehiclesBreakdown(
     const avDist =
       av.distanceKm != null && av.distanceKm > 0 ? av.distanceKm : primaryDist;
     const avNorm = av.fuelNorm ?? 0;
-    const avLiters = avDist > 0 && avNorm > 0 ? (avDist / 100) * avNorm : 0;
+    const avLiters =
+      isFuelOnly && avDist > 0 && avNorm > 0 ? (avDist / 100) * avNorm : 0;
     items.push({
       index: idx + 2,
       label: `Автомобил ${idx + 2}`,
@@ -644,18 +668,21 @@ export function calculateTripExpensesSummary(
   );
 
   // Същата формула за гориво като в Пътния лист и Ведомостта (PDF), сумирана за всички МПС (1..3)
+  const isFuelOnly = trip.transportType === "fuel_only";
   const vehiclesBreakdown = calculateTripVehiclesBreakdown(
     trip,
     avgFuelPricePerLiterEUR
   );
-  const totalLitersExact = vehiclesBreakdown.reduce(
-    (sum, v) =>
-      sum +
-      (v.distanceKm > 0 && v.fuelNorm > 0
-        ? (v.distanceKm / 100) * v.fuelNorm
-        : 0),
-    0
-  );
+  const totalLitersExact = isFuelOnly
+    ? vehiclesBreakdown.reduce(
+        (sum, v) =>
+          sum +
+          (v.distanceKm > 0 && v.fuelNorm > 0
+            ? (v.distanceKm / 100) * v.fuelNorm
+            : 0),
+        0
+      )
+    : 0;
 
   const roundedPricePerLiterBGN =
     Math.round(avgFuelPricePerLiterEUR * EUR_TO_BGN_RATE * 100) / 100;
@@ -682,18 +709,25 @@ export function calculateTripExpensesSummary(
   const entryExpensesEUR = expenses
     .filter((e) => e.expenseType === "entry_fee")
     .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
+  const transportExpensesEUR = expenses
+    .filter((e) => e.expenseType === "transport")
+    .reduce((sum, e) => sum + (e.amountEUR || 0), 0);
 
-  // Ако има фактура за храна/нощувка/такса, тя вече е в nonFuelExpensesEUR; иначе взимаме изчислените по ведомост/заповед
+  // Ако има фактура за храна/нощувка/такса/транспорт, тя вече е в nonFuelExpensesEUR; иначе взимаме изчислените по ведомост/заповед
   const effectivePerDiemEUR =
     foodExpensesEUR > 0 ? 0 : statementTotals.calcPerDiemEUR;
   const effectiveAccomEUR =
     accomExpensesEUR > 0 ? 0 : statementTotals.calcAccomEUR;
   const effectiveEntryEUR =
-    entryExpensesEUR > 0 ? 0 : trip.financials.entryFeeEUR || 0;
+    entryExpensesEUR > 0 || trip.financials?.hasEntryFee === false
+      ? 0
+      : trip.financials?.entryFeeEUR || 0;
   const effectiveFuelEUR =
     fuelExpenses.length > 0 ? calcFuelEUR : transportCalc.calcFuelEUR;
   const effectiveFuelBGN =
     Math.round(effectiveFuelEUR * EUR_TO_BGN_RATE * 100) / 100;
+  const publicTransportFallbackEUR =
+    transportExpensesEUR > 0 ? 0 : transportCalc.calcPublicTransportEUR;
 
   const totalEstimatedCostEUR =
     Math.round(
@@ -702,7 +736,7 @@ export function calculateTripExpensesSummary(
         effectivePerDiemEUR +
         effectiveAccomEUR +
         effectiveEntryEUR +
-        transportCalc.calcPublicTransportEUR) *
+        publicTransportFallbackEUR) *
         100
     ) / 100;
   const totalEstimatedCostBGN =

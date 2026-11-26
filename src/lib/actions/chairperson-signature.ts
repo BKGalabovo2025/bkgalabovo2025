@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { serverCache } from "@/lib/server-cache";
 import type { ActionResult } from "@/types/document-template.types";
 
 export interface ChairpersonSignatureData {
@@ -20,6 +21,7 @@ export async function getChairpersonSignatureAction(): Promise<
   ActionResult<ChairpersonSignatureData>
 > {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const snap = await adminDb
       .collection("club_settings")
@@ -88,6 +90,19 @@ export async function saveChairpersonSignatureAction(input: {
 }): Promise<ActionResult<{ signatureUrl: string }>> {
   try {
     const user = await ensureAdmin(input.idToken);
+
+    if (
+      !input.signatureBase64 ||
+      typeof input.signatureBase64 !== "string" ||
+      !/^data:image\/(png|jpeg|webp);base64,/.test(input.signatureBase64) ||
+      input.signatureBase64.length > 1_500_000
+    ) {
+      return {
+        success: false,
+        error: "Невалиден формат или размер на подписа.",
+      };
+    }
+
     const adminDb = getAdminDb();
 
     const updatedAt = new Date().toISOString();
@@ -125,9 +140,10 @@ export async function saveChairpersonSignatureAction(input: {
       );
     }
 
-    revalidatePath("/members");
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members", "layout");
     revalidatePath("/documents");
-    revalidatePath("/accounting/trips");
+    revalidatePath("/accounting", "layout");
 
     return {
       success: true,
@@ -187,6 +203,11 @@ export async function deleteChairpersonSignatureAction(input: {
         syncErr
       );
     }
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members", "layout");
+    revalidatePath("/documents");
+    revalidatePath("/accounting", "layout");
 
     return {
       success: true,

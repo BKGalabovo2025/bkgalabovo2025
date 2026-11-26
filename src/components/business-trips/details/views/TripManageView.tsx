@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { useTripDetails } from "../TripDetailsContext";
 
 export function TripManageView() {
-  const { trip, openDialog } = useTripDetails();
+  const { trip, isLocked, openDialog } = useTripDetails();
 
   return (
     <div className="space-y-4">
@@ -40,8 +40,14 @@ export function TripManageView() {
               <Button
                 size="sm"
                 variant="outline"
+                disabled={isLocked}
                 onClick={() => openDialog("edit")}
                 className="h-8 rounded-xl text-xs font-semibold"
+                title={
+                  isLocked
+                    ? "Командировката е заключена. Отключете я за корекции."
+                    : undefined
+                }
               >
                 Редактирай параметри
               </Button>

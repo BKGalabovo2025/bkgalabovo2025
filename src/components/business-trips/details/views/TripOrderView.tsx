@@ -14,8 +14,15 @@ import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 
 export function TripOrderView() {
-  const { trip, event, expenses, membersDict, refreshData, openDialog } =
-    useTripDetails();
+  const {
+    trip,
+    event,
+    expenses,
+    membersDict,
+    isLocked,
+    refreshData,
+    openDialog,
+  } = useTripDetails();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const num = getTripOrderNumber(trip);
@@ -84,9 +91,14 @@ export function TripOrderView() {
           <Button
             variant="outline"
             size="sm"
+            disabled={isLocked}
             onClick={() => openDialog("edit")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            title="Редактирай параметри на нареждането"
+            title={
+              isLocked
+                ? "Командировката е заключена. Отключете я за корекции."
+                : "Редактирай параметри на нареждането"
+            }
           >
             <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
             Редактирай нареждане

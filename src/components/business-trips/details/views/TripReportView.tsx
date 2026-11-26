@@ -20,6 +20,7 @@ export function TripReportView() {
     expenses,
     membersDict,
     refreshData,
+    isLocked,
     activeDialog,
     openDialog,
     closeDialog,
@@ -92,9 +93,14 @@ export function TripReportView() {
           <Button
             variant="outline"
             size="sm"
+            disabled={isLocked}
             onClick={() => openDialog("report")}
             className="rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
-            title="Редактирай текста на доклада, резултати и класирания"
+            title={
+              isLocked
+                ? "Командировката е заключена. Отключете я за корекции."
+                : "Редактирай текста на доклада, резултати и класирания"
+            }
           >
             <Pencil className="mr-1.5 size-3.5 text-zinc-600 dark:text-zinc-400" />
             Редактирай доклад
@@ -200,7 +206,13 @@ export function TripReportView() {
               <span className="text-zinc-500 dark:text-zinc-400">
                 Статус на отчитане:
               </span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              <span
+                className={`font-semibold ${
+                  trip.status === "completed"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-600 dark:text-amber-400"
+                }`}
+              >
                 {trip.status === "completed"
                   ? "Окончателно отчетена"
                   : "В процес на отчитане"}
@@ -254,7 +266,7 @@ export function TripReportView() {
         expenses={expenses}
       />
 
-      {activeDialog === "report" && (
+      {!isLocked && activeDialog === "report" && (
         <TripReportDialog
           open={true}
           onOpenChange={(open) => {
@@ -264,6 +276,7 @@ export function TripReportView() {
           event={event}
           expenses={expenses}
           membersDict={membersDict}
+          onRefresh={refreshData}
           onSuccess={() => {
             closeDialog();
             refreshData();

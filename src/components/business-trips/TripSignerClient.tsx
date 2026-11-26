@@ -63,9 +63,13 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
 
     try {
       setIsSubmitting(true);
-      const signatureBase64 = sigCanvas.current
-        .getTrimmedCanvas()
-        .toDataURL("image/png");
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = sigCanvas.current.getTrimmedCanvas();
+      } catch {
+        canvas = sigCanvas.current.getCanvas();
+      }
+      const signatureBase64 = canvas.toDataURL("image/png");
 
       const res = await submitPublicTripSignatureAction({
         token: data.token,

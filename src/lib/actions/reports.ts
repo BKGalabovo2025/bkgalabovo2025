@@ -3,6 +3,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { calculateTripExpensesSummary } from "@/lib/business-trip-calc";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -24,6 +25,7 @@ export async function generateFinancialReportAction(
   endDateStr: string | null,
   paymentType: string = "all"
 ): Promise<FinancialReportData> {
+  await ensureAdmin();
   const cookieStore = await cookies();
   const activeBranch = cookieStore.get("activeBranch")?.value || "bkgalabovo";
 

@@ -148,7 +148,11 @@ export function TripStatementEditDialog({
     : 0;
   const rawAccomRate = trip?.financials.accommodationRateEUR ?? 0;
   const rawBasePerDiem =
-    trip?.financials.perDiemOverrideEUR ?? trip?.financials.perDiemRateEUR ?? 0;
+    trip?.expensesCoverage === "transport_only"
+      ? 0
+      : (trip?.financials.perDiemOverrideEUR ??
+        trip?.financials.perDiemRateEUR ??
+        0);
   const isDailyCommute = trip?.vehicle?.commuteMode === "daily_commute";
   const coverageExcludesAccom =
     isDailyCommute ||
@@ -414,7 +418,11 @@ export function TripStatementEditDialog({
 
   // Rates
   const basePerDiemEUR =
-    trip?.financials.perDiemOverrideEUR ?? trip?.financials.perDiemRateEUR ?? 0;
+    trip?.expensesCoverage === "transport_only"
+      ? 0
+      : (trip?.financials.perDiemOverrideEUR ??
+        trip?.financials.perDiemRateEUR ??
+        0);
   const { fullRate: fullPerDiemEUR, noStayRate: noStayPerDiemEUR } =
     getEffectiveTripRates(basePerDiemEUR);
   const accomEUR = coverageExcludesAccom
@@ -807,13 +815,20 @@ export function TripStatementEditDialog({
                       name="actualTripsCount"
                       type="number"
                       min={0}
-                      value={actualTripsCount}
-                      onChange={(e) =>
+                      readOnly={!isDailyCommute}
+                      disabled={!isDailyCommute}
+                      value={isDailyCommute ? actualTripsCount : 1}
+                      onChange={(e) => {
+                        if (!isDailyCommute) return;
                         setActualTripsCount(
                           e.target.value === "" ? "" : Number(e.target.value)
-                        )
-                      }
-                      className="h-8 bg-white font-semibold dark:bg-zinc-950"
+                        );
+                      }}
+                      className={`h-8 font-semibold ${
+                        !isDailyCommute
+                          ? "bg-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
+                          : "bg-white dark:bg-zinc-950"
+                      }`}
                     />
                     <p className="text-[10px] text-muted-foreground">
                       {trip.vehicle?.commuteMode === "daily_commute"
@@ -1167,11 +1182,11 @@ export function TripStatementEditDialog({
                       </div>
 
                       {/* Dropdown / Reason note */}
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <span className="text-[11px] text-zinc-500">
                           Причина / Бележка за доклада:
                         </span>
-                        <div className="flex flex-1 items-center gap-2">
+                        <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-2">
                           <Select
                             value={p.note || "none"}
                             onValueChange={(v) =>
@@ -1182,7 +1197,7 @@ export function TripStatementEditDialog({
                               )
                             }
                           >
-                            <SelectTrigger className="h-7 w-50 text-xs">
+                            <SelectTrigger className="h-7 w-full sm:w-50 text-xs">
                               <SelectValue placeholder="Изберете причина" />
                             </SelectTrigger>
                             <SelectContent>

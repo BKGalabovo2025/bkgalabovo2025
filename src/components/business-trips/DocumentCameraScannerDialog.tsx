@@ -8,7 +8,6 @@ import {
   FlipHorizontal,
   Loader2,
   QrCode,
-  X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -70,7 +69,7 @@ export function DocumentCameraScannerDialog({
   };
 
   // Стартира стрийма на камерата
-  const startCamera = async () => {
+  const startCamera = async (isCancelled?: () => boolean) => {
     stopStream();
     setErrorMessage(null);
     setDetectedQr(null);
@@ -79,6 +78,7 @@ export function DocumentCameraScannerDialog({
       typeof navigator === "undefined" ||
       !navigator.mediaDevices?.getUserMedia
     ) {
+      if (isCancelled?.()) return;
       setHasCamera(false);
       setErrorMessage(
         "Браузърът или устройството не поддържа достъп до камера."
@@ -97,11 +97,20 @@ export function DocumentCameraScannerDialog({
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (isCancelled?.()) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
+      }
+
+      if (isCancelled?.()) {
+        stopStream();
+        return;
       }
 
       // Проверка за фенерче / светкавица
@@ -117,6 +126,7 @@ export function DocumentCameraScannerDialog({
       setHasCamera(true);
       startQrScanningLoop();
     } catch (err: unknown) {
+      if (isCancelled?.()) return;
       console.warn("Camera start error:", err);
       setHasCamera(false);
       const msg =
@@ -251,12 +261,14 @@ export function DocumentCameraScannerDialog({
   };
 
   useEffect(() => {
+    let cancelled = false;
     if (open) {
-      startCamera();
+      startCamera(() => cancelled);
     } else {
       stopStream();
     }
     return () => {
+      cancelled = true;
       stopStream();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -264,8 +276,8 @@ export function DocumentCameraScannerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[95vh] w-[calc(100%-1.5rem)] sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl">
-        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-zinc-800 bg-zinc-900/60 px-4 py-3 sm:px-6">
+      <DialogContent className="flex max-h-[95vh] w-[calc(100%-1.5rem)] sm:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 p-0 text-white shadow-2xl [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5 [&>button:last-child]:text-zinc-400 [&>button:last-child]:hover:text-white">
+        <DialogHeader className="shrink-0 flex flex-row items-center justify-between border-b border-zinc-800 bg-zinc-900/60 px-4 py-3 pr-10 sm:px-6 sm:pr-12">
           <div className="flex items-center gap-2.5">
             <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400">
               <Camera className="size-4" />
@@ -279,15 +291,6 @@ export function DocumentCameraScannerDialog({
               </DialogDescription>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onOpenChange(false)}
-            className="size-8 text-zinc-400 hover:text-white"
-            aria-label="Затвори"
-          >
-            <X className="size-4" />
-          </Button>
         </DialogHeader>
 
         {/* Зона на видео визьора */}
@@ -349,7 +352,7 @@ export function DocumentCameraScannerDialog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={startCamera}
+                onClick={() => startCamera()}
                 className="mt-4 border-zinc-700 bg-zinc-800 text-xs text-zinc-200 hover:bg-zinc-700 hover:text-white"
               >
                 Опитай отново

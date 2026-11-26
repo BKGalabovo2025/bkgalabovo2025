@@ -4,7 +4,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 
 import { ensureAdmin } from "@/lib/auth-utils";
-import { isAutoDecision } from "@/lib/business-trip-numbers";
+import { isAutoDecision, isAutoProtocol } from "@/lib/business-trip-numbers";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { getAllMembersServer } from "@/services/member-service.server";
@@ -17,6 +17,19 @@ import {
   TripExpenseSchema,
 } from "@/types/business-trip.types";
 import type { Member } from "@/types/member.types";
+
+const FIRESTORE_BATCH_LIMIT = 400;
+
+function revalidateAccountingPaths(tripId?: string): void {
+  try {
+    revalidatePath("/accounting", "layout");
+    if (tripId) {
+      revalidatePath(`/accounting/trips/${tripId}`, "layout");
+    }
+  } catch {
+    // Ignore outside Next.js request context (e.g. unit tests)
+  }
+}
 
 /**
  * Server Action to assign sequential order numbers to business trips.
@@ -63,22 +76,23 @@ export async function assignMissingBusinessTripNumbersAction(
       .filter((t) => !t.orderNumber && t.id)
       .sort((a, b) => stamp(a).localeCompare(stamp(b)));
 
-    let updatedCount = 0;
-    const batch = adminDb.batch();
+    const updatesById = new Map<string, Record<string, unknown>>();
     const now = new Date().toISOString();
+
+    const queueUpdate = (docId: string, fields: Record<string, unknown>) => {
+      const existing = updatesById.get(docId) ?? {};
+      updatesById.set(docId, { ...existing, ...fields, updatedAt: now });
+    };
 
     for (const t of missing) {
       const y = yearOf(t);
       const n = (maxByYear[y] ?? 0) + 1;
       maxByYear[y] = n;
-      const ref = adminDb.collection("business_trips").doc(t.id);
-      batch.update(ref, {
+      queueUpdate(t.id, {
         orderNumber: n,
         ...(isAutoDecision(t.usDecision) ? { usDecision: `${n}-УС` } : {}),
         siteId: t.siteId || siteId || "bkgalabovo",
-        updatedAt: now,
       });
-      updatedCount++;
     }
 
     // Replace old ID-based decisions on already numbered trips
@@ -89,30 +103,40 @@ export async function assignMissingBusinessTripNumbersAction(
         isAutoDecision(t.usDecision) &&
         t.usDecision !== `${t.orderNumber}-УС`
       ) {
-        const ref = adminDb.collection("business_trips").doc(t.id);
-        batch.update(ref, {
+        queueUpdate(t.id, {
           usDecision: `${t.orderNumber}-УС`,
           siteId: t.siteId || siteId || "bkgalabovo",
-          updatedAt: now,
         });
-        updatedCount++;
       }
     }
 
     // Backfill siteId on legacy trips that lack it
     for (const t of trips) {
       if (t.id && !t.siteId) {
-        const ref = adminDb.collection("business_trips").doc(t.id);
-        batch.update(ref, {
+        queueUpdate(t.id, {
           siteId: siteId || "bkgalabovo",
-          updatedAt: now,
         });
-        updatedCount++;
       }
     }
 
+    const updatedCount = updatesById.size;
     if (updatedCount > 0) {
-      await batch.commit();
+      let batch = adminDb.batch();
+      let opCount = 0;
+      for (const [docId, payload] of updatesById.entries()) {
+        const ref = adminDb.collection("business_trips").doc(docId);
+        batch.update(ref, payload);
+        opCount++;
+        if (opCount >= FIRESTORE_BATCH_LIMIT) {
+          await batch.commit();
+          batch = adminDb.batch();
+          opCount = 0;
+        }
+      }
+      if (opCount > 0) {
+        await batch.commit();
+      }
+      revalidateAccountingPaths();
     }
 
     return { success: true, count: updatedCount };
@@ -173,13 +197,34 @@ export async function renumberAllBusinessTripsChronologicallyAction(
     ): string | undefined => {
       if (!text || oldNum === undefined || oldNum === newNum) return text;
       let res = text;
-      res = res.replace(new RegExp(`${oldNum}-УС`, "g"), `${newNum}-УС`);
-      res = res.replace(new RegExp(`${oldNum}-ПР`, "g"), `${newNum}-ПР`);
-      res = res.replace(new RegExp(`${oldNum}-НР`, "g"), `${newNum}-НР`);
-      res = res.replace(new RegExp(`${oldNum}-ВД`, "g"), `${newNum}-ВД`);
-      res = res.replace(new RegExp(`${oldNum}-ПЛ`, "g"), `${newNum}-ПЛ`);
-      res = res.replace(new RegExp(`${oldNum}-ПС`, "g"), `${newNum}-ПС`);
-      res = res.replace(new RegExp(`${oldNum}-ДК`, "g"), `${newNum}-ДК`);
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-УС`, "g"),
+        `${newNum}-УС`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-ПР`, "g"),
+        `${newNum}-ПР`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-НР`, "g"),
+        `${newNum}-НР`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-ВД`, "g"),
+        `${newNum}-ВД`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-ПЛ`, "g"),
+        `${newNum}-ПЛ`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-ПС`, "g"),
+        `${newNum}-ПС`
+      );
+      res = res.replace(
+        new RegExp(`(?<!\\d)${oldNum}-ДК`, "g"),
+        `${newNum}-ДК`
+      );
 
       res = res.replace(
         new RegExp(`(Заповед(?: за командировка)?\\s+№\\s*)${oldNum}\\b`, "gi"),
@@ -201,7 +246,8 @@ export async function renumberAllBusinessTripsChronologicallyAction(
     };
 
     let updatedCount = 0;
-    const batch = adminDb.batch();
+    let batch = adminDb.batch();
+    let opCount = 0;
     const now = new Date().toISOString();
 
     for (const yearStr of Object.keys(byYear)) {
@@ -218,10 +264,17 @@ export async function renumberAllBusinessTripsChronologicallyAction(
         const newNum = i + 1;
         const oldNum = t.orderNumber;
 
+        const shouldUpdateDecision =
+          isAutoDecision(t.usDecision) ||
+          (oldNum != null && t.usDecision?.trim() === `${oldNum}-УС`);
+        const shouldUpdateProtocol =
+          isAutoProtocol(t.usProtocolNumber) ||
+          (oldNum != null && t.usProtocolNumber?.trim() === `${oldNum}-ПР`);
+
         const updatePayload: Record<string, unknown> = {
           orderNumber: newNum,
-          usDecision: `${newNum}-УС`,
-          usProtocolNumber: `${newNum}-ПР`,
+          ...(shouldUpdateDecision ? { usDecision: `${newNum}-УС` } : {}),
+          ...(shouldUpdateProtocol ? { usProtocolNumber: `${newNum}-ПР` } : {}),
           siteId: t.siteId || siteId || "bkgalabovo",
           updatedAt: now,
         };
@@ -249,11 +302,21 @@ export async function renumberAllBusinessTripsChronologicallyAction(
         const ref = adminDb.collection("business_trips").doc(t.id);
         batch.update(ref, updatePayload);
         updatedCount++;
+        opCount++;
+
+        if (opCount >= FIRESTORE_BATCH_LIMIT) {
+          await batch.commit();
+          batch = adminDb.batch();
+          opCount = 0;
+        }
       }
     }
 
-    if (updatedCount > 0) {
+    if (opCount > 0) {
       await batch.commit();
+    }
+    if (updatedCount > 0) {
+      revalidateAccountingPaths();
     }
 
     return { success: true, count: updatedCount };
@@ -367,6 +430,7 @@ export async function createBusinessTripAction(
       await assignMissingBusinessTripNumbersAction(siteId);
     }
 
+    revalidateAccountingPaths(docRef.id);
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Error in createBusinessTripAction:", error);
@@ -400,10 +464,11 @@ export async function updateBusinessTripAction(
     // participantsIds: [], status: "draft", coachIsAthlete: false) for omitted
     // keys! Strip any key that was NOT explicitly provided in `data` so partial
     // updates NEVER wipe participantsIds or reset status/coachIsAthlete.
+    const immutableTripKeys = new Set(["id", "createdAt"]);
     const explicitKeys = new Set(Object.keys(sanitizedData));
     const safeValidatedData: Record<string, unknown> = {};
     for (const [key, val] of Object.entries(validatedData)) {
-      if (explicitKeys.has(key)) {
+      if (explicitKeys.has(key) && !immutableTripKeys.has(key)) {
         safeValidatedData[key] = val;
       }
     }
@@ -417,12 +482,7 @@ export async function updateBusinessTripAction(
     }
 
     await adminDb.collection("business_trips").doc(id).update(updatePayload);
-    try {
-      revalidatePath("/accounting", "layout");
-      revalidatePath(`/accounting/trips/${id}`, "layout");
-    } catch {
-      // Ignore outside Next.js request context (e.g. unit tests)
-    }
+    revalidateAccountingPaths(id);
     return { success: true };
   } catch (error) {
     console.error("Error in updateBusinessTripAction:", error);
@@ -455,12 +515,14 @@ export async function deleteBusinessTripAction(
       .where("tripId", "==", id)
       .get();
 
-    const batch = adminDb.batch();
-    expensesSnap.docs.forEach((expDoc) => {
-      batch.delete(expDoc.ref);
-    });
-    batch.delete(tripRef);
-    await batch.commit();
+    const refsToDelete = [...expensesSnap.docs.map((d) => d.ref), tripRef];
+    for (let i = 0; i < refsToDelete.length; i += FIRESTORE_BATCH_LIMIT) {
+      const batch = adminDb.batch();
+      refsToDelete
+        .slice(i, i + FIRESTORE_BATCH_LIMIT)
+        .forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
 
     try {
       await renumberAllBusinessTripsChronologicallyAction(
@@ -473,6 +535,7 @@ export async function deleteBusinessTripAction(
       );
     }
 
+    revalidateAccountingPaths(id);
     return { success: true };
   } catch (error) {
     console.error("Error in deleteBusinessTripAction:", error);
@@ -500,6 +563,7 @@ export async function addTripExpenseAction(
     const sanitizedData = JSON.parse(JSON.stringify(validatedData));
 
     const docRef = await adminDb.collection("trip_expenses").add(sanitizedData);
+    revalidateAccountingPaths(validatedData.tripId);
     return { success: true, id: docRef.id };
   } catch (error) {
     console.error("Error in addTripExpenseAction:", error);
@@ -521,16 +585,38 @@ export async function updateTripExpenseAction(
     await ensureAdmin();
     const adminDb = getAdminDb();
 
-    const validatedData = TripExpenseSchema.partial().parse(data);
-    const sanitizedData = JSON.parse(JSON.stringify(validatedData));
+    const sanitizedInput = JSON.parse(JSON.stringify(data)) as Record<
+      string,
+      unknown
+    >;
+    const validatedData = TripExpenseSchema.partial().parse(
+      sanitizedInput
+    ) as Record<string, unknown>;
+
+    const immutableExpenseKeys = new Set([
+      "id",
+      "createdAt",
+      "tripId",
+      "siteId",
+    ]);
+    const explicitKeys = new Set(Object.keys(sanitizedInput));
+    const safeValidatedData: Record<string, unknown> = {};
+    for (const [key, val] of Object.entries(validatedData)) {
+      if (explicitKeys.has(key) && !immutableExpenseKeys.has(key)) {
+        safeValidatedData[key] = val;
+      }
+    }
 
     await adminDb
       .collection("trip_expenses")
       .doc(id)
       .update({
-        ...sanitizedData,
+        ...safeValidatedData,
         updatedAt: new Date().toISOString(),
       });
+    revalidateAccountingPaths(
+      typeof data.tripId === "string" ? data.tripId : undefined
+    );
     return { success: true };
   } catch (error) {
     console.error("Error in updateTripExpenseAction:", error);
@@ -552,6 +638,7 @@ export async function deleteTripExpenseAction(
     const adminDb = getAdminDb();
 
     await adminDb.collection("trip_expenses").doc(id).delete();
+    revalidateAccountingPaths();
     return { success: true };
   } catch (error) {
     console.error("Error in deleteTripExpenseAction:", error);
@@ -575,6 +662,7 @@ export async function logExpenseAttachmentDownloadAction(
     await adminDb.collection("trip_expenses").doc(expenseId).update({
       attachmentDownloadedAt: new Date().toISOString(),
     });
+    revalidateAccountingPaths();
     return { success: true };
   } catch (error) {
     console.error("Error in logExpenseAttachmentDownloadAction:", error);
@@ -795,6 +883,10 @@ export async function getAccountingBootstrapAction(
     const events = eventsSnap.docs
       .map((d) => docToScheduleEvent(d as never))
       .filter(Boolean)
+      .filter((ev) => {
+        const evSiteId = (ev as ScheduleEvent & { siteId?: string }).siteId;
+        return evSiteId === siteId || (!evSiteId && siteId === "bkgalabovo");
+      })
       .map((ev) => serializeFirestoreData(ev)) as ScheduleEvent[];
 
     return {
@@ -961,6 +1053,7 @@ export async function logTripProtocolDownloadAction(
       ...(updatedProtocols ? { matchProtocols: updatedProtocols } : {}),
       updatedAt: now,
     });
+    revalidateAccountingPaths(tripId);
     return { success: true };
   } catch (error) {
     console.error("Error in logTripProtocolDownloadAction:", error);

@@ -17,6 +17,23 @@ interface ActionResponse<T = unknown> {
   data?: T;
 }
 
+const TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const SIGNATURE_DATA_URL_REGEX = /^data:image\/(png|jpeg|webp);base64,/;
+
+function isValidSignatureDataUrl(sig: unknown): sig is string {
+  return (
+    typeof sig === "string" &&
+    SIGNATURE_DATA_URL_REGEX.test(sig) &&
+    sig.length <= 1_500_000
+  );
+}
+
+function isTokenExpired(expiresAt: unknown): boolean {
+  if (typeof expiresAt !== "string" || !expiresAt) return false;
+  const ts = Date.parse(expiresAt);
+  return !Number.isNaN(ts) && ts < Date.now();
+}
+
 /**
  * Gets or creates a unique signing token for a trip participant (athlete).
  */
@@ -54,7 +71,10 @@ export async function getOrCreateTripSigningTokenAction(input: {
         .doc(existingEntry.token)
         .get();
 
-      if (existingTokenDoc.exists) {
+      if (
+        existingTokenDoc.exists &&
+        !isTokenExpired(existingTokenDoc.data()?.expiresAt)
+      ) {
         return {
           success: true,
           data: { token: existingEntry.token },
@@ -64,7 +84,9 @@ export async function getOrCreateTripSigningTokenAction(input: {
 
     // Generate new secure UUID token
     const token = crypto.randomUUID();
-    const now = new Date().toISOString();
+    const nowDate = new Date();
+    const now = nowDate.toISOString();
+    const expiresAt = new Date(nowDate.getTime() + TOKEN_TTL_MS).toISOString();
     const siteId = input.siteId || tripData.siteId || "bkgalabovo";
 
     await adminDb
@@ -78,6 +100,7 @@ export async function getOrCreateTripSigningTokenAction(input: {
         role: input.role || "Състезател",
         siteId,
         createdAt: now,
+        expiresAt,
       });
 
     await tripRef.update({
@@ -139,7 +162,10 @@ export async function getOrCreateMemberTripSigningTokenAction(input: {
         .doc(existingToken)
         .get();
 
-      if (existingTokenDoc.exists) {
+      if (
+        existingTokenDoc.exists &&
+        !isTokenExpired(existingTokenDoc.data()?.expiresAt)
+      ) {
         return {
           success: true,
           data: { token: existingToken },
@@ -148,7 +174,9 @@ export async function getOrCreateMemberTripSigningTokenAction(input: {
     }
 
     const token = crypto.randomUUID();
-    const now = new Date().toISOString();
+    const nowDate = new Date();
+    const now = nowDate.toISOString();
+    const expiresAt = new Date(nowDate.getTime() + TOKEN_TTL_MS).toISOString();
     const siteId = input.siteId || memberData.siteId || "bkgalabovo";
     const resolvedName =
       input.memberName ||
@@ -166,6 +194,7 @@ export async function getOrCreateMemberTripSigningTokenAction(input: {
       role: "Състезател / Участник",
       siteId,
       createdAt: now,
+      expiresAt,
     });
 
     await memberRef.set(
@@ -175,6 +204,10 @@ export async function getOrCreateMemberTripSigningTokenAction(input: {
       },
       { merge: true }
     );
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members", "layout");
+    revalidatePath(`/members/${input.memberId}`, "layout");
 
     return {
       success: true,
@@ -214,6 +247,14 @@ export async function getPublicTripSignDataAction(
     }
 
     const tokenData = tokenSnap.data()!;
+
+    if (isTokenExpired(tokenData.expiresAt)) {
+      return {
+        success: false,
+        error:
+          "Линкът за подписване е изтекъл. Моля, поискайте нов линк от администратора.",
+      };
+    }
 
     // Profile-wide signing token (saves signature to member profile and all trips)
     if (tokenData.mode === "profile" || !tokenData.tripId) {
@@ -321,10 +362,17 @@ async function propagateAthleteSignatureInternal(
     siteId?: string;
     skipTripId?: string;
     overwriteExisting?: boolean;
+    allowChairpersonSync?: boolean;
   }
 ): Promise<{ updatedTripsCount: number }> {
-  const { memberId, signatureBase64, siteId, skipTripId, overwriteExisting } =
-    params;
+  const {
+    memberId,
+    signatureBase64,
+    siteId,
+    skipTripId,
+    overwriteExisting,
+    allowChairpersonSync = true,
+  } = params;
   const now = new Date().toISOString();
 
   // 1. Update member profile with the stored signature
@@ -350,8 +398,8 @@ async function propagateAthleteSignatureInternal(
       { merge: true }
     );
 
-    // If member is Mira Georgieva, sync to club_settings/chairperson
-    if (isMiraGeorgieva) {
+    // If member is Mira Georgieva and caller is authorized, sync to club_settings/chairperson
+    if (isMiraGeorgieva && allowChairpersonSync) {
       await adminDb.collection("club_settings").doc("chairperson").set(
         {
           signatureUrl: signatureBase64,
@@ -472,12 +520,7 @@ export async function submitPublicTripSignatureAction(input: {
       return { success: false, error: "Невалиден код за достъп." };
     }
 
-    if (
-      !signatureBase64 ||
-      typeof signatureBase64 !== "string" ||
-      !signatureBase64.startsWith("data:image/") ||
-      signatureBase64.length > 1_500_000
-    ) {
+    if (!isValidSignatureDataUrl(signatureBase64)) {
       return { success: false, error: "Невалиден формат на подписа." };
     }
 
@@ -496,12 +539,21 @@ export async function submitPublicTripSignatureAction(input: {
 
     const tokenData = tokenSnap.data()!;
 
+    if (isTokenExpired(tokenData.expiresAt)) {
+      return {
+        success: false,
+        error:
+          "Линкът за подписване е изтекъл. Моля, поискайте нов линк от администратора.",
+      };
+    }
+
     // Profile-wide signing token: save to member profile & apply to all trips
     if (tokenData.mode === "profile" || !tokenData.tripId) {
       const res = await propagateAthleteSignatureInternal(adminDb, {
         memberId: tokenData.memberId,
         signatureBase64,
         siteId: tokenData.siteId,
+        allowChairpersonSync: false,
       });
 
       const message =
@@ -510,8 +562,10 @@ export async function submitPublicTripSignatureAction(input: {
           : "Подписът беше съхранен в профила и ще се прилага автоматично за всички бъдещи командировки!";
 
       serverCache.invalidatePattern("members:");
-      revalidatePath("/members");
-      revalidatePath("/accounting/trips");
+      revalidatePath("/members", "layout");
+      revalidatePath(`/members/${tokenData.memberId}`, "layout");
+      revalidatePath("/accounting", "layout");
+      revalidatePath("/accounting/trips", "layout");
 
       return {
         success: true,
@@ -525,6 +579,13 @@ export async function submitPublicTripSignatureAction(input: {
 
     if (!tripSnap.exists) {
       return { success: false, error: "Командировката не беше намерена." };
+    }
+
+    if (tripSnap.data()?.status === "completed") {
+      return {
+        success: false,
+        error: "Командировката е приключена и заключена за редакция.",
+      };
     }
 
     const now = new Date().toISOString();
@@ -542,6 +603,7 @@ export async function submitPublicTripSignatureAction(input: {
         signatureBase64,
         siteId: tokenData.siteId || tripSnap.data()?.siteId,
         skipTripId: tokenData.tripId,
+        allowChairpersonSync: false,
       });
       propagatedCount = res.updatedTripsCount;
     } catch (err) {
@@ -597,12 +659,7 @@ export async function saveDirectAthleteSignatureAction(input: {
       return { success: false, error: "Липсва идентификатор на състезателя." };
     }
 
-    if (
-      !signatureBase64 ||
-      typeof signatureBase64 !== "string" ||
-      !signatureBase64.startsWith("data:image/") ||
-      signatureBase64.length > 1_500_000
-    ) {
+    if (!isValidSignatureDataUrl(signatureBase64)) {
       return { success: false, error: "Невалиден формат на подписа." };
     }
 
@@ -767,12 +824,7 @@ export async function saveMemberStoredSignatureAction(input: {
       return { success: false, error: "Липсва идентификатор на състезателя." };
     }
 
-    if (
-      !signatureBase64 ||
-      typeof signatureBase64 !== "string" ||
-      !signatureBase64.startsWith("data:image/") ||
-      signatureBase64.length > 1_500_000
-    ) {
+    if (!isValidSignatureDataUrl(signatureBase64)) {
       return { success: false, error: "Невалиден формат на подписа." };
     }
 
@@ -925,17 +977,6 @@ function extractAthleteSignatureFromTrip(
     }
   }
 
-  // 4. Fallback: if only one athlete signature exists in the trip
-  if (sigs && typeof sigs === "object") {
-    const athletes = sigs.athletes as Record<string, unknown> | undefined;
-    if (athletes && typeof athletes === "object") {
-      const keys = Object.keys(athletes);
-      if (keys.length === 1 && typeof athletes[keys[0]] === "string") {
-        return athletes[keys[0]] as string;
-      }
-    }
-  }
-
   return null;
 }
 
@@ -1001,11 +1042,34 @@ export async function syncMemberSignatureFromTripsAction(input: {
       }
     }
 
-    // 3. Fallback: search all trips in collection
+    // 3. Fallback: search all trips where memberId is in participantsIds/participantIds OR explicitly keyed under memberId
     if (!foundSig) {
       const allTripsSnap = await adminDb.collection("business_trips").get();
+      const normId = memberId.trim().toLowerCase();
       for (const doc of allTripsSnap.docs) {
         const data = doc.data();
+        const participantList = [
+          ...(Array.isArray(data.participantsIds) ? data.participantsIds : []),
+          ...(Array.isArray(data.participantIds)
+            ? (data.participantIds as string[])
+            : []),
+        ];
+        const isParticipant = participantList.some(
+          (id) => String(id).trim().toLowerCase() === normId
+        );
+        const sigs = data.signatures as Record<string, unknown> | undefined;
+        const athletes = sigs?.athletes as Record<string, unknown> | undefined;
+        const hasExplicitKey =
+          Boolean(
+            athletes &&
+            Object.keys(athletes).some((k) => k.trim().toLowerCase() === normId)
+          ) ||
+          Boolean(
+            sigs &&
+            Object.keys(sigs).some((k) => k.trim().toLowerCase() === normId)
+          );
+        if (!isParticipant && !hasExplicitKey) continue;
+
         const sig = extractAthleteSignatureFromTrip(data, memberId);
         if (sig) {
           foundSig = sig;
@@ -1117,6 +1181,11 @@ export async function backfillAllAthleteSignaturesFromTripsAction(
       syncedMembersCount++;
       totalTripsUpdated += res.updatedTripsCount;
     }
+
+    serverCache.invalidatePattern("members:");
+    revalidatePath("/members", "layout");
+    revalidatePath("/accounting", "layout");
+    revalidatePath("/accounting/trips", "layout");
 
     return {
       success: true,

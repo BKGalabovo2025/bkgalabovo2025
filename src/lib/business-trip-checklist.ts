@@ -64,7 +64,10 @@ function checkGeneralData(ctx: CheckContext): TripCheckItem[] {
       hint: "Въведете града и залата на провеждане на турнира.",
     });
   }
-  if (!trip.participantsIds || trip.participantsIds.length === 0) {
+  if (
+    !trip.coachIsAthlete &&
+    (!trip.participantsIds || trip.participantsIds.length === 0)
+  ) {
     issues.push({
       id: "missing_participants",
       severity: "error",
@@ -283,10 +286,9 @@ function checkFinancials(ctx: CheckContext): TripCheckItem[] {
     });
   }
 
-  if (
-    needsPerDiem &&
-    (!trip.financials.perDiemRateEUR || trip.financials.perDiemRateEUR <= 0)
-  ) {
+  const effectivePerDiemRate =
+    trip.financials.perDiemOverrideEUR ?? trip.financials.perDiemRateEUR;
+  if (needsPerDiem && (!effectivePerDiemRate || effectivePerDiemRate <= 0)) {
     issues.push({
       id: "perdiem_missing_rate",
       severity: "error",
@@ -406,6 +408,7 @@ export function checkTripCompleteness(
 ): TripCheckItem[] {
   const coverage = trip.expensesCoverage ?? "";
   const transport = trip.transportType;
+  const isDailyCommute = trip.vehicle?.commuteMode === "daily_commute";
 
   const ctx: CheckContext = {
     trip,
@@ -419,7 +422,8 @@ export function checkTripCompleteness(
       coverage === "transport_and_food" ||
       coverage === "transport_food_sleep",
     needsAccom:
-      coverage === "food_and_sleep" || coverage === "transport_food_sleep",
+      !isDailyCommute &&
+      (coverage === "food_and_sleep" || coverage === "transport_food_sleep"),
     needsPerDiem:
       coverage === "food_only" ||
       coverage === "food_and_sleep" ||

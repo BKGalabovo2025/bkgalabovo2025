@@ -33,8 +33,8 @@ function resolveNights(
   ovStayedOvernight: boolean | undefined,
   defNights: number
 ): number {
-  if (ovNights != null) return ovNights;
   if (ovStayedOvernight === false) return 0;
+  if (ovNights != null) return ovNights;
   return defNights;
 }
 
@@ -263,12 +263,20 @@ export function buildStaySectionText(
     coachName,
     coachRole,
     true,
-    overrides["coach"] ?? {},
+    overrides["coach"] ??
+      (trip.coachId ? overrides[trip.coachId] : undefined) ??
+      {},
     defDays,
     defNights
   );
 
-  const participantIds = trip.participantsIds || [];
+  const participantIds = Array.from(
+    new Set(
+      (trip.participantsIds || []).filter(
+        (id) => id && id !== "coach" && id !== trip.coachId
+      )
+    )
+  );
   const athletesStats: PersonStat[] = participantIds.map((pid) => {
     const m = membersDict[pid];
     const name = m ? `${m.firstName} ${m.lastName}` : pid;
@@ -448,7 +456,10 @@ export function buildStaySectionText(
   }
 
   // Финансово обезпечаване
-  const perDiemRate = trip.financials?.perDiemRateEUR ?? 11;
+  const perDiemRate =
+    trip.financials?.perDiemOverrideEUR ??
+    trip.financials?.perDiemRateEUR ??
+    11;
   const hasPerDiemFinance =
     trip.expensesCoverage !== "transport_only" && perDiemRate > 0;
   const financeLine = hasPerDiemFinance

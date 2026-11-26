@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -32,6 +33,7 @@ interface TripDetailsContextType {
   setTrip: React.Dispatch<React.SetStateAction<BusinessTrip>>;
   setExpenses: React.Dispatch<React.SetStateAction<TripExpense[]>>;
   refreshData: () => Promise<void>;
+  isLocked: boolean;
   activeDialog: TripDialogAction;
   activeExpenseId: string | null;
   openDialog: (
@@ -77,6 +79,10 @@ export function TripDetailsProvider({
 }) {
   const [trip, setTrip] = useState<BusinessTrip>(initialTrip);
   const [expenses, setExpenses] = useState<TripExpense[]>(initialExpenses);
+  const prevTripIdRef = useRef<string | undefined>(initialTrip.id);
+  const prevInitialExpensesKeyRef = useRef<string>(
+    JSON.stringify(initialExpenses)
+  );
 
   const router = useRouter();
   const pathname = usePathname();
@@ -96,8 +102,20 @@ export function TripDetailsProvider({
   }, [initialTrip]);
 
   useEffect(() => {
-    setExpenses(initialExpenses);
-  }, [initialExpenses]);
+    const nextKey = JSON.stringify(initialExpenses);
+    if (prevTripIdRef.current !== initialTrip.id) {
+      prevTripIdRef.current = initialTrip.id;
+      prevInitialExpensesKeyRef.current = nextKey;
+      setExpenses(initialExpenses);
+      return;
+    }
+    if (nextKey !== prevInitialExpensesKeyRef.current) {
+      prevInitialExpensesKeyRef.current = nextKey;
+      setExpenses(initialExpenses);
+    }
+  }, [initialExpenses, initialTrip.id]);
+
+  const isLocked = trip.status === "completed";
 
   const rawAction = searchParams.get("action");
   const activeDialog: TripDialogAction =
@@ -111,6 +129,7 @@ export function TripDetailsProvider({
       action: Exclude<TripDialogAction, null>,
       extraParams?: Record<string, string>
     ) => {
+      if (isLocked && action !== "manager") return;
       const params = new URLSearchParams(searchParams.toString());
       params.set("action", action);
       params.delete("expenseId");
@@ -124,7 +143,7 @@ export function TripDetailsProvider({
         scroll: false,
       });
     },
-    [pathname, router, searchParams]
+    [isLocked, pathname, router, searchParams]
   );
 
   const closeDialog = useCallback(() => {
@@ -164,6 +183,7 @@ export function TripDetailsProvider({
         setTrip,
         setExpenses,
         refreshData,
+        isLocked,
         activeDialog,
         activeExpenseId,
         openDialog,

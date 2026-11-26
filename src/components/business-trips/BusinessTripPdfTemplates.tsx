@@ -317,12 +317,18 @@ export function BusinessTripPdfTemplates({
   };
   const startD = new Date(trip.startDate);
   const endD = new Date(trip.endDate);
+  const isStartValid = !isNaN(startD.getTime());
+  const isEndValid = !isNaN(endD.getTime());
   const coverage = trip.expensesCoverage;
   const coverageHasAccom =
     coverage === "food_and_sleep" || coverage === "transport_food_sleep";
   // Същите правила като calculateTripStatementTotals (business-trip-calc.ts)
   const basePerDiemEUR =
-    trip.financials.perDiemOverrideEUR ?? trip.financials.perDiemRateEUR ?? 0;
+    coverage === "transport_only"
+      ? 0
+      : (trip.financials.perDiemOverrideEUR ??
+        trip.financials.perDiemRateEUR ??
+        0);
   const coverageExcludesAccom = isTripCoverageWithoutAccom(
     coverage,
     trip.financials.accommodationRateEUR ?? 0,
@@ -333,10 +339,14 @@ export function BusinessTripPdfTemplates({
   const hasNoAccom = isDailyCommute || coverageExcludesAccom;
 
   // Първоначално планирани дни и нощи по дати на командировката (за Решение на УС и Нареждане)
-  const plannedDays = Math.max(1, differenceInCalendarDays(endD, startD) + 1);
-  const plannedNights = hasNoAccom
-    ? 0
-    : Math.max(0, differenceInCalendarDays(endD, startD));
+  const plannedDays =
+    isStartValid && isEndValid
+      ? Math.max(1, differenceInCalendarDays(endD, startD) + 1)
+      : 1;
+  const plannedNights =
+    hasNoAccom || !isStartValid || !isEndValid
+      ? 0
+      : Math.max(0, differenceInCalendarDays(endD, startD));
   // Действително реализирани дни/нощи на отбора (използват се САМО във Ведомостта)
   const numDays = trip.actualDays != null ? trip.actualDays : plannedDays;
   const numNights = hasNoAccom
@@ -369,11 +379,14 @@ export function BusinessTripPdfTemplates({
       } as Record<string, string>
     )[event?.type || ""] || "";
   const cleanTitle = trip.title.replace(/^[Кк]омандировка:\s*/u, "");
-  const isSameDay = differenceInCalendarDays(endD, startD) === 0;
-  const yearStr = format(startD, "yyyy");
+  const isSameDay =
+    isStartValid && isEndValid && differenceInCalendarDays(endD, startD) === 0;
+  const yearStr = isStartValid
+    ? format(startD, "yyyy")
+    : String(new Date().getFullYear());
   const dateRangeStr = isSameDay
-    ? `на ${format(startD, "dd.MM.yyyy")} г.`
-    : `от ${format(startD, "dd.MM.yyyy")} г. до ${format(endD, "dd.MM.yyyy")} г.`;
+    ? `на ${fmtDate(trip.startDate)} г.`
+    : `от ${fmtDate(trip.startDate)} г. до ${fmtDate(trip.endDate)} г.`;
   const titleWithLabel = eventLabel
     ? `${eventLabel} - ${cleanTitle}, ${dateRangeStr} в ${trip.destination}`
     : `${cleanTitle}, ${dateRangeStr} в ${trip.destination}`;
@@ -384,8 +397,6 @@ export function BusinessTripPdfTemplates({
       ? fuelExpenses.reduce((sum, e) => sum + e.amountEUR, 0) /
         fuelExpenses.length
       : 0;
-  const roundedPricePerLiterBGN =
-    Math.round(eurToBgn(avgPricePerLiterEUR) * 100) / 100;
   const avgPricePerLiterBGN = eurToBgn(avgPricePerLiterEUR);
   const vehiclesBreakdown = calculateTripVehiclesBreakdown(
     trip,
@@ -397,19 +408,18 @@ export function BusinessTripPdfTemplates({
     (sum, v) => sum + v.distanceKm,
     0
   );
-  const totalLitersExact = vehiclesBreakdown.reduce(
-    (sum, v) =>
-      sum +
-      (v.distanceKm > 0 && v.fuelNorm > 0
-        ? (v.distanceKm / 100) * v.fuelNorm
-        : 0),
-    0
-  );
-  const totalLiters = Math.round(totalLitersExact * 100) / 100;
+  const totalLiters =
+    Math.round(
+      vehiclesBreakdown.reduce((sum, v) => sum + v.calcFuelLiters, 0) * 100
+    ) / 100;
   const finalFuelBGN =
-    Math.round(totalLitersExact * roundedPricePerLiterBGN * 100) / 100;
+    Math.round(
+      vehiclesBreakdown.reduce((sum, v) => sum + v.calcFuelBGN, 0) * 100
+    ) / 100;
   const finalFuelEUR =
-    finalFuelBGN > 0 ? Math.round((finalFuelBGN / 1.95583) * 100) / 100 : 0;
+    Math.round(
+      vehiclesBreakdown.reduce((sum, v) => sum + v.calcFuelEUR, 0) * 100
+    ) / 100;
 
   const entryEUR = trip.financials.entryFeeEUR ?? 0;
   const hasEntryFee = Boolean(trip.financials.hasEntryFee ?? entryEUR > 0);
@@ -2306,7 +2316,7 @@ export function BusinessTripPdfTemplates({
                   </p>
                   {nonFuelExpenses.map((exp, idx) => {
                     const docDate = exp.documentDate
-                      ? format(new Date(exp.documentDate), "dd.MM.yyyy")
+                      ? fmtDate(exp.documentDate)
                       : "............";
 
                     const getExpenseTypeLabel = (t: string) => {
@@ -2950,7 +2960,7 @@ export function BusinessTripPdfTemplates({
               if (fuelExpenses.length > 0) {
                 return fuelExpenses.map((exp, idx) => {
                   const docDate = exp.documentDate
-                    ? format(new Date(exp.documentDate), "dd.MM.yyyy")
+                    ? fmtDate(exp.documentDate)
                     : "............";
                   return (
                     <p
@@ -3203,8 +3213,10 @@ export function BusinessTripPdfTemplates({
                     color: "#000",
                   }}
                 >
-                  {fmtDate(trip.startDate)} г. - {fmtDate(trip.endDate)} г. —{" "}
-                  {destCity}
+                  {isSameDay
+                    ? `${fmtDate(trip.startDate)} г.`
+                    : `${fmtDate(trip.startDate)} г. - ${fmtDate(trip.endDate)} г.`}{" "}
+                  — {destCity}
                 </p>
               </div>
 
@@ -3520,7 +3532,7 @@ export function BusinessTripPdfTemplates({
                   <span>....................</span>
                 )}
               </div>
-              <p style={{ margin: "1pt 0", color: "#000" }}>/ {chair} /</p>
+              <p style={{ margin: "1pt 0", color: "#000" }}>/ {mol} /</p>
               <p style={{ margin: "1pt 0" }}>
                 Дата: {fmtDate(trip.endDate || trip.startDate)} г.
               </p>
@@ -3589,7 +3601,10 @@ export function BusinessTripPdfTemplates({
               </p>
               <p style={{ margin: "0.5pt 0" }}>
                 <strong>МЯСТО И ПЕРИОД:</strong> {destCity} (
-                {fmtDate(trip.startDate)} г. — {fmtDate(trip.endDate)} г.)
+                {isSameDay
+                  ? `${fmtDate(trip.startDate)} г.`
+                  : `${fmtDate(trip.startDate)} г. — ${fmtDate(trip.endDate)} г.`}
+                )
               </p>
             </div>
           </>

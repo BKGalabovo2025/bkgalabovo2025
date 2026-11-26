@@ -1,6 +1,7 @@
 "use server";
 import "server-only";
 
+import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import type {
   AnnualReportData,
@@ -526,6 +527,7 @@ export async function getAnnualReportAction(
   forceRescan: boolean = false
 ): Promise<{ success: boolean; data?: AnnualReportData; error?: string }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const cleanSiteId = siteId || "bkgalabovo";
     const docKey = `${cleanSiteId}_${year}_${coachId || "default"}`;
@@ -620,6 +622,11 @@ export async function getAnnualReportAction(
     });
 
     // 1C. Присъствени форми (training_attendance) за допълване на месеци без дублиране
+    const emptyMonths = new Set<number>(
+      monthlyCounts
+        .map((count, idx) => (count === 0 ? idx : -1))
+        .filter((idx) => idx !== -1)
+    );
     attendanceSnap.docs.forEach((d) => {
       const att = d.data() as {
         date?: unknown;
@@ -633,7 +640,7 @@ export async function getAnnualReportAction(
       if (!dObj || dObj.getFullYear() !== year) return;
 
       const m = dObj.getMonth();
-      if (m >= 0 && m < 12 && monthlyCounts[m] === 0) {
+      if (m >= 0 && m < 12 && emptyMonths.has(m)) {
         const dateKey = `${dObj.getFullYear()}-${dObj.getMonth()}-${dObj.getDate()}`;
         if (!countedSessionKeys.has(dateKey)) {
           countedSessionKeys.add(dateKey);
@@ -1166,6 +1173,7 @@ export async function saveAnnualReportAction(
   report: AnnualReportData
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    await ensureAdmin();
     const adminDb = getAdminDb();
     const siteId = report.siteId || "bkgalabovo";
     const docKey = `${siteId}_${report.year}_${report.coachId || "default"}`;
