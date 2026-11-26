@@ -15,6 +15,7 @@ import { formatDateShort } from "@/lib/date-utils";
 import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { generateBergerMatches } from "@/lib/match-generator";
 import { getAllMembers } from "@/services/member-service";
+import { getEventById } from "@/services/schedule-service";
 import { tournamentService } from "@/services/tournament-service";
 import { Member } from "@/types/member.types";
 import { Match, Tournament, TournamentEntry } from "@/types/tournament.types";
@@ -47,6 +48,7 @@ interface TournamentDetailsContextType {
   isLoading: boolean;
   isNotFound: boolean;
   isGenerating: boolean;
+  isImportingFromSchedule: boolean;
   isEntryDialogOpen: boolean;
   setIsEntryDialogOpen: (open: boolean) => void;
   isEditDialogOpen: boolean;
@@ -55,6 +57,7 @@ interface TournamentDetailsContextType {
   setSelectedMatch: (match: Match | null) => void;
   loadData: () => Promise<void>;
   handleGenerateMatches: () => Promise<void>;
+  handleImportFromScheduleEvent: () => Promise<void>;
   handleSaveEntry: (data: TournamentEntry | TournamentEntry[]) => Promise<void>;
   handleUpdateTournament: (data: Partial<Tournament>) => Promise<void>;
   handleDeleteEntry: (entryId: string) => Promise<void>;
@@ -106,6 +109,7 @@ export function TournamentDetailsProvider({
   const [isLoading, setIsLoading] = useState(!initialData.tournament);
   const [isNotFound, setIsNotFound] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isImportingFromSchedule, setIsImportingFromSchedule] = useState(false);
   const [isEntryDialogOpen, setEntryDialogOpenInternal] = useState(false);
   const [isEditDialogOpen, setEditDialogOpenInternal] = useState(false);
   const [selectedMatch, setSelectedMatchInternal] = useState<Match | null>(
@@ -340,6 +344,68 @@ export function TournamentDetailsProvider({
     }
   };
 
+  const handleImportFromScheduleEvent = async () => {
+    if (!tournament?.scheduleEventId) return;
+    setIsImportingFromSchedule(true);
+    try {
+      const event = await getEventById(tournament.scheduleEventId);
+      if (!event) {
+        toast.error("Свързаната тренировка не бе намерена в графика.");
+        return;
+      }
+
+      const memberIdsFromAttendees = (event.attendees || [])
+        .filter((a) => !a.isGuest && a.memberId && a.memberId !== "guest")
+        .map((a) => a.memberId);
+      const allMemberIds = Array.from(
+        new Set([...memberIdsFromAttendees, ...(event.attendeeMemberIds || [])])
+      ).filter(Boolean);
+
+      if (allMemberIds.length === 0) {
+        toast.info(
+          "В свързаната тренировка все още няма записани състезатели."
+        );
+        return;
+      }
+
+      const targetCategory = tournament.categories?.includes("singles")
+        ? "singles"
+        : tournament.categories?.[0] || "singles";
+
+      const existingIds = new Set(
+        entries
+          .filter((e) => e.categoryId === targetCategory && e.memberId)
+          .map((e) => e.memberId!)
+      );
+
+      const newMemberIds = allMemberIds.filter((id) => !existingIds.has(id));
+      if (newMemberIds.length === 0) {
+        toast.info(
+          "Всички участници от тренировката вече са записани в турнира."
+        );
+        return;
+      }
+
+      for (const memberId of newMemberIds) {
+        await tournamentService.createTournamentEntry({
+          tournamentId,
+          categoryId: targetCategory,
+          memberId,
+        });
+      }
+
+      toast.success(
+        `Добавени ${newMemberIds.length} участници от тренировката „${event.title}“!`
+      );
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      toast.error("Грешка при зареждане на участниците от тренировката.");
+    } finally {
+      setIsImportingFromSchedule(false);
+    }
+  };
+
   const handleSaveEntry = async (data: TournamentEntry | TournamentEntry[]) => {
     try {
       if (Array.isArray(data)) {
@@ -537,6 +603,7 @@ export function TournamentDetailsProvider({
         isLoading,
         isNotFound,
         isGenerating,
+        isImportingFromSchedule,
         isEntryDialogOpen,
         setIsEntryDialogOpen,
         isEditDialogOpen,
@@ -545,6 +612,7 @@ export function TournamentDetailsProvider({
         setSelectedMatch,
         loadData,
         handleGenerateMatches,
+        handleImportFromScheduleEvent,
         handleSaveEntry,
         handleUpdateTournament,
         handleDeleteEntry,

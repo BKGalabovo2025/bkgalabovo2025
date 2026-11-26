@@ -185,6 +185,9 @@ export const TournamentSchema = z.object({
   countsForRanking: z.boolean(), // Влиза ли в ранглистата
   pointsMultiplier: z.number().min(0),
   entryFee: z.number().min(0),
+  scheduleEventId: z.string().nullable().optional(),
+  scheduleEventTitle: z.string().nullable().optional(),
+  scheduleEventDate: z.string().nullable().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
 });

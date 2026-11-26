@@ -31,6 +31,13 @@ export function mapDocToTournament(docSnapshot: DocumentSnapshot): Tournament {
       id: docSnapshot.id,
       startDate: toISODate(data.startDate),
       endDate: toISODate(data.endDate),
+      scheduleEventId:
+        typeof data.scheduleEventId === "string" ? data.scheduleEventId : null,
+      scheduleEventTitle:
+        typeof data.scheduleEventTitle === "string"
+          ? data.scheduleEventTitle
+          : null,
+      scheduleEventDate: toISODate(data.scheduleEventDate) ?? null,
       createdAt: toISODate(data.createdAt),
       updatedAt: toISODate(data.updatedAt),
     });

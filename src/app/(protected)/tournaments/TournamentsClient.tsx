@@ -532,6 +532,23 @@ function TournamentCard({
           <MapPin className="mr-1.5 size-3.5" strokeWidth={1.5} />{" "}
           {tournament.location}
         </div>
+        {tournament.scheduleEventId && (
+          <Link
+            href={(() => {
+              const d = tournament.scheduleEventDate || tournament.startDate;
+              const iso = d ? String(d).split("T")[0] : "";
+              return /^\d{4}-\d{2}-\d{2}$/.test(iso)
+                ? `/schedule?date=${iso}`
+                : "/schedule";
+            })()}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-200/80 bg-amber-50/70 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+          >
+            <Calendar className="size-3 shrink-0" />
+            <span className="truncate">
+              График: {tournament.scheduleEventTitle || "Свързана тренировка"}
+            </span>
+          </Link>
+        )}
       </div>
 
       <div className="flex-1 border-y border-zinc-100 bg-zinc-50/40 px-4 sm:p-5 py-3 sm:py-3.5 dark:border-zinc-800 dark:bg-zinc-900/30">

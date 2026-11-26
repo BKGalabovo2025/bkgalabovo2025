@@ -1,8 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, Star } from "lucide-react";
-import { useState } from "react";
+import { format } from "date-fns";
+import { bg } from "date-fns/locale";
+import { Calendar, ChevronDown, Star } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ControllerRenderProps,
   SubmitHandler,
@@ -23,6 +25,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { getEvents } from "@/services/schedule-service";
+import { ScheduleEvent } from "@/types";
 import {
   MATCH_FORMAT_PRESETS,
   Tournament,
@@ -49,6 +53,55 @@ export function TournamentForm({
   initialData,
 }: TournamentFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    getEvents()
+      .then((evts) => {
+        if (!active) return;
+        const valid = evts
+          .filter((e) => !e.isCancelled && e.type !== "camp")
+          .sort(
+            (a, b) =>
+              new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+          );
+        setScheduleEvents(valid);
+      })
+      .catch((err) => {
+        console.warn("Failed to load schedule events:", err);
+      })
+      .finally(() => {
+        if (active) setLoadingEvents(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const scheduleOptions = useMemo(() => {
+    return scheduleEvents.map((ev) => {
+      const d = new Date(ev.startDate);
+      const dateStr = isNaN(d.getTime())
+        ? ev.startDate
+        : format(d, "dd.MM.yyyy • HH:mm", { locale: bg });
+      const typeLabel =
+        ev.type === "training"
+          ? "Тренировка"
+          : ev.type === "competition"
+            ? "Състезание"
+            : "Събитие";
+      const linkedOther =
+        ev.tournamentId && ev.tournamentId !== initialData?.id
+          ? " (свързано с друг турнир)"
+          : "";
+      return {
+        event: ev,
+        label: `${dateStr} — [${typeLabel}] ${ev.title} (${ev.location})${linkedOther}`,
+      };
+    });
+  }, [scheduleEvents, initialData?.id]);
 
   const form: UseFormReturn<TournamentFormValues> =
     useForm<TournamentFormValues>({
@@ -66,6 +119,9 @@ export function TournamentForm({
         countsForRanking: initialData?.countsForRanking ?? true,
         pointsMultiplier: initialData?.pointsMultiplier ?? 1,
         entryFee: initialData?.entryFee ?? 0,
+        scheduleEventId: initialData?.scheduleEventId ?? null,
+        scheduleEventTitle: initialData?.scheduleEventTitle ?? null,
+        scheduleEventDate: initialData?.scheduleEventDate ?? null,
       },
     });
 
@@ -116,6 +172,87 @@ export function TournamentForm({
                       {...field}
                       className="h-10 rounded-xl border-zinc-100 bg-zinc-50/50 text-xs sm:text-sm font-light shadow-none focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-900/50"
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField<TournamentFormValues, "scheduleEventId">
+              control={form.control}
+              name="scheduleEventId"
+              render={({ field }) => (
+                <FormItem className="rounded-2xl border border-amber-500/20 bg-amber-50/40 p-3.5 sm:p-4 sm:col-span-2 dark:border-amber-500/20 dark:bg-amber-950/15">
+                  <div className="mb-2">
+                    <FormLabel className="flex items-center gap-2 text-sm font-medium text-zinc-900 dark:text-white">
+                      <span className="rounded-md bg-amber-500/10 p-1 text-amber-600 dark:text-amber-400">
+                        <Calendar className="size-3.5" />
+                      </span>
+                      Свържи с тренировка от графика
+                    </FormLabel>
+                    <p className="mt-0.5 text-[11px] font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
+                      По избор — автоматично синхронизира датата, локацията и
+                      позволява зареждане на участниците
+                    </p>
+                  </div>
+                  <FormControl>
+                    <div className="relative">
+                      <select
+                        id="tournament-scheduleEventId"
+                        name="scheduleEventId"
+                        disabled={loadingEvents}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const selectedId = e.target.value || null;
+                          field.onChange(selectedId);
+                          if (!selectedId) {
+                            form.setValue("scheduleEventTitle", null);
+                            form.setValue("scheduleEventDate", null);
+                            return;
+                          }
+                          const matched = scheduleEvents.find(
+                            (ev) => ev.id === selectedId
+                          );
+                          if (matched) {
+                            form.setValue("scheduleEventTitle", matched.title);
+                            form.setValue(
+                              "scheduleEventDate",
+                              matched.startDate
+                            );
+                            form.setValue("startDate", matched.startDate);
+                            form.setValue(
+                              "endDate",
+                              matched.endDate || matched.startDate
+                            );
+                            if (matched.location) {
+                              form.setValue("location", matched.location);
+                            }
+                          }
+                        }}
+                        className="h-10 w-full cursor-pointer appearance-none rounded-xl border border-amber-200/80 bg-white px-3 pr-9 text-xs sm:text-sm font-light text-zinc-900 shadow-none outline-none focus-visible:ring-1 focus-visible:ring-primary dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
+                      >
+                        <option
+                          value=""
+                          className="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-white"
+                        >
+                          {loadingEvents
+                            ? "Зареждане на тренировките от графика..."
+                            : "— Без връзка с графика —"}
+                        </option>
+                        {scheduleOptions.map(({ event, label }) => (
+                          <option
+                            key={event.id}
+                            value={event.id}
+                            className="bg-white text-zinc-900 dark:bg-zinc-950 dark:text-white"
+                          >
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-zinc-400 opacity-50">
+                        <ChevronDown className="size-4" strokeWidth={1.5} />
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

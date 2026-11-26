@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Calendar,
   Check,
   Link2,
   Search,
@@ -39,11 +40,14 @@ export function TournamentParticipantsSectionView() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const {
+    tournament,
     entries,
     matches,
     isGenerating,
+    isImportingFromSchedule,
     setIsEntryDialogOpen,
     handleGenerateMatches,
+    handleImportFromScheduleEvent,
     handleDeleteEntry,
     getPlayerName,
     getCategoryName,
@@ -53,7 +57,10 @@ export function TournamentParticipantsSectionView() {
     if (!searchQuery.trim()) return entries;
     const q = searchQuery.toLowerCase().trim();
     return entries.filter((entry) => {
-      const p1 = getPlayerName(entry.memberId, entry.externalName).toLowerCase();
+      const p1 = getPlayerName(
+        entry.memberId,
+        entry.externalName
+      ).toLowerCase();
       const p2 = getPlayerName(
         entry.partnerMemberId,
         entry.partnerExternalName
@@ -102,7 +109,20 @@ export function TournamentParticipantsSectionView() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {tournament?.scheduleEventId && (
+            <Button
+              variant="outline"
+              onClick={handleImportFromScheduleEvent}
+              disabled={isImportingFromSchedule}
+              className="h-9 rounded-xl border-amber-200 bg-amber-50/70 px-3.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+            >
+              <Calendar className="mr-1.5 size-3.5" />
+              {isImportingFromSchedule
+                ? "Зареждане..."
+                : "Зареди от тренировката"}
+            </Button>
+          )}
           {entries.length >= 2 && (
             <Button
               onClick={handleGenerateMatches}

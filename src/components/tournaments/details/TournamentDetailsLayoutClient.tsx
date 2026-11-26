@@ -1,6 +1,7 @@
 "use client";
 
-import { Pencil, Trophy, UserPlus } from "lucide-react";
+import { Calendar, Pencil, Trophy, UserPlus } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -94,7 +95,28 @@ function TournamentDetailsInner({ children }: { children: React.ReactNode }) {
           { label: tournament.title },
         ]}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {tournament.scheduleEventId && (
+            <Button
+              asChild
+              variant="outline"
+              className="rounded-xl border-amber-200 bg-amber-50/60 text-xs font-semibold text-amber-700 shadow-sm hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20"
+            >
+              <Link
+                href={(() => {
+                  const d =
+                    tournament.scheduleEventDate || tournament.startDate;
+                  const iso = d ? String(d).split("T")[0] : "";
+                  return /^\d{4}-\d{2}-\d{2}$/.test(iso)
+                    ? `/schedule?date=${iso}`
+                    : "/schedule";
+                })()}
+              >
+                <Calendar className="mr-2 size-4" />
+                {tournament.scheduleEventTitle || "Виж в графика"}
+              </Link>
+            </Button>
+          )}
           {entries.length >= 2 && (
             <Button
               onClick={handleGenerateMatches}

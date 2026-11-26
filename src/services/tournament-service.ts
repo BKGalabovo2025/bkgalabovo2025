@@ -1,5 +1,6 @@
-import { serverTimestamp, Timestamp } from "firebase/firestore";
+import { doc, serverTimestamp, Timestamp, updateDoc } from "firebase/firestore";
 
+import { getDb } from "@/lib/firebase";
 import {
   mapDocToEntry,
   mapDocToMatch,
@@ -25,6 +26,35 @@ import {
   TournamentEntry,
   TournamentSchema,
 } from "@/types/tournament.types";
+
+async function syncScheduleEventLink(
+  prevEventId: string | null | undefined,
+  nextEventId: string | null | undefined,
+  tournamentId: string
+): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
+  if (prevEventId && prevEventId !== nextEventId) {
+    try {
+      await updateDoc(doc(db, "events", prevEventId), {
+        tournamentId: null,
+      });
+    } catch (err) {
+      console.warn("Could not unlink previous schedule event:", err);
+    }
+  }
+
+  if (nextEventId) {
+    try {
+      await updateDoc(doc(db, "events", nextEventId), {
+        tournamentId,
+      });
+    } catch (err) {
+      console.warn("Could not link schedule event:", err);
+    }
+  }
+}
 
 export const tournamentService = {
   /**
@@ -70,7 +100,15 @@ export const tournamentService = {
         updatedAt: serverTimestamp(),
       };
 
-      return await insertTournament(payload);
+      const createdId = await insertTournament(payload);
+      if (validatedData.scheduleEventId) {
+        await syncScheduleEventLink(
+          null,
+          validatedData.scheduleEventId,
+          createdId
+        );
+      }
+      return createdId;
     } catch (error) {
       console.error("Error creating tournament:", error);
       throw error;
@@ -82,6 +120,12 @@ export const tournamentService = {
    */
   async updateTournament(id: string, data: Partial<Tournament>): Promise<void> {
     try {
+      let prevEventId: string | null | undefined;
+      if (data.scheduleEventId !== undefined) {
+        const existing = await this.getTournamentById(id);
+        prevEventId = existing?.scheduleEventId;
+      }
+
       const payload: Record<string, unknown> = {
         ...data,
         updatedAt: serverTimestamp(),
@@ -95,6 +139,10 @@ export const tournamentService = {
       }
 
       await updateTournamentDoc(id, payload);
+
+      if (data.scheduleEventId !== undefined) {
+        await syncScheduleEventLink(prevEventId, data.scheduleEventId, id);
+      }
     } catch (error) {
       console.error("Error updating tournament:", error);
       throw error;
@@ -106,7 +154,11 @@ export const tournamentService = {
    */
   async deleteTournament(id: string): Promise<void> {
     try {
+      const existing = await this.getTournamentById(id);
       await deleteTournamentCascading(id);
+      if (existing?.scheduleEventId) {
+        await syncScheduleEventLink(existing.scheduleEventId, null, id);
+      }
     } catch (error) {
       console.error("Error deleting tournament:", error);
       throw error;
