@@ -68,6 +68,38 @@ export default function TournamentsClient({
   const editId = searchParams.get("edit");
   const targetId = searchParams.get("id");
   const isNew = searchParams.get("new") === "true";
+  const rankingParam = searchParams.get("ranking");
+  const membersParam = searchParams.get("members");
+
+  const prefilledMemberIds = useMemo(
+    () =>
+      membersParam
+        ? membersParam
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : [],
+    [membersParam]
+  );
+
+  const newTournamentInitialData = useMemo<Tournament | undefined>(() => {
+    if (!rankingParam && prefilledMemberIds.length === 0) return undefined;
+    return {
+      countsForRanking: rankingParam === "false" ? false : true,
+    } as Tournament;
+  }, [rankingParam, prefilledMemberIds.length]);
+
+  const handleNewDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open && (isNew || rankingParam || membersParam)) {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      sp.delete("new");
+      sp.delete("ranking");
+      sp.delete("members");
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    }
+  };
 
   const handleCopyLink = (tournament: Tournament) => {
     if (typeof window === "undefined") return;
@@ -276,7 +308,7 @@ export default function TournamentsClient({
         </BentoCard>
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleNewDialogOpenChange}>
         <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl lg:max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {/* Fixed Sticky Header */}
           <div className="shrink-0 flex items-center justify-between border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -289,7 +321,9 @@ export default function TournamentsClient({
                   Нов турнир
                 </DialogTitle>
                 <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                  Попълнете параметрите на турнира
+                  {prefilledMemberIds.length > 0
+                    ? `Прехвърлени ${prefilledMemberIds.length} състезатели от тренировката • ${rankingParam === "false" ? "Без ранглиста" : "За ранглиста"}`
+                    : "Попълнете параметрите на турнира"}
                 </p>
               </div>
             </div>
@@ -297,7 +331,8 @@ export default function TournamentsClient({
           {isDialogOpen && (
             <TournamentForm
               onSave={handleSave}
-              onClose={() => setIsDialogOpen(false)}
+              onClose={() => handleNewDialogOpenChange(false)}
+              initialData={newTournamentInitialData}
             />
           )}
         </DialogContent>

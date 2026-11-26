@@ -257,7 +257,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
 
       <div className="space-y-3">
         <h3 className="px-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
-          История на присъствията
+          Натоварване & RPE (Планировчик)
         </h3>
         {attendances
           .slice()
@@ -276,16 +276,20 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                 className="flex flex-col items-start justify-between gap-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 sm:flex-row sm:items-center"
               >
                 <div>
-                  <div className="mb-1 flex items-center gap-2">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                      <span className="text-zinc-600 dark:text-zinc-400">
-                        Зала:{" "}
-                      </span>
-                      <span className="font-semibold">
-                        {s.location === "court" ? "Да" : "Не"}
-                      </span>{" "}
-                      {new Date(att.date).toLocaleDateString("bg-BG")}
+                      {new Date(att.date).toLocaleDateString("bg-BG", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </span>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-medium text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+                    >
+                      {getLocationLabel(s.location)}
+                    </Badge>
                     {s.mode === "camp" && (
                       <Badge
                         variant="destructive"
@@ -311,8 +315,8 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs font-medium text-zinc-500">
-                    {s.title} • {getLocationLabel(s.location)}
+                  <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    {s.title}
                   </div>
                 </div>
                 <div className="flex gap-4">

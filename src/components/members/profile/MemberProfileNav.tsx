@@ -123,7 +123,7 @@ export function MemberProfileNav() {
         aria-label="Подстраници на досието на члена"
         className="sticky top-14 z-20 -mx-3 border-b border-zinc-200/80 bg-white/95 px-3 py-2.5 backdrop-blur-md sm:top-16 sm:-mx-6 sm:px-6 dark:border-zinc-800 dark:bg-zinc-950/95"
       >
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 sm:gap-2">
+        <div className="no-scrollbar flex flex-nowrap gap-1.5 overflow-x-auto lg:grid lg:grid-cols-6 lg:gap-2 lg:overflow-visible">
           {MEMBER_PROFILE_SECTIONS.map((section) => {
             const href = getMemberSectionHref(memberId, section);
             const isActive = section.id === activeId;
@@ -140,9 +140,9 @@ export function MemberProfileNav() {
                     href={href}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "group flex h-9 w-full items-center gap-2 rounded-xl border px-3 text-xs font-medium transition-all select-none",
+                      "group flex h-9 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-medium whitespace-nowrap transition-all select-none lg:w-full lg:shrink",
                       isActive
-                        ? "border-zinc-950 bg-zinc-950 text-white shadow-xs dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950 font-semibold"
+                        ? "border-zinc-950 bg-zinc-950 font-semibold text-white shadow-xs dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-950"
                         : "border-zinc-200/80 bg-zinc-50/80 text-zinc-700 hover:border-zinc-300 hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
                       !isActive && accent?.link
                     )}

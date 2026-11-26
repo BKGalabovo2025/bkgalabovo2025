@@ -9,7 +9,8 @@ import {
   Printer,
   UserCheck,
 } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,9 +78,25 @@ interface BwfTextbookViewProps {
 }
 
 export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
-  const [selectedChapterId, setSelectedChapterId] =
-    useState<FundamentalId>("split-step");
-  const [ageFilter, setAgeFilter] = useState<string>("all");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const chapterParam = searchParams.get("chapter");
+  const ageParam = searchParams.get("age");
+  const methodologyParam = searchParams.get("methodology");
+
+  const [selectedChapterId, setSelectedChapterId] = useState<FundamentalId>(
+    () => {
+      const valid = BWF_FUNDAMENTAL_CHAPTERS.find((c) => c.id === chapterParam);
+      return valid ? valid.id : "split-step";
+    }
+  );
+  const [ageFilter, setAgeFilter] = useState<string>(() => {
+    if (ageParam && (AGE_FILTERS as readonly string[]).includes(ageParam)) {
+      return ageParam;
+    }
+    return "all";
+  });
   const [dialogState, setDialogState] = useState<{
     open: boolean;
     title: string;
@@ -88,6 +105,16 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
     methodology: CoachMethodology;
     courtDiagram?: DrillCourtDiagramData;
   } | null>(null);
+
+  const updateUrlParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      mutator(sp);
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   // Обединяваме официалния BWF учебник с наличните упражнения от базата без дублиране
   const allExercises = useMemo(() => {
@@ -111,6 +138,98 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
   const activeChapter: BwfFundamentalChapter =
     BWF_FUNDAMENTAL_CHAPTERS.find((c) => c.id === selectedChapterId) ||
     BWF_FUNDAMENTAL_CHAPTERS[0];
+
+  useEffect(() => {
+    if (chapterParam) {
+      const valid = BWF_FUNDAMENTAL_CHAPTERS.find((c) => c.id === chapterParam);
+      if (valid) setSelectedChapterId(valid.id);
+    }
+  }, [chapterParam]);
+
+  useEffect(() => {
+    if (ageParam && (AGE_FILTERS as readonly string[]).includes(ageParam)) {
+      setAgeFilter(ageParam);
+    } else if (!ageParam) {
+      setAgeFilter("all");
+    }
+  }, [ageParam]);
+
+  useEffect(() => {
+    if (!methodologyParam) {
+      setDialogState(null);
+      return;
+    }
+    if (methodologyParam === "chapter") {
+      setDialogState({
+        open: true,
+        title: `Глава ${activeChapter.chapterNumber}: ${activeChapter.title}`,
+        subtitle: activeChapter.subtitle,
+        methodology: activeChapter.methodology,
+        courtDiagram: activeChapter.defaultDiagram,
+      });
+      return;
+    }
+    const foundEx = allExercises.find((ex) => ex.id === methodologyParam);
+    if (foundEx) {
+      setDialogState({
+        open: true,
+        title: foundEx.name,
+        subtitle: foundEx.description,
+        dosageText: foundEx.dosageText || `${foundEx.durationMinutes} мин.`,
+        methodology: getExerciseMethodology(foundEx),
+        courtDiagram: getExerciseCourtDiagram(foundEx),
+      });
+    }
+  }, [methodologyParam, activeChapter, allExercises]);
+
+  const handleSelectAge = (age: string) => {
+    setAgeFilter(age);
+    updateUrlParams((sp) => {
+      if (age === "all") sp.delete("age");
+      else sp.set("age", age);
+    });
+  };
+
+  const handleSelectChapter = (chapterId: FundamentalId) => {
+    setSelectedChapterId(chapterId);
+    updateUrlParams((sp) => {
+      sp.set("chapter", chapterId);
+    });
+  };
+
+  const handleOpenChapterMethodology = () => {
+    setDialogState({
+      open: true,
+      title: `Глава ${activeChapter.chapterNumber}: ${activeChapter.title}`,
+      subtitle: activeChapter.subtitle,
+      methodology: activeChapter.methodology,
+      courtDiagram: activeChapter.defaultDiagram,
+    });
+    updateUrlParams((sp) => {
+      sp.set("methodology", "chapter");
+    });
+  };
+
+  const handleOpenExerciseMethodology = (ex: Exercise) => {
+    setDialogState({
+      open: true,
+      title: ex.name,
+      subtitle: ex.description,
+      dosageText: ex.dosageText || `${ex.durationMinutes} мин.`,
+      methodology: getExerciseMethodology(ex),
+      courtDiagram: getExerciseCourtDiagram(ex),
+    });
+    updateUrlParams((sp) => {
+      sp.set("methodology", ex.id);
+    });
+  };
+
+  const handleCloseMethodology = () => {
+    setDialogState(null);
+    updateUrlParams((sp) => {
+      sp.delete("methodology");
+    });
+  };
 
   const chapterExercises = useMemo(() => {
     return allExercises
@@ -157,7 +276,7 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
             <button
               key={age}
               type="button"
-              onClick={() => setAgeFilter(age)}
+              onClick={() => handleSelectAge(age)}
               className={cn(
                 "rounded-xl px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer",
                 ageFilter === age
@@ -197,7 +316,7 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
               <button
                 key={ch.id}
                 type="button"
-                onClick={() => setSelectedChapterId(ch.id)}
+                onClick={() => handleSelectChapter(ch.id)}
                 className={cn(
                   "flex w-full items-center justify-between gap-2 rounded-2xl border p-3 text-left transition-all cursor-pointer",
                   isSelected
@@ -248,15 +367,7 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
                 </div>
                 <Button
                   type="button"
-                  onClick={() =>
-                    setDialogState({
-                      open: true,
-                      title: `Глава ${activeChapter.chapterNumber}: ${activeChapter.title}`,
-                      subtitle: activeChapter.subtitle,
-                      methodology: activeChapter.methodology,
-                      courtDiagram: activeChapter.defaultDiagram,
-                    })
-                  }
+                  onClick={handleOpenChapterMethodology}
                   className="shrink-0 rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700"
                 >
                   <BookOpen className="mr-1.5 size-3.5" />
@@ -379,18 +490,7 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
                               type="button"
                               size="sm"
                               variant="outline"
-                              onClick={() =>
-                                setDialogState({
-                                  open: true,
-                                  title: ex.name,
-                                  subtitle: ex.description,
-                                  dosageText:
-                                    ex.dosageText ||
-                                    `${ex.durationMinutes} мин.`,
-                                  methodology: getExerciseMethodology(ex),
-                                  courtDiagram: getExerciseCourtDiagram(ex),
-                                })
-                              }
+                              onClick={() => handleOpenExerciseMethodology(ex)}
                               className="h-7 rounded-lg text-xs font-semibold dark:border-zinc-700"
                             >
                               <BookOpen className="mr-1.5 size-3" />
@@ -411,9 +511,9 @@ export function BwfTextbookView({ savedExercises = [] }: BwfTextbookViewProps) {
       {dialogState && (
         <CoachMethodologyDialog
           open={dialogState.open}
-          onOpenChange={(open) =>
-            setDialogState((prev) => (prev ? { ...prev, open } : null))
-          }
+          onOpenChange={(open) => {
+            if (!open) handleCloseMethodology();
+          }}
           title={dialogState.title}
           subtitle={dialogState.subtitle}
           dosageText={dialogState.dosageText}

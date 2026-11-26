@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Activity, Loader2, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -16,16 +17,32 @@ import {
 } from "recharts";
 
 import { FundamentalMapCard } from "@/components/members/profile/FundamentalMapCard";
+import { QuickTestModal } from "@/components/training/active/QuickTestModal";
 import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
-import { evaluateMemberFundamentals } from "@/lib/fundamental-engine";
+import {
+  countTrainingsPerFundamentalSinceLastTest,
+  evaluateMemberFundamentals,
+} from "@/lib/fundamental-engine";
 import { getAssessmentsByMemberId } from "@/services/assessment-service";
 import { beepTestService } from "@/services/beep-test-service";
+import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
 import { MemberAssessment } from "@/types/assessment.types";
 import { BeepTestResult } from "@/types/beep-test.types";
+import { SessionAttendance } from "@/types/planner.types";
 
-export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
+interface MemberAssessmentsTabProps {
+  memberId: string;
+  birthDate?: string | null;
+  memberName?: string;
+}
+
+export const MemberAssessmentsTab = ({
+  memberId,
+  birthDate,
+  memberName,
+}: MemberAssessmentsTabProps) => {
   const getScoreColor = (score: string) => {
     if (score === "Елитен състезател")
       return "bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300";
@@ -86,34 +103,70 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     };
   };
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
   const [assessments, setAssessments] = useState<MemberAssessment[]>([]);
   const [beepResults, setBeepResults] = useState<BeepTestResult[]>([]);
+  const [attendances, setAttendances] = useState<SessionAttendance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadAssessments = async () => {
-      try {
-        const [data, beepData] = await Promise.all([
-          getAssessmentsByMemberId(memberId),
-          beepTestService.getMemberResults(activeBranch, memberId),
-        ]);
+  const actionParam = searchParams.get("action");
+  const testIdParam = searchParams.get("testId");
+  const activeQuickTestId =
+    actionParam === "quick-test" && testIdParam ? testIdParam : null;
 
-        setAssessments(
-          data.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-          )
-        );
-        setBeepResults(beepData);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadAssessments = useCallback(async () => {
+    try {
+      const [data, beepData, attendanceData] = await Promise.all([
+        getAssessmentsByMemberId(memberId),
+        beepTestService.getMemberResults(activeBranch, memberId),
+        plannerService
+          .getMemberAttendance(activeBranch, memberId)
+          .catch(() => [] as SessionAttendance[]),
+      ]);
 
-    loadAssessments();
+      setAssessments(
+        data.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        )
+      );
+      setBeepResults(beepData);
+      setAttendances(attendanceData);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [memberId, activeBranch]);
+
+  useEffect(() => {
+    void loadAssessments();
+  }, [loadAssessments]);
+
+  const handleOpenQuickTest = useCallback(
+    (testId: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("action", "quick-test");
+      params.set("testId", testId);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const handleQuickTestOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("action");
+        params.delete("testId");
+        const query = params.toString() ? `?${params.toString()}` : "";
+        router.replace(`${pathname}${query}`, { scroll: false });
+      }
+    },
+    [pathname, router, searchParams]
+  );
 
   if (isLoading) {
     return (
@@ -123,16 +176,41 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
     );
   }
 
+  const trainingsPerFundamental = countTrainingsPerFundamentalSinceLastTest(
+    attendances,
+    assessments
+  );
+  const latestMedicalStatus = attendances[0]?.medicalStatus;
+
   const fundamentalProfile = evaluateMemberFundamentals({
     memberId,
+    birthDate,
     assessments,
     beepResults,
+    trainingsPerFundamental,
+    medicalStatus: latestMedicalStatus,
   });
+
+  const quickTestModalNode = (
+    <QuickTestModal
+      open={Boolean(activeQuickTestId)}
+      onOpenChange={handleQuickTestOpenChange}
+      memberId={memberId}
+      memberName={memberName || "Състезател"}
+      testId={activeQuickTestId || BADMINTON_TESTS[0].id}
+      onSaved={() => {
+        void loadAssessments();
+      }}
+    />
+  );
 
   if (assessments.length === 0 && beepResults.length === 0) {
     return (
       <div className="space-y-6">
-        <FundamentalMapCard profile={fundamentalProfile} />
+        <FundamentalMapCard
+          profile={fundamentalProfile}
+          onConductTest={handleOpenQuickTest}
+        />
         <div className="rounded-3xl border border-zinc-100 bg-zinc-50 py-12 text-center dark:border-zinc-800 dark:bg-zinc-900">
           <TrendingUp className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-600" />
           <h3 className="text-lg font-bold text-zinc-700 dark:text-zinc-100">
@@ -144,14 +222,14 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link
-              href="/training/assessments"
+              href={`/training/assessments?memberId=${memberId}`}
               className="inline-flex items-center gap-2 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               <TrendingUp className="size-3.5" />
               Физически тестове
             </Link>
             <Link
-              href="/training/beep-test"
+              href={`/training/beep-test?memberId=${memberId}`}
               className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
             >
               <Activity className="size-3.5" />
@@ -159,6 +237,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
             </Link>
           </div>
         </div>
+        {quickTestModalNode}
       </div>
     );
   }
@@ -175,18 +254,21 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
 
   return (
     <div className="space-y-8 duration-500 animate-in fade-in">
-      <FundamentalMapCard profile={fundamentalProfile} />
+      <FundamentalMapCard
+        profile={fundamentalProfile}
+        onConductTest={handleOpenQuickTest}
+      />
 
       <div className="flex flex-wrap items-center justify-end gap-2">
         <Link
-          href="/training/assessments"
+          href={`/training/assessments?memberId=${memberId}`}
           className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         >
           <TrendingUp className="size-3.5" />
           Физически тестове
         </Link>
         <Link
-          href="/training/beep-test"
+          href={`/training/beep-test?memberId=${memberId}`}
           className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
         >
           <Activity className="size-3.5" />
@@ -202,7 +284,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                 <Activity className="size-5 text-indigo-600 dark:text-indigo-400" />
                 Бийп Тест (VO2 Max)
               </h3>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 История и Прогрес на аеробния капацитет
               </p>
             </div>
@@ -295,7 +377,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                       </div>
                       <div className="mt-2 flex flex-wrap gap-2 text-xs">
                         <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                          <span className="font-medium text-zinc-500">
+                          <span className="font-medium text-zinc-500 dark:text-zinc-400">
                             Разстояние:
                           </span>
                           <span className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -303,7 +385,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                          <span className="font-medium text-zinc-500">
+                          <span className="font-medium text-zinc-500 dark:text-zinc-400">
                             Общо време:
                           </span>
                           <span className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -311,7 +393,7 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5 rounded-md border border-indigo-100/50 bg-white/80 px-2 py-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                          <span className="font-medium text-zinc-500">
+                          <span className="font-medium text-zinc-500 dark:text-zinc-400">
                             Макс. скорост:
                           </span>
                           <span className="font-bold text-zinc-900 dark:text-zinc-100">
@@ -365,7 +447,9 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                 <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                   {testName}
                 </h3>
-                <p className="text-sm text-zinc-500">Прогрес във времето</p>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Прогрес във времето
+                </p>
               </div>
               <span className="rounded-lg bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 uppercase dark:bg-indigo-950/50 dark:text-indigo-300">
                 {data[0].ageGroupAtTest}
@@ -463,12 +547,12 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
                             {entry.scoreDisplay}
                           </span>
                           {entry.notes && (
-                            <span className="ml-2 text-zinc-500 italic">
+                            <span className="ml-2 text-zinc-500 italic dark:text-zinc-400">
                               - {entry.notes}
                             </span>
                           )}
                         </div>
-                        <div className="text-right text-xs text-zinc-500">
+                        <div className="text-right text-xs text-zinc-500 dark:text-zinc-400">
                           {format(new Date(entry.date), "dd MMMM yyyy", {
                             locale: bg,
                           })}
@@ -509,6 +593,8 @@ export const MemberAssessmentsTab = ({ memberId }: { memberId: string }) => {
           </div>
         );
       })}
+
+      {quickTestModalNode}
     </div>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { createContext, useContext, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { createContext, useContext, useEffect } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/context/auth-context";
@@ -38,8 +38,6 @@ export interface MemberProfileContextType {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<unknown>;
-  isAiWorkoutModalOpen: boolean;
-  setIsAiWorkoutModalOpen: (open: boolean) => void;
   updateDocumentStatus: (
     baseField: DocumentField,
     action: "print" | "submit" | "cancel"
@@ -78,30 +76,16 @@ export function MemberProfileProvider({
   initialData,
   children,
 }: MemberProfileProviderProps) {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { idToken } = useAuth();
-  const [internalAiWorkoutModalOpen, setInternalAiWorkoutModalOpen] =
-    useState(false);
 
-  const isAiWorkoutModalOpen =
-    searchParams?.get("action") === "ai-workout" || internalAiWorkoutModalOpen;
-
-  const setIsAiWorkoutModalOpen = React.useCallback(
-    (open: boolean) => {
-      setInternalAiWorkoutModalOpen(open);
-      const params = new URLSearchParams(searchParams?.toString() || "");
-      if (open) {
-        params.set("action", "ai-workout");
-      } else {
-        params.delete("action");
-      }
-      const query = params.toString() ? `?${params.toString()}` : "";
-      router.replace(`${pathname}${query}`, { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
+  // Redirect legacy ?action=ai-workout deep links to the dedicated full-page route
+  useEffect(() => {
+    if (searchParams?.get("action") === "ai-workout") {
+      router.replace(`/members/${memberId}/ai-workouts/new`);
+    }
+  }, [memberId, router, searchParams]);
 
   const {
     member,
@@ -225,8 +209,6 @@ export function MemberProfileProvider({
         loading,
         error,
         refetch,
-        isAiWorkoutModalOpen,
-        setIsAiWorkoutModalOpen,
         updateDocumentStatus,
         fullName,
         ageGroup,

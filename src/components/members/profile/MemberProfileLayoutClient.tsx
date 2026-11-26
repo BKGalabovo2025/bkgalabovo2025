@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { AiWorkoutGeneratorModal } from "@/components/training/AiWorkoutGeneratorModal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Family } from "@/hooks/useMemberProfile";
 import { Member, Sale, ScheduleEvent } from "@/types";
@@ -36,13 +35,7 @@ interface MemberProfileLayoutClientProps {
 
 function MemberProfileInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const {
-    member,
-    fullName,
-    isAiWorkoutModalOpen,
-    setIsAiWorkoutModalOpen,
-    error,
-  } = useMemberProfileContext();
+  const { member, fullName, error } = useMemberProfileContext();
 
   if (error) {
     return (
@@ -142,12 +135,6 @@ function MemberProfileInner({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
       )}
-
-      <AiWorkoutGeneratorModal
-        open={isAiWorkoutModalOpen}
-        onOpenChange={setIsAiWorkoutModalOpen}
-        member={member}
-      />
     </div>
   );
 }

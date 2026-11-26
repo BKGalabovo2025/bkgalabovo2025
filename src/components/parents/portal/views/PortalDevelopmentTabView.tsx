@@ -1,8 +1,17 @@
 "use client";
 
-import { BookOpen, Dumbbell, TrendingUp, Trophy, Zap } from "lucide-react";
+import {
+  Activity,
+  BookOpen,
+  ClipboardCheck,
+  Dumbbell,
+  TrendingUp,
+  Trophy,
+  Zap,
+} from "lucide-react";
 import React from "react";
 
+import { FundamentalMapCard } from "@/components/members/profile/FundamentalMapCard";
 import { Badge } from "@/components/ui/badge";
 
 import { useParentPortalContext } from "../ParentPortalContext";
@@ -217,27 +226,187 @@ export function PortalDevelopmentTabView() {
                 </Badge>
               </div>
 
-              <div className="text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
-                <p>
-                  Последен тест:{" "}
-                  <strong>
-                    {shadowAndQuizzes.recentQuizzes[0]?.title ||
-                      "Правила на бадминтона"}
-                  </strong>
-                </p>
-                <p>
-                  Постигнат резултат:{" "}
-                  <strong className="text-emerald-600 dark:text-emerald-400">
-                    {shadowAndQuizzes.recentQuizzes[0]?.totalScore !== undefined
-                      ? `${shadowAndQuizzes.recentQuizzes[0]?.totalScore} т.`
-                      : "—"}
-                  </strong>
-                </p>
+              <div className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
+                {shadowAndQuizzes.recentQuizzes.length > 0 ? (
+                  shadowAndQuizzes.recentQuizzes.slice(0, 6).map((quiz) => (
+                    <div
+                      key={quiz.id}
+                      className="rounded-xl border border-zinc-200/70 bg-white p-2.5 dark:border-zinc-800 dark:bg-zinc-900/70"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <strong className="truncate text-zinc-900 dark:text-zinc-100">
+                          {quiz.title}
+                        </strong>
+                        <span className="shrink-0 font-black text-emerald-600 dark:text-emerald-400">
+                          {quiz.totalScore} т.
+                        </span>
+                      </div>
+                      {quiz.submittedAt && (
+                        <p className="mt-0.5 text-[10px] text-zinc-400">
+                          {new Date(quiz.submittedAt).toLocaleDateString(
+                            "bg-BG",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
+                        </p>
+                      )}
+                      {quiz.coachFeedback && (
+                        <p className="mt-1 line-clamp-2 text-[11px] text-zinc-500 italic dark:text-zinc-400">
+                          „{quiz.coachFeedback}“
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-zinc-500 dark:text-zinc-400">
+                    Все още няма решени теоретични тестове.
+                  </p>
+                )}
               </div>
             </div>
           </div>
+
+          {/* Latest Beep Test Summary */}
+          {shadowAndQuizzes.latestBeepTest && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-200/70 bg-indigo-50/40 p-4 dark:border-indigo-900/50 dark:bg-indigo-950/20">
+              <div className="flex items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white">
+                  <Activity size={18} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                    Последен Бийп Тест (Аеробна издръжливост)
+                  </p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    {shadowAndQuizzes.latestBeepTest.date
+                      ? new Date(
+                          shadowAndQuizzes.latestBeepTest.date
+                        ).toLocaleDateString("bg-BG", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "Последен запис"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase">
+                    Ниво : Совалка
+                  </p>
+                  <p className="text-sm font-black text-zinc-900 dark:text-white">
+                    {shadowAndQuizzes.latestBeepTest.level} :{" "}
+                    {shadowAndQuizzes.latestBeepTest.shuttle}
+                  </p>
+                </div>
+                {shadowAndQuizzes.latestBeepTest.vo2Max !== undefined && (
+                  <div className="text-center">
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase">
+                      VO2 Max
+                    </p>
+                    <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                      {shadowAndQuizzes.latestBeepTest.vo2Max}
+                    </p>
+                  </div>
+                )}
+                {shadowAndQuizzes.latestBeepTest.score && (
+                  <Badge
+                    variant="outline"
+                    className="border-indigo-200 bg-white text-[10px] font-bold text-indigo-700 dark:border-indigo-800 dark:bg-zinc-900 dark:text-indigo-300"
+                  >
+                    {shadowAndQuizzes.latestBeepTest.score}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      {/* ── Section 3: BWF Fundamental Map (Read-only) ──────────────────── */}
+      {shadowAndQuizzes?.fundamentalProfile && (
+        <FundamentalMapCard
+          profile={shadowAndQuizzes.fundamentalProfile}
+          readOnly={true}
+        />
+      )}
+
+      {/* ── Section 4: Published Daily Training Reports ─────────────────── */}
+      {shadowAndQuizzes?.recentSessionReports &&
+        shadowAndQuizzes.recentSessionReports.length > 0 && (
+          <div className="space-y-4 rounded-3xl border border-zinc-200/80 bg-white p-4 shadow-2xs sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="border-b border-zinc-100 pb-3 dark:border-zinc-800">
+              <h3 className="flex items-center gap-2 text-sm font-black tracking-wider text-zinc-900 uppercase dark:text-white">
+                <ClipboardCheck size={16} className="text-indigo-500" />
+                <span>Дневни отчети от тренировки</span>
+              </h3>
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                Публикувани от треньора акценти и обратна връзка след
+                тренировка.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {shadowAndQuizzes.recentSessionReports.map((report) => (
+                <div
+                  key={`${report.sessionId}-${report.date}`}
+                  className="rounded-2xl border border-zinc-200/70 bg-zinc-50/60 p-3.5 dark:border-zinc-800 dark:bg-zinc-950/50"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                        {report.title}
+                      </p>
+                      {report.date && (
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                          {new Date(report.date).toLocaleDateString("bg-BG", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {report.fundamentalTitle && (
+                        <Badge
+                          variant="outline"
+                          className="border-indigo-200 bg-indigo-50 text-[10px] font-semibold text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300"
+                        >
+                          {report.fundamentalTitle}
+                        </Badge>
+                      )}
+                      {report.effort !== undefined && (
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        >
+                          Старание: {report.effort}/5
+                        </Badge>
+                      )}
+                      {report.rpe !== undefined && (
+                        <Badge
+                          variant="outline"
+                          className="border-zinc-200 bg-white text-[10px] font-semibold text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                        >
+                          RPE: {report.rpe}/10
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  {report.note && (
+                    <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
+                      {report.note}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
     </div>
   );
 }

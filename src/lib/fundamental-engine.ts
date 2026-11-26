@@ -10,7 +10,9 @@ import type { BeepTestResult } from "@/types/beep-test.types";
 import type {
   Exercise,
   FundamentalId,
+  PlannerSession,
   ProgressionStage,
+  SessionAttendance,
 } from "@/types/planner.types";
 
 /** 9-те основни технико-тактически BWF фундамента (без Загрявка/Разтоварване) */
@@ -102,8 +104,10 @@ export interface FundamentalEvaluation {
   latestAssessment?: MemberAssessment;
   /** Нормализиран процент 0..100 спрямо maxScore (или null при липса на тест) */
   scorePercent: number | null;
-  /** Препоръчан BWF тест за входно ниво или контролен тест */
+  /** Препоръчан BWF тест за входно ниво, контролен тест или следваща прогресия */
   recommendedTest?: BadmintonTest;
+  /** true когато текущият тест е усвоен (>=80%) и препоръчваме по-труден тест от следващо ниво */
+  isProgressionTest?: boolean;
   /** Брой тренировки върху този фундамент след последния тест */
   trainingsSinceLastTest: number;
   /** true когато са минали >= 5 тренировки над слаб фундамент */
@@ -158,6 +162,16 @@ export function inferAgeGroupFromBirthDate(
   return "Мъже и Жени";
 }
 
+const AGE_GROUP_ORDER: readonly AssessmentAgeGroup[] = [
+  "U9",
+  "U11",
+  "U13",
+  "U15",
+  "U17",
+  "U19",
+  "Мъже и Жени",
+] as const;
+
 function normalizeScoreToPercent(
   assessment: MemberAssessment,
   testDef?: BadmintonTest
@@ -165,12 +179,30 @@ function normalizeScoreToPercent(
   if (!testDef) {
     return assessment.score <= 0 ? 0 : Math.min(100, assessment.score * 5);
   }
-  // За времеви тестове (по-малко сек. = по-добре)
+  // За времеви тестове
   if (testDef.scoreType === "time") {
     if (assessment.score <= 0) return 0;
-    if (assessment.score <= 12) return 90;
-    if (assessment.score <= 16) return 65;
-    return 35;
+    // По-високо време = по-добре (напр. Планк)
+    if (testDef.higherIsBetter) {
+      const target = testDef.targetTimeSec || testDef.maxScore || 90;
+      return Math.max(
+        0,
+        Math.min(100, Math.round((assessment.score / target) * 100))
+      );
+    }
+    // По-ниско време = по-добре (спринт / футърк)
+    const target = testDef.targetTimeSec || 12;
+    if (assessment.score <= target * 0.9) return 100;
+    if (assessment.score <= target) return 95;
+    const maxTime = target * 1.8;
+    if (assessment.score >= maxTime) {
+      return Math.max(
+        10,
+        Math.round(25 - ((assessment.score - maxTime) / target) * 15)
+      );
+    }
+    const ratio = (assessment.score - target) / (maxTime - target);
+    return Math.max(0, Math.min(100, Math.round(95 - ratio * 70)));
   }
   if (testDef.scoreType === "percentage") {
     return Math.max(0, Math.min(100, assessment.score));
@@ -186,24 +218,151 @@ function normalizeScoreToPercent(
 
 function pickRecommendedTestForFundamental(
   fundamentalId: FundamentalId,
-  ageGroup: AssessmentAgeGroup
+  ageGroup: AssessmentAgeGroup,
+  testsById: Map<string, BadmintonTest>
 ): BadmintonTest | undefined {
   const chapter = BWF_FUNDAMENTAL_BY_ID[fundamentalId];
-  const ageTests = BADMINTON_TESTS.filter((t) => t.ageGroup === ageGroup);
 
-  // 1. Търсим директно съвпадение по linkedTestIds за точната възрастова група
-  const exactMatch = ageTests.find((t) => chapter.linkedTestIds.includes(t.id));
-  if (exactMatch) return exactMatch;
+  // 1. Търсим директно съвпадение по linkedTestIds (в реда на сложност) за точната възрастова група
+  const exactMatchId = chapter.linkedTestIds.find((id) => {
+    const t = testsById.get(id);
+    return t?.ageGroup === ageGroup;
+  });
+  if (exactMatchId) return testsById.get(exactMatchId);
 
   // 2. Търсим който и да е тест от linkedTestIds
-  const anyMatch = BADMINTON_TESTS.find((t) =>
-    chapter.linkedTestIds.includes(t.id)
-  );
-  if (anyMatch) return anyMatch;
+  const anyMatchId = chapter.linkedTestIds.find((id) => testsById.has(id));
+  if (anyMatchId) return testsById.get(anyMatchId);
 
   // 3. Fallback към първия базов тест за възрастта
   const baselineId = BASELINE_TESTS_BY_AGE[ageGroup]?.[0];
-  return BADMINTON_TESTS.find((t) => t.id === baselineId) || ageTests[0];
+  return (
+    (baselineId ? testsById.get(baselineId) : undefined) ||
+    BADMINTON_TESTS.find((t) => t.ageGroup === ageGroup)
+  );
+}
+
+function pickNextProgressionTest(
+  linkedTestIds: string[],
+  latestTestId: string,
+  ageGroup: AssessmentAgeGroup,
+  masteredTestIds: Set<string>,
+  testsById: Map<string, BadmintonTest>
+): BadmintonTest | undefined {
+  const latestIdx = linkedTestIds.indexOf(latestTestId);
+
+  // 1. Търсим следващия неусвоен тест след последния проведен тест в ascending реда
+  if (latestIdx >= 0) {
+    for (let i = latestIdx + 1; i < linkedTestIds.length; i++) {
+      const tid = linkedTestIds[i];
+      if (!masteredTestIds.has(tid)) {
+        const candidate = testsById.get(tid);
+        if (candidate) return candidate;
+      }
+    }
+  }
+
+  // 2. Fallback: търсим неусвоен тест от по-висока възрастова категория спрямо текущата
+  const currentAgeIdx = AGE_GROUP_ORDER.indexOf(ageGroup);
+  for (const tid of linkedTestIds) {
+    if (masteredTestIds.has(tid)) continue;
+    const candidate = testsById.get(tid);
+    if (
+      candidate &&
+      AGE_GROUP_ORDER.indexOf(candidate.ageGroup) > currentAgeIdx
+    ) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Изчислява колко тренировки по всеки фундамент е провел състезателят
+ * СЛЕД датата на последния му тест за съответния фундамент.
+ */
+export function countTrainingsPerFundamentalSinceLastTest(
+  attendances: SessionAttendance[],
+  assessments: MemberAssessment[],
+  sessionsById?: Map<string, PlannerSession>
+): Partial<Record<FundamentalId, number>> {
+  const counts: Partial<Record<FundamentalId, number>> = {};
+
+  for (const fid of SKILL_FUNDAMENTAL_IDS) {
+    const chapter = BWF_FUNDAMENTAL_BY_ID[fid];
+    const latestAssessmentTime = assessments
+      .filter((a) => chapter.linkedTestIds.includes(a.testId))
+      .reduce((max, a) => {
+        const ts = new Date(a.date).getTime();
+        return Number.isNaN(ts) ? max : Math.max(max, ts);
+      }, 0);
+
+    const shortLower = chapter.shortTitle.toLowerCase();
+    const titleLower = chapter.title.toLowerCase();
+
+    let count = 0;
+    for (const att of attendances) {
+      const attTs = new Date(att.date).getTime();
+      if (Number.isNaN(attTs) || attTs <= latestAssessmentTime) continue;
+
+      let matched = false;
+
+      if (att.fundamentalId) {
+        matched = att.fundamentalId === fid;
+      } else {
+        // Fallback 1: проверка в smartPlan.courts на сесията
+        const session = sessionsById?.get(att.sessionId);
+        if (session?.smartPlan && typeof session.smartPlan === "object") {
+          const smart = session.smartPlan as {
+            courts?: Array<{
+              fundamentalId?: string;
+              memberIds?: string[];
+              players?: Array<{ memberId?: string; id?: string }>;
+            }>;
+          };
+          if (Array.isArray(smart.courts)) {
+            matched = smart.courts.some((court) => {
+              if (court.fundamentalId !== fid) return false;
+              const hasMembers =
+                (Array.isArray(court.memberIds) &&
+                  court.memberIds.length > 0) ||
+                (Array.isArray(court.players) && court.players.length > 0);
+              if (!hasMembers) return true;
+              return (
+                court.memberIds?.includes(att.memberId) ||
+                court.players?.some(
+                  (p) => p.memberId === att.memberId || p.id === att.memberId
+                ) ||
+                false
+              );
+            });
+          }
+        }
+
+        // Fallback 2: проверка по фокус/заглавие на сесията или бележката на присъствието
+        if (!matched) {
+          const textToCheck = [att.note, session?.focus, session?.title]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (
+            textToCheck &&
+            (textToCheck.includes(shortLower) ||
+              textToCheck.includes(titleLower))
+          ) {
+            matched = true;
+          }
+        }
+      }
+
+      if (matched) count++;
+    }
+
+    counts[fid] = count;
+  }
+
+  return counts;
 }
 
 export interface EvaluateMemberContext {
@@ -236,13 +395,29 @@ export function evaluateMemberFundamentals(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
+  // Изчисляваме кои тестове вече са усвоени (>=80% на последния опит за съответния тест)
+  const masteredTestIds = new Set<string>();
+  const seenTestIds = new Set<string>();
+  for (const a of sortedAssessments) {
+    if (seenTestIds.has(a.testId)) continue;
+    seenTestIds.add(a.testId);
+    const pct = normalizeScoreToPercent(a, testsById.get(a.testId));
+    if (pct >= 80) {
+      masteredTestIds.add(a.testId);
+    }
+  }
+
   const evaluations: FundamentalEvaluation[] = SKILL_FUNDAMENTAL_IDS.map(
     (fid) => {
       const chapter = BWF_FUNDAMENTAL_BY_ID[fid];
       const latest = sortedAssessments.find((a) =>
         chapter.linkedTestIds.includes(a.testId)
       );
-      const recommendedTest = pickRecommendedTestForFundamental(fid, ageGroup);
+      const baseRecommendedTest = pickRecommendedTestForFundamental(
+        fid,
+        ageGroup,
+        testsById
+      );
       const trainingsSinceLastTest = ctx.trainingsPerFundamental?.[fid] ?? 0;
 
       if (!latest) {
@@ -253,7 +428,8 @@ export function evaluateMemberFundamentals(
           shortTitle: chapter.shortTitle,
           status: "untested",
           scorePercent: null,
-          recommendedTest,
+          recommendedTest: baseRecommendedTest,
+          isProgressionTest: false,
           trainingsSinceLastTest,
           readyForRetest: false,
         };
@@ -275,6 +451,23 @@ export function evaluateMemberFundamentals(
         (status === "learn" || status === "consolidate") &&
         trainingsSinceLastTest >= RETEST_TRAINING_THRESHOLD;
 
+      let recommendedTest = testDef || baseRecommendedTest;
+      let isProgressionTest = false;
+
+      if (status === "apply") {
+        const nextProgression = pickNextProgressionTest(
+          chapter.linkedTestIds,
+          latest.testId,
+          ageGroup,
+          masteredTestIds,
+          testsById
+        );
+        if (nextProgression) {
+          recommendedTest = nextProgression;
+          isProgressionTest = true;
+        }
+      }
+
       return {
         fundamentalId: fid,
         chapterNumber: chapter.chapterNumber,
@@ -283,7 +476,8 @@ export function evaluateMemberFundamentals(
         status,
         latestAssessment: latest,
         scorePercent,
-        recommendedTest: testDef || recommendedTest,
+        recommendedTest,
+        isProgressionTest,
         trainingsSinceLastTest,
         readyForRetest,
       };

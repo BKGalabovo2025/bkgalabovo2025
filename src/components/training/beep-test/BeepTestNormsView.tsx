@@ -265,7 +265,7 @@ export function BeepTestNormsView() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">Възрастова група</Label>
                   <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden dark:bg-zinc-900 dark:text-zinc-100"
                     value={calcAgeGroup}
                     onChange={(e) => setCalcAgeGroup(e.target.value)}
                   >
@@ -281,7 +281,7 @@ export function BeepTestNormsView() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">Пол</Label>
                   <select
-                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden"
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-hidden dark:bg-zinc-900 dark:text-zinc-100"
                     value={calcGender}
                     onChange={(e) =>
                       setCalcGender(e.target.value as "male" | "female")
@@ -295,7 +295,7 @@ export function BeepTestNormsView() {
 
               <div className="mt-6 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
                 <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-700">
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     Общо избягани совалки:
                   </span>
                   <span className="text-base font-black text-zinc-900 dark:text-zinc-100">
@@ -303,7 +303,7 @@ export function BeepTestNormsView() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between border-b border-zinc-200 py-3 dark:border-zinc-700">
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     VO2 Max (ml/kg/min):
                   </span>
                   <span className="text-lg font-black text-blue-600 dark:text-blue-400">
@@ -311,7 +311,7 @@ export function BeepTestNormsView() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between pt-3">
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     Оценка за бадминтон:
                   </span>
                   <span className="rounded-lg bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">

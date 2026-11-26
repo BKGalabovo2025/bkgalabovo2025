@@ -1,8 +1,8 @@
 "use client";
 
 import { Contact as FamilyIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 
 import { CreateFamilyDialog } from "@/components/families/CreateFamilyDialog";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +21,28 @@ export function MembersFamiliesView({
   initialFamilies,
 }: MembersFamiliesViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { families } = useFamilies(initialFamilies);
   const membersMap = useMemo(
     () => new Map(initialMembers.map((m) => [m.id, m])),
     [initialMembers]
+  );
+
+  const isCreateFamilyOpen = searchParams?.get("action") === "create-family";
+
+  const handleCreateFamilyOpenChange = useCallback(
+    (open: boolean) => {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      if (open) {
+        params.set("action", "create-family");
+      } else {
+        params.delete("action");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
   );
 
   return (
@@ -105,7 +123,10 @@ export function MembersFamiliesView({
           );
         })}
 
-        <CreateFamilyDialog />
+        <CreateFamilyDialog
+          open={isCreateFamilyOpen}
+          onOpenChange={handleCreateFamilyOpenChange}
+        />
       </div>
     </div>
   );

@@ -15,12 +15,30 @@ interface BeepTestNavProps {
   className?: string;
 }
 
+const TRANSIENT_PARAMS = [
+  "action",
+  "testId",
+  "test",
+  "id",
+  "editQuiz",
+  "sendQuiz",
+  "quizId",
+  "memberId",
+  "result",
+  "resultId",
+  "date",
+];
+
 export function BeepTestNav({ className }: BeepTestNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeSection = getActiveBeepTestSection(pathname);
 
-  const queryString = searchParams?.toString();
+  const cleanedParams = new URLSearchParams(searchParams?.toString() || "");
+  for (const key of TRANSIENT_PARAMS) {
+    cleanedParams.delete(key);
+  }
+  const queryString = cleanedParams.toString();
   const preservedQuery = queryString ? `?${queryString}` : "";
 
   return (

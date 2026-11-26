@@ -16,8 +16,8 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CoachMethodologyDialog } from "@/components/training/exercises/CoachMethodologyDialog";
@@ -41,6 +41,7 @@ import {
 } from "@/lib/exercises/bwf-textbook";
 import { db } from "@/lib/firebase";
 import {
+  countTrainingsPerFundamentalSinceLastTest,
   evaluateMemberFundamentals,
   pickNonRepeatingExercise,
 } from "@/lib/fundamental-engine";
@@ -66,7 +67,11 @@ import type { ScheduleEvent } from "@/types";
 import type { MemberAssessment } from "@/types/assessment.types";
 import type { InventoryItem } from "@/types/inventory.types";
 import type { Member } from "@/types/member.types";
-import type { Exercise, PlannerSession } from "@/types/planner.types";
+import type {
+  Exercise,
+  PlannerSession,
+  SessionAttendance,
+} from "@/types/planner.types";
 
 interface SmartSessionBuilderDialogProps {
   open: boolean;
@@ -82,12 +87,15 @@ export function SmartSessionBuilderDialog({
   onSaved,
 }: SmartSessionBuilderDialogProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
 
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [assessments, setAssessments] = useState<MemberAssessment[]>([]);
+  const [attendances, setAttendances] = useState<SessionAttendance[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [scheduleEvents, setScheduleEvents] = useState<ScheduleEvent[]>([]);
@@ -115,7 +123,7 @@ export function SmartSessionBuilderDialog({
     undefined
   );
   const [includeShadow, setIncludeShadow] = useState(true);
-  const [shadowMinutes, setShadowMinutes] = useState(10);
+  const shadowMinutes = 10;
   const [includeMatches, setIncludeMatches] = useState(true);
   const matchesMinutes = 10;
   const [matchesCountForRanking, setMatchesCountForRanking] = useState(false);
@@ -147,8 +155,11 @@ export function SmartSessionBuilderDialog({
         .getInventory(activeBranch)
         .catch(() => [] as InventoryItem[]),
       getEventsForPeriod(start, end).catch(() => [] as ScheduleEvent[]),
+      plannerService
+        .getAttendanceBySite(activeBranch)
+        .catch(() => [] as SessionAttendance[]),
     ])
-      .then(([mems, assess, exs, inv, evs]) => {
+      .then(([mems, assess, exs, inv, evs, atts]) => {
         if (cancelled) return;
         const activeClubMembers = mems.filter(
           (m) =>
@@ -156,6 +167,7 @@ export function SmartSessionBuilderDialog({
         );
         setMembers(activeClubMembers);
         setAssessments(assess);
+        setAttendances(atts);
 
         // Обединяваме BWF учебника с упражненията от Firestore
         const byName = new Map<string, Exercise>();
@@ -235,6 +247,7 @@ export function SmartSessionBuilderDialog({
   }, [inventory]);
 
   const smartAttendees: SmartAttendee[] = useMemo(() => {
+    const sessionsById = new Map(recentSessions.map((s) => [s.id, s]));
     return selectedMemberIds
       .map((id) => members.find((m) => m.id === id))
       .filter((m): m is Member => Boolean(m))
@@ -242,6 +255,15 @@ export function SmartSessionBuilderDialog({
         const memberAssessments = assessments.filter(
           (a) => a.memberId === member.id
         );
+        const memberAttendances = attendances.filter(
+          (a) => a.memberId === member.id
+        );
+        const trainingsPerFundamental =
+          countTrainingsPerFundamentalSinceLastTest(
+            memberAttendances,
+            memberAssessments,
+            sessionsById
+          );
         // Събираме имената на упражненията от последните 5 сесии, в които е участвало детето
         const recentUsed: string[] = [];
         recentSessions.slice(0, 5).forEach((s) => {
@@ -260,6 +282,7 @@ export function SmartSessionBuilderDialog({
           memberId: member.id,
           birthDate: member.dateOfBirth,
           assessments: memberAssessments,
+          trainingsPerFundamental,
         });
 
         return {
@@ -268,9 +291,50 @@ export function SmartSessionBuilderDialog({
           recentlyUsedExerciseNames: recentUsed,
         };
       });
-  }, [selectedMemberIds, members, assessments, recentSessions]);
+  }, [selectedMemberIds, members, assessments, attendances, recentSessions]);
 
-  const handleGenerate = (nextRotation = rotationOffset) => {
+  const updateMethodologyUrlParam = useCallback(
+    (exerciseId: string | null) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      if (exerciseId) {
+        sp.set("methodology", exerciseId);
+      } else {
+        sp.delete("methodology");
+      }
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const methId = searchParams?.get("methodology");
+    if (!methId) {
+      setMethodologyExercise(null);
+      return;
+    }
+    const found =
+      plan?.courts.find((c) => c.exercise.id === methId)?.exercise ||
+      exercises.find((e) => e.id === methId) ||
+      null;
+    if (found) setMethodologyExercise(found);
+  }, [open, searchParams, plan, exercises]);
+
+  const openMethodologyModal = (ex: Exercise) => {
+    setMethodologyExercise(ex);
+    updateMethodologyUrlParam(ex.id);
+  };
+
+  const closeMethodologyModal = () => {
+    setMethodologyExercise(null);
+    updateMethodologyUrlParam(null);
+  };
+
+  const handleGenerate = (
+    nextRotation = rotationOffset,
+    nextOverflowMode: OverflowMode | undefined = overflowMode
+  ) => {
     if (smartAttendees.length === 0) {
       toast.error("Изберете поне 1 присъстващ състезател.");
       return;
@@ -286,7 +350,7 @@ export function SmartSessionBuilderDialog({
       selectedEquipment,
       dayMode,
       mainStructure,
-      overflowMode,
+      overflowMode: nextOverflowMode,
       includeShadow,
       shadowMinutes,
       includeMatches,
@@ -445,13 +509,20 @@ export function SmartSessionBuilderDialog({
                     aria-label="Избери тренировка от Графика"
                     value={selectedEventId}
                     onChange={(e) => handleSelectScheduleEvent(e.target.value)}
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-medium text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                   >
-                    <option value="">
+                    <option
+                      value=""
+                      className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                    >
                       — Свободна тренировка (без събитие) —
                     </option>
                     {scheduleEvents.map((ev) => (
-                      <option key={ev.id} value={ev.id}>
+                      <option
+                        key={ev.id}
+                        value={ev.id}
+                        className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                      >
                         {new Date(ev.startDate).toLocaleDateString("bg-BG")} —{" "}
                         {ev.title} (
                         {(ev.attendees || []).filter((a) => a.attended).length}{" "}
@@ -460,6 +531,22 @@ export function SmartSessionBuilderDialog({
                     ))}
                   </select>
                 )}
+
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="smart-session-title"
+                    className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400"
+                  >
+                    Заглавие на тренировката (по избор)
+                  </Label>
+                  <Input
+                    id="smart-session-title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Напр. Тренировка U13/U15 — Мрежа и защита"
+                    className="h-8 rounded-xl text-xs dark:border-zinc-700 dark:bg-zinc-950"
+                  />
+                </div>
 
                 <Input
                   value={memberSearch}
@@ -795,7 +882,7 @@ export function SmartSessionBuilderDialog({
                       type="button"
                       onClick={() => {
                         setOverflowMode("triples");
-                        setShadowMinutes((x) => x);
+                        handleGenerate(rotationOffset, "triples");
                       }}
                       className={cn(
                         "rounded-lg px-2.5 py-1 text-[11px] font-semibold cursor-pointer",
@@ -808,7 +895,10 @@ export function SmartSessionBuilderDialog({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setOverflowMode("off_court_station")}
+                      onClick={() => {
+                        setOverflowMode("off_court_station");
+                        handleGenerate(rotationOffset, "off_court_station");
+                      }}
                       className={cn(
                         "rounded-lg px-2.5 py-1 text-[11px] font-semibold cursor-pointer",
                         plan.overflowMode === "off_court_station"
@@ -981,12 +1071,13 @@ export function SmartSessionBuilderDialog({
                                           e.target.value
                                         )
                                       }
-                                      className="ml-1 rounded bg-transparent text-[10px] text-indigo-600 dark:text-indigo-400"
+                                      className="ml-1 rounded bg-transparent text-[10px] text-indigo-600 dark:bg-zinc-900 dark:text-zinc-100"
                                     >
                                       {plan.courts.map((target) => (
                                         <option
                                           key={target.id}
                                           value={target.id}
+                                          className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
                                         >
                                           → {target.label}
                                         </option>
@@ -1039,7 +1130,7 @@ export function SmartSessionBuilderDialog({
                               size="sm"
                               variant="outline"
                               onClick={() =>
-                                setMethodologyExercise(court.exercise)
+                                openMethodologyModal(court.exercise)
                               }
                               className="h-7 rounded-lg text-[11px] font-semibold dark:border-zinc-700"
                             >
@@ -1133,7 +1224,7 @@ export function SmartSessionBuilderDialog({
           <CoachMethodologyDialog
             open={Boolean(methodologyExercise)}
             onOpenChange={(o) => {
-              if (!o) setMethodologyExercise(null);
+              if (!o) closeMethodologyModal();
             }}
             title={methodologyExercise.name}
             subtitle={methodologyExercise.description}

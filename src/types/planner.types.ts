@@ -212,6 +212,7 @@ export interface SessionAttendance {
   effort: number; // Coach's grade for effort (1-5)
   playerLoad?: number; // RPE * Session Duration
   medicalStatus: MedicalStatus;
+  fundamentalId?: FundamentalId; // Main BWF fundamental practiced in this session
   note?: string; // Specific note for this child
   createdAt: string;
   updatedAt: string;

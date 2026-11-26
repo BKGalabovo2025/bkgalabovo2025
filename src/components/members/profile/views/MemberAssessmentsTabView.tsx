@@ -7,7 +7,13 @@ import { MemberAssessmentsTab } from "@/components/members/sections/MemberAssess
 import { useMemberProfileContext } from "../MemberProfileContext";
 
 export function MemberAssessmentsTabView() {
-  const { memberId } = useMemberProfileContext();
+  const { memberId, member, fullName } = useMemberProfileContext();
 
-  return <MemberAssessmentsTab memberId={memberId} />;
+  return (
+    <MemberAssessmentsTab
+      memberId={memberId}
+      birthDate={member.dateOfBirth}
+      memberName={fullName}
+    />
+  );
 }

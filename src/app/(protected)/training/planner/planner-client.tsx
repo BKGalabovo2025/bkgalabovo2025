@@ -22,8 +22,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CoachNotesCard } from "@/components/training/CoachNotesCard";
@@ -60,6 +60,8 @@ function PlannerClientContent({
   initialTab?: "upcoming" | "archive";
 }) {
   const { activeBranch } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const campIdParam = searchParams.get("campId");
   const dateParam = searchParams.get("date");
@@ -70,6 +72,17 @@ function PlannerClientContent({
     searchParams.get("sessionId");
   const editSessionParam = searchParams.get("editSession");
   const newParam = searchParams.get("new");
+  const actionParam = searchParams.get("action");
+
+  const updateUrlParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      mutator(sp);
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const [sessions, setSessions] = useState<PlannerSession[]>([]);
   const [attendanceCounts, setAttendanceCounts] = useState<
@@ -102,7 +115,13 @@ function PlannerClientContent({
   const [isWizardOpen, setIsWizardOpen] = useState(
     !!campIdParam || !!importTemplateParam || newParam === "true"
   );
-  const [isSmartBuilderOpen, setIsSmartBuilderOpen] = useState(false);
+  const [isSmartBuilderOpen, setIsSmartBuilderOpen] = useState(
+    actionParam === "smart"
+  );
+
+  useEffect(() => {
+    setIsSmartBuilderOpen(actionParam === "smart");
+  }, [actionParam]);
 
   useEffect(() => {
     loadSessions();
@@ -192,6 +211,44 @@ function PlannerClientContent({
   const openPreview = (session: PlannerSession) => {
     setSelectedSessionForPreview(session);
     setIsPreviewOpen(true);
+    updateUrlParams((sp) => {
+      sp.set("session", session.id);
+      sp.delete("id");
+      sp.delete("sessionId");
+    });
+  };
+
+  const handleOpenNewWizard = () => {
+    setEditingSession(null);
+    setIsWizardOpen(true);
+    updateUrlParams((sp) => {
+      sp.set("new", "true");
+      sp.delete("editSession");
+    });
+  };
+
+  const handleOpenEditWizard = (sessionToEdit: PlannerSession) => {
+    setEditingSession(sessionToEdit);
+    setIsWizardOpen(true);
+    updateUrlParams((sp) => {
+      sp.set("editSession", sessionToEdit.id);
+      sp.delete("new");
+      sp.delete("session");
+      sp.delete("id");
+      sp.delete("sessionId");
+    });
+  };
+
+  const handleSmartBuilderOpenChange = (open: boolean) => {
+    setIsSmartBuilderOpen(open);
+    updateUrlParams((sp) => {
+      if (open) {
+        sp.set("action", "smart");
+      } else {
+        sp.delete("action");
+        sp.delete("methodology");
+      }
+    });
   };
 
   const getExerciseCount = (session: PlannerSession): string => {
@@ -303,7 +360,7 @@ function PlannerClientContent({
       {/* Action Buttons */}
       <div className="flex w-full flex-wrap items-center justify-end gap-2">
         <Button
-          onClick={() => setIsSmartBuilderOpen(true)}
+          onClick={() => handleSmartBuilderOpenChange(true)}
           className="w-full sm:w-auto rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
         >
           <Sparkles className="mr-2 size-4" />
@@ -320,10 +377,7 @@ function PlannerClientContent({
           </Link>
         </Button>
         <Button
-          onClick={() => {
-            setEditingSession(null);
-            setIsWizardOpen(true);
-          }}
+          onClick={handleOpenNewWizard}
           className="w-full sm:w-auto rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
         >
           <Plus className="mr-2 size-4" />
@@ -451,10 +505,7 @@ function PlannerClientContent({
                 създали нови.
               </p>
               <Button
-                onClick={() => {
-                  setEditingSession(null);
-                  setIsWizardOpen(true);
-                }}
+                onClick={handleOpenNewWizard}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
                 Планирай нова тренировка
@@ -650,10 +701,7 @@ function PlannerClientContent({
                           variant="ghost"
                           size="icon"
                           className="rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                          onClick={() => {
-                            setEditingSession(session);
-                            setIsWizardOpen(true);
-                          }}
+                          onClick={() => handleOpenEditWizard(session)}
                           title="Редактирай тренировка"
                           aria-label="Редактирай тренировка"
                         >
@@ -712,15 +760,26 @@ function PlannerClientContent({
       <SessionDetailsDialog
         session={selectedSessionForPreview}
         open={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
+        onOpenChange={(open) => {
+          setIsPreviewOpen(open);
+          if (!open) {
+            setSelectedSessionForPreview(null);
+            updateUrlParams((sp) => {
+              sp.delete("id");
+              sp.delete("session");
+              sp.delete("sessionId");
+            });
+          }
+        }}
         attendeeCount={
           selectedSessionForPreview
             ? attendanceCounts[selectedSessionForPreview.id] || 0
             : 0
         }
         onEdit={(sessionToEdit) => {
-          setEditingSession(sessionToEdit);
-          setIsWizardOpen(true);
+          setIsPreviewOpen(false);
+          setSelectedSessionForPreview(null);
+          handleOpenEditWizard(sessionToEdit);
         }}
         onRevertToPlanned={handleRevertToPlanned}
       />
@@ -728,7 +787,7 @@ function PlannerClientContent({
       {/* Wizard */}
       <SmartSessionBuilderDialog
         open={isSmartBuilderOpen}
-        onOpenChange={setIsSmartBuilderOpen}
+        onOpenChange={handleSmartBuilderOpenChange}
         recentSessions={sessions}
         onSaved={loadSessions}
       />
@@ -739,12 +798,13 @@ function PlannerClientContent({
           setIsWizardOpen(open);
           if (!open) {
             setEditingSession(null);
-            // Remove all specific query params on close so re-opening works fresh
-            const newUrl = new URL(window.location.href);
-            newUrl.searchParams.delete("campId");
-            newUrl.searchParams.delete("date");
-            newUrl.searchParams.delete("importTemplate");
-            window.history.replaceState({}, "", newUrl.toString());
+            updateUrlParams((sp) => {
+              sp.delete("campId");
+              sp.delete("date");
+              sp.delete("importTemplate");
+              sp.delete("new");
+              sp.delete("editSession");
+            });
           }
         }}
         onSaveSuccess={() => {

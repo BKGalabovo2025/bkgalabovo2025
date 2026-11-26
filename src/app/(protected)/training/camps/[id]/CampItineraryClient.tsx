@@ -23,7 +23,8 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -125,6 +126,24 @@ export function CampItineraryClient({
     return "Разпускане";
   };
   const { activeBranch } = useAppStore();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const dayParam = searchParams.get("day");
+  const modalParam = searchParams.get("modal");
+  const eventParam = searchParams.get("event");
+  const editTrainingParam = searchParams.get("editTraining");
+
+  const updateUrlParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      mutator(sp);
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
   const [availableExercises, setAvailableExercises] = useState<Exercise[]>([]);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [plannerSessions, setPlannerSessions] = useState<PlannerSession[]>([]);
@@ -174,6 +193,9 @@ export function CampItineraryClient({
   const todayStr = format(todayDate, "yyyy-MM-dd");
 
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    if (dayParam && days.some((d) => d.dateStr === dayParam)) {
+      return dayParam;
+    }
     const todayMatch = days.find((d) => d.dateStr === todayStr);
     if (todayMatch) return todayMatch.dateStr;
     const lastDay = days[days.length - 1];
@@ -182,6 +204,13 @@ export function CampItineraryClient({
     }
     return days[0]?.dateStr || todayStr;
   });
+
+  const handleSelectDay = (dateStr: string) => {
+    setSelectedDateStr(dateStr);
+    updateUrlParams((sp) => {
+      sp.set("day", dateStr);
+    });
+  };
 
   const allCampSessionDateItems = useMemo(
     () => [
@@ -259,6 +288,10 @@ export function CampItineraryClient({
       setFormExercises(session.exercises || []);
       setFormGroups(session.groups || []);
       setNewGroupName("");
+      updateUrlParams((sp) => {
+        sp.set("event", session.id);
+        sp.delete("modal");
+      });
     } else {
       const config = defaultEventConfigs[defaultType] || {
         title: "",
@@ -274,20 +307,105 @@ export function CampItineraryClient({
       setFormExercises([]);
       setFormGroups([]);
       setNewGroupName("");
+      updateUrlParams((sp) => {
+        sp.set("modal", "event");
+        sp.delete("event");
+      });
     }
 
     setExerciseSearch("");
     setIsModalOpen(true);
   };
 
+  const handleModalOpenChange = (open: boolean) => {
+    setIsModalOpen(open);
+    if (!open) {
+      updateUrlParams((sp) => {
+        if (sp.get("modal") === "event") sp.delete("modal");
+        sp.delete("event");
+      });
+    }
+  };
+
   const handleOpenPlannerWizard = (session?: PlannerSession) => {
     if (session) {
       setPlannerSessionToEdit(session);
+      updateUrlParams((sp) => {
+        sp.set("editTraining", session.id);
+        sp.delete("modal");
+      });
     } else {
       setPlannerSessionToEdit(undefined);
+      updateUrlParams((sp) => {
+        sp.set("modal", "new-training");
+        sp.delete("editTraining");
+      });
     }
     setIsPlannerWizardOpen(true);
   };
+
+  const handlePlannerWizardOpenChange = (open: boolean) => {
+    setIsPlannerWizardOpen(open);
+    if (!open) {
+      setPlannerSessionToEdit(undefined);
+      updateUrlParams((sp) => {
+        if (sp.get("modal") === "new-training") sp.delete("modal");
+        sp.delete("editTraining");
+      });
+    }
+  };
+
+  // Sync URL params (?day=, ?modal=event, ?event=, ?modal=new-training, ?editTraining=)
+  useEffect(() => {
+    if (dayParam && days.some((d) => d.dateStr === dayParam)) {
+      setSelectedDateStr(dayParam);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayParam]);
+
+  useEffect(() => {
+    if (eventParam) {
+      const found = sessions.find((s) => s.id === eventParam);
+      if (found) {
+        setFormId(found.id);
+        setFormDate(found.date);
+        setFormType(found.type);
+        setFormTitle(found.title);
+        setFormStartTime(found.startTime);
+        setFormEndTime(found.endTime);
+        setFormExercises(found.exercises || []);
+        setFormGroups(found.groups || []);
+        setNewGroupName("");
+        setIsModalOpen(true);
+      }
+    } else if (modalParam === "event" && !isModalOpen) {
+      const config = defaultEventConfigs.meal;
+      setFormId(null);
+      setFormDate("");
+      setFormType("meal");
+      setFormTitle(config.title);
+      setFormStartTime(config.startTime);
+      setFormEndTime(config.endTime);
+      setFormExercises([]);
+      setFormGroups([]);
+      setNewGroupName("");
+      setIsModalOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventParam, modalParam, sessions]);
+
+  useEffect(() => {
+    if (editTrainingParam) {
+      const found = plannerSessions.find((ps) => ps.id === editTrainingParam);
+      if (found) {
+        setPlannerSessionToEdit(found);
+        setIsPlannerWizardOpen(true);
+      }
+    } else if (modalParam === "new-training") {
+      setPlannerSessionToEdit(undefined);
+      setIsPlannerWizardOpen(true);
+    }
+  }, [editTrainingParam, modalParam, plannerSessions]);
 
   const handleSaveSession = async () => {
     if (!formTitle || !formStartTime || !formEndTime) {
@@ -325,7 +443,7 @@ export function CampItineraryClient({
       setIsSaving(true);
       await updateCampSessions(camp.id, newSessions);
       setSessions(newSessions);
-      setIsModalOpen(false);
+      handleModalOpenChange(false);
       toast.success(formId ? "Сесията е обновена" : "Сесията е добавена");
     } catch (error) {
       console.error(error);
@@ -624,7 +742,7 @@ export function CampItineraryClient({
             return (
               <button
                 key={day.dateStr}
-                onClick={() => setSelectedDateStr(day.dateStr)}
+                onClick={() => handleSelectDay(day.dateStr)}
                 className={cn(
                   "group relative flex flex-col items-center justify-center rounded-xl border p-1.5 text-center transition-all",
                   getDayButtonClass(
@@ -1427,7 +1545,7 @@ export function CampItineraryClient({
         </div>
 
         {/* Session Modal */}
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
           <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-lg flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
             {/* Fixed Sticky Header */}
             <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
@@ -1699,7 +1817,7 @@ export function CampItineraryClient({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => handleModalOpenChange(false)}
                 className="h-9 rounded-xl border-zinc-200 px-4 text-xs font-semibold dark:border-zinc-800"
               >
                 Отказ
@@ -1720,7 +1838,7 @@ export function CampItineraryClient({
 
       <CreateSessionWizard
         open={isPlannerWizardOpen}
-        onOpenChange={setIsPlannerWizardOpen}
+        onOpenChange={handlePlannerWizardOpenChange}
         onSaveSuccess={() => {
           // Refresh planner sessions after save
           plannerService

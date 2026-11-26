@@ -23,8 +23,8 @@ import {
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { CoachMethodologyDialog } from "@/components/training/exercises/CoachMethodologyDialog";
@@ -101,7 +101,19 @@ export function SmartCourtBoardView({
   allMembers,
 }: SmartCourtBoardViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { activeBranch } = useAppStore();
+
+  const updateUrlParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      mutator(sp);
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const [plan, setPlan] = useState<SmartTrainingPlan>(initialPlan);
   const [gymDisplayMode, setGymDisplayMode] = useState(false);
@@ -154,6 +166,111 @@ export function SmartCourtBoardView({
       })
       .catch(() => {});
   }, [activeBranch]);
+
+  useEffect(() => {
+    if (session.status !== "completed" || !activeBranch) return;
+    let cancelled = false;
+    plannerService
+      .getAttendanceBySite(activeBranch)
+      .then((records) => {
+        if (cancelled) return;
+        const sessionRecords = records.filter(
+          (r) => r.sessionId === session.id
+        );
+        if (sessionRecords.length === 0) return;
+        const restored: Record<string, PlayerQuickTag> = {};
+        sessionRecords.forEach((rec) => {
+          if (
+            rec.medicalStatus === "discomfort" ||
+            rec.medicalStatus === "injured"
+          ) {
+            restored[rec.memberId] = "discomfort";
+          } else if (rec.effort >= 5 || rec.note?.includes("⭐")) {
+            restored[rec.memberId] = "star";
+          } else if (rec.effort <= 3 || rec.note?.includes("⚠️")) {
+            restored[rec.memberId] = "struggle";
+          } else {
+            restored[rec.memberId] = "normal";
+          }
+        });
+        setPlayerTags(restored);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [activeBranch, session.id, session.status]);
+
+  // Sync methodology & quickTest modals from URL params
+  useEffect(() => {
+    const methId = searchParams?.get("methodology");
+    if (methId) {
+      const match =
+        plan.courts.find((c) => c.exercise.id === methId)?.exercise ||
+        exercisesPool.find((e) => e.id === methId) ||
+        null;
+      if (match) setMethodologyExercise(match);
+    } else {
+      setMethodologyExercise(null);
+    }
+
+    const qtParam = searchParams?.get("quickTest");
+    if (qtParam && qtParam.includes(":")) {
+      const [mId, tId] = qtParam.split(":");
+      if (mId && tId) {
+        const alertMatch = plan.courts
+          .flatMap((c) => c.diagnosticAlerts)
+          .find((a) => a.memberId === mId && a.testId === tId);
+        const playerMatch = plan.courts
+          .flatMap((c) => c.players)
+          .find((p) => p.memberId === mId);
+        const memberMatch = allMembers.find((m) => m.id === mId);
+        const memberName =
+          alertMatch?.memberName ||
+          playerMatch?.name ||
+          (memberMatch
+            ? `${memberMatch.firstName} ${memberMatch.lastName}`.trim()
+            : "");
+        if (memberName) {
+          setQuickTestTarget({ memberId: mId, memberName, testId: tId });
+        }
+      }
+    } else {
+      setQuickTestTarget(null);
+    }
+  }, [searchParams, plan.courts, exercisesPool, allMembers]);
+
+  const openMethodologyModal = (ex: Exercise) => {
+    setMethodologyExercise(ex);
+    updateUrlParams((sp) => {
+      sp.set("methodology", ex.id);
+    });
+  };
+
+  const closeMethodologyModal = () => {
+    setMethodologyExercise(null);
+    updateUrlParams((sp) => {
+      sp.delete("methodology");
+    });
+  };
+
+  const openQuickTestModal = (target: {
+    memberId: string;
+    memberName: string;
+    testId: string;
+  }) => {
+    setQuickTestTarget(target);
+    updateUrlParams((sp) => {
+      sp.set("quickTest", `${target.memberId}:${target.testId}`);
+    });
+  };
+
+  const closeQuickTestModal = () => {
+    setQuickTestTarget(null);
+    updateUrlParams((sp) => {
+      sp.delete("quickTest");
+    });
+  };
 
   useEffect(() => {
     if (!timerRunning) {
@@ -295,6 +412,7 @@ export function SmartCourtBoardView({
             rpe: tag === "discomfort" ? 4 : tag === "star" ? 7 : 6,
             effort: tag === "star" ? 5 : tag === "struggle" ? 3 : 4,
             medicalStatus: tag === "discomfort" ? "discomfort" : "healthy",
+            fundamentalId: court.fundamentalId,
             note:
               tag === "star"
                 ? `⭐ Отличен напредък (${BWF_FUNDAMENTAL_BY_ID[court.fundamentalId].shortTitle})`
@@ -350,8 +468,10 @@ export function SmartCourtBoardView({
   return (
     <div
       className={cn(
-        "mx-auto space-y-5 pb-20",
-        gymDisplayMode ? "max-w-none px-4" : "max-w-7xl"
+        "space-y-5",
+        gymDisplayMode
+          ? "fixed inset-0 z-50 overflow-y-auto bg-zinc-950 p-4 sm:p-6"
+          : "mx-auto max-w-7xl pb-20"
       )}
     >
       {/* Горна лента за треньора (Лаптоп / Екран за залата / Печат / Мостове) */}
@@ -651,10 +771,14 @@ export function SmartCourtBoardView({
                                 e.target.value
                               )
                             }
-                            className="ml-1 rounded bg-transparent text-[10px] text-indigo-600 print:hidden dark:text-indigo-400"
+                            className="ml-1 rounded bg-transparent text-[10px] text-indigo-600 print:hidden dark:bg-zinc-900 dark:text-zinc-100"
                           >
                             {plan.courts.map((t) => (
-                              <option key={t.id} value={t.id}>
+                              <option
+                                key={t.id}
+                                value={t.id}
+                                className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                              >
                                 → {t.label}
                               </option>
                             ))}
@@ -694,7 +818,7 @@ export function SmartCourtBoardView({
                                 type="button"
                                 size="sm"
                                 onClick={() =>
-                                  setQuickTestTarget({
+                                  openQuickTestModal({
                                     memberId: al.memberId,
                                     memberName: al.memberName,
                                     testId: al.testId,
@@ -751,11 +875,20 @@ export function SmartCourtBoardView({
                             e.target.value = "";
                           }
                         }}
-                        className="max-w-36 rounded-lg border border-zinc-200 bg-transparent px-2 py-1 text-[11px] text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+                        className="max-w-36 rounded-lg border border-zinc-200 bg-transparent px-2 py-1 text-[11px] text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
                       >
-                        <option value="">+ Закъснял...</option>
+                        <option
+                          value=""
+                          className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                        >
+                          + Закъснял...
+                        </option>
                         {latecomerCandidates.map((m) => (
-                          <option key={m.id} value={m.id}>
+                          <option
+                            key={m.id}
+                            value={m.id}
+                            className="bg-white text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100"
+                          >
                             {m.firstName} {m.lastName}
                           </option>
                         ))}
@@ -768,7 +901,7 @@ export function SmartCourtBoardView({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => setMethodologyExercise(court.exercise)}
+                      onClick={() => openMethodologyModal(court.exercise)}
                       className="h-7 rounded-lg text-[11px] font-semibold dark:border-zinc-700"
                     >
                       <BookOpen className="mr-1.5 size-3" />
@@ -885,7 +1018,7 @@ export function SmartCourtBoardView({
         <CoachMethodologyDialog
           open={Boolean(methodologyExercise)}
           onOpenChange={(o) => {
-            if (!o) setMethodologyExercise(null);
+            if (!o) closeMethodologyModal();
           }}
           title={methodologyExercise.name}
           subtitle={methodologyExercise.description}
@@ -902,7 +1035,7 @@ export function SmartCourtBoardView({
         <QuickTestModal
           open={Boolean(quickTestTarget)}
           onOpenChange={(o) => {
-            if (!o) setQuickTestTarget(null);
+            if (!o) closeQuickTestModal();
           }}
           memberId={quickTestTarget.memberId}
           memberName={quickTestTarget.memberName}

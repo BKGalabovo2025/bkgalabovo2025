@@ -57,6 +57,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Бързина, ловкост и смяна на посоката.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 12,
   },
   {
     id: "u9_short_serve_target",
@@ -84,6 +85,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Баланс, фокус, правилен форхенд хват.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 12,
   },
   {
     id: "u9_balloon_taps",
@@ -110,6 +112,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Ориентация в пространството, познаване на корта.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 15,
   },
   {
     id: "u9_target_throw",
@@ -121,6 +124,79 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     equipment: "Малки топки, мишена.",
     scoring: "Брой точни попадения от 10 опита.",
     focus: "Биомеханика на хвърлянето, пренос на тежестта.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u9_fh_net_lift",
+    ageGroup: "U9",
+    name: "Форхенд изтегляне от мрежа (базово)",
+    source: "BWF Shuttle Time (Lesson 7)",
+    description:
+      "Треньорът подава леко перо пред мрежата. Детето прави приставна крачка + напад с водещия крак и изпълнява високо форхенд изтегляне (lift) над мрежата.",
+    equipment: "Мрежа, кош с пера, маркери в задната зона.",
+    scoring: "10 опита. 1 точка за всяко успешно изтеглено перо в корта.",
+    focus: "Придвижване напред ФХ, ракетен крак отпред, мек форхенд хват.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u9_bh_net_lift",
+    ageGroup: "U9",
+    name: "Бекхенд изтегляне от мрежа (базово)",
+    source: "BWF Shuttle Time (Lesson 8)",
+    description:
+      "Треньорът подава леко перо към предния бекхенд ъгъл. Детето сменя на палечен (бекхенд) хват и изтегля перото високо над мрежата.",
+    equipment: "Мрежа, кош с пера, маркери.",
+    scoring: "10 опита. 1 точка за всяко успешно бекхенд изтегляне в корта.",
+    focus: "Палечен бекхенд хват, водене с лакътя, ракетен крак напред.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u9_rear_chasse_recovery",
+    ageGroup: "U9",
+    name: "Странично шасе назад и връщане (без скок)",
+    source: "BWF Shuttle Time (Lesson 4)",
+    description:
+      "Детето застава странично и се придвижва към задния ъгъл с безопасни странични приставни крачки (chasse) без ножичен скок, докосва конус и се връща в базата.",
+    equipment: "Конуси в задните ъгли и центъра.",
+    scoring:
+      "10 повторения. 1 точка за правилен страничен профил и безопасно връщане.",
+    focus:
+      "Безопасно странично придвижване назад, баланс и ориентация (без претоварване на коленете).",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u9_overhead_drop_zone",
+    ageGroup: "U9",
+    name: "Базов дроп шот в предна зона",
+    source: "BWF Shuttle Time (Lesson 9)",
+    description:
+      "От средната част на корта детето посреща високо подадено перо над глава и го насочва меко да падне пред линията за къс сервис.",
+    equipment: "Мрежа, пера, обръчи/маркери пред сервис линията.",
+    scoring: "10 опита. 1 точка за всяко перо в целевата предна зона.",
+    focus:
+      "Подготовка над глава, контрол на силата и меко приземяване на перото.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u9_underhand_defense_catch",
+    ageGroup: "U9",
+    name: "Защитен блок от ниска стойка",
+    source: "BWF Shuttle Time (Lesson 5)",
+    description:
+      "От широка ниска стойка (вратар) с бекхенд хват пред тялото детето блокира леко хвърлени пера/меки топки обратно над мрежата.",
+    equipment: "Мрежа, меки топки или пера.",
+    scoring: "10 опита. 1 точка за всеки контролиран защитен блок пред тялото.",
+    focus: "Ниска защитна стойка, ракета пред тялото, бекхенд хват.",
     maxScore: 10,
     scoreUnit: "т.",
     scoreType: "number",
@@ -153,6 +229,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Специфична бадминтон пъргавина, split-step.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 14,
   },
   {
     id: "u11_forehand_clear",
@@ -248,6 +325,34 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoreUnit: "бр.",
     scoreType: "number",
   },
+  {
+    id: "u11_fh_net_touch",
+    ageGroup: "U11",
+    name: "Форхенд късо на мрежата (Net Touch)",
+    source: "BWF Coach Education Level 1",
+    description:
+      "След приставна крачка и напад към преден форхенд ъгъл детето посреща подаденото перо високо и го пуска меко точно зад мрежата.",
+    equipment: "Мрежа, кош с пера, целева зона пред линията за сервис.",
+    scoring: "10 опита. 1 точка за всяко прецизно късо ФХ ударче в зоната.",
+    focus: "Стабилен напад (пета-ходило), ранна подготовка на ракетата, усет.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u11_bh_net_touch",
+    ageGroup: "U11",
+    name: "Бекхенд късо на мрежата (BH Net Touch)",
+    source: "BWF Coach Education Level 1",
+    description:
+      "Придвижване с приставна крачка и напад с водещия крак към преден бекхенд ъгъл, смяна на палечен хват и меко късо ударче над мрежата.",
+    equipment: "Мрежа, кош с пера, целева зона.",
+    scoring: "10 опита. 1 точка за всяко контролирано бекхенд късо ударче.",
+    focus: "Бекхенд напад с ракетен крак отпред, контрол с палеца.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
 
   // ================= U13 =================
   {
@@ -306,6 +411,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Издръжливост в скоростта, ефикасност на стъпките.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 26,
   },
   {
     id: "u13_smash_speed",
@@ -332,6 +438,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Експлозивен старт, спиране и бърза смяна на посоката.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 16,
   },
   {
     id: "u13_serve_receive",
@@ -359,6 +466,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Координация при нестандартни ъгли на движение.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 22,
   },
   {
     id: "u13_pace_control",
@@ -385,6 +493,51 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoring: "Общ брой повторения във всички станции.",
     focus: "Обща физическа подготовка, силова издръжливост.",
     scoreUnit: "бр.",
+    scoreType: "number",
+  },
+  {
+    id: "u13_grip_switch_wall",
+    ageGroup: "U13",
+    name: "Бърза смяна на хват до стена (30 сек.)",
+    source: "BWF Coach Education Level 1",
+    description:
+      "От разстояние 2 м до стената състезателят редува последователни форхенд и бекхенд удари за 30 секунди с чиста смяна на хвата чрез пръстите.",
+    equipment: "Гладка стена, ракета, перо, хронометър.",
+    scoring: "Брой правилни последователни смени за 30 сек. (Макс: 30).",
+    focus:
+      "Автоматична смяна на форхенд/бекхенд хват с пръсти, релаксирана длан.",
+    maxScore: 30,
+    scoreUnit: "бр.",
+    scoreType: "number",
+  },
+  {
+    id: "u13_bh_net_control",
+    ageGroup: "U13",
+    name: "Бекхенд мрежов контрол (BH Net Spin)",
+    source: "BWF Coach Education Level 1",
+    description:
+      "Треньорът подава 10 пера в предния бекхенд ъгъл. Състезателят изпълнява бекхенд tumbling net shot с фино завъртане над лентата.",
+    equipment: "Мрежа, кош с пера.",
+    scoring: "10 опита. 1 точка за всяко прецизно завъртяно бекхенд късо перо.",
+    focus: "Фин бекхенд усет, контрол с палец и показалец, позиция на лакътя.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u13_rear_forehand_clear",
+    ageGroup: "U13",
+    name: "Дълбок форхенд клиър от задна линия",
+    source: "BWF Coach Education Level 1",
+    description:
+      "От задната линия състезателят изпълнява 10 високи форхенд клиъра след подаване от треньор, като перото трябва да падне в последния коридор.",
+    equipment: "Корт, кош с пера, маркери в задната зона.",
+    scoring:
+      "10 опита. 1 точка за всяко перо, кацнало зад линията за сервис за двойки.",
+    focus:
+      "Кинетична верига над глава, пронация на предмишницата, висока точка на контакт.",
+    maxScore: 10,
+    scoreUnit: "т.",
     scoreType: "number",
   },
 
@@ -429,6 +582,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Анаеробна издръжливост, бърза смяна на посоката.",
     scoreUnit: "бр.",
     scoreType: "number",
+    targetTimeSec: 22,
   },
   {
     id: "u15_cross_drop",
@@ -469,6 +623,8 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Стабилизация на трупа, важна за предотвратяване на контузии.",
     scoreUnit: "сек.",
     scoreType: "time",
+    higherIsBetter: true,
+    targetTimeSec: 120,
   },
   {
     id: "u15_attacking_drive_line",
@@ -510,6 +666,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Координация, децелерация, странично придвижване.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 11,
   },
   {
     id: "u15_net_kill_spin",
@@ -522,6 +679,63 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     scoring: "Брой правилни решения и качествени удари от 20 опита.",
     focus: "Вземане на решения на мрежата, техника.",
     maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u15_flat_drive_control",
+    ageGroup: "U15",
+    name: "Плоски удари със смяна на хват (Flat Drive Control)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "20 последователни бързи плоски подавания в тялото и отстрани. Състезателят редува форхенд и бекхенд хват с finger power без голям замах.",
+    equipment: "Кош с пера, треньор за бързо подаване.",
+    scoring: "Брой чисти плоски връщания с правилен хват (от 20).",
+    focus: "Finger power, мигновена пронация/супинация и контрол на дръжката.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u15_bh_net_kill",
+    ageGroup: "U15",
+    name: "Бекхенд добиване и контрол на мрежата (BH Net Kill)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "В предния бекхенд ъгъл треньорът редува ниско и високо подаване над лентата. Състезателят изпълнява бекхенд kill при високо и spin при ниско.",
+    equipment: "Мрежа, кош с пера.",
+    scoring: "10 опита. 1 точка за всяко точно и чисто бекхенд решение.",
+    focus: "Бекхенд тайминг, палечен натиск без докосване на мрежата.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u15_serve_precision_combo",
+    ageGroup: "U15",
+    name: "Комбиниран сервис: Къс към „Т“ + Флик",
+    source: "BWF Coach Education Level 2",
+    description:
+      "Състезателят редува 5 къси бекхенд сервиса към „Т“-то и 5 флик сервиса към задната линия с еднаква изходна подготовка.",
+    equipment: "Мрежа, маркери в предната Т-зона и задната линия.",
+    scoring: "10 опита. 1 точка за всеки сервис в целевата зона (под 1.15 м).",
+    focus: "Еднаква подготовка за децепция, контрол на височината над мрежата.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u15_cross_straight_clear",
+    ageGroup: "U15",
+    name: "Прав и диагонален клиър (Cross & Straight Clear)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "От задната линия състезателят редува прав и диагонален дълбок клиър след подаване в задния ъгъл, връщайки се към центъра.",
+    equipment: "Корт, кош с пера, маркери в двата задни ъгъла.",
+    scoring:
+      "10 опита (5 прави, 5 диагонални). Точки за попадение в задната зона.",
+    focus: "Контрол на ъгъла на ракетата, пронация и насочване под движение.",
+    maxScore: 10,
     scoreUnit: "т.",
     scoreType: "number",
   },
@@ -610,6 +824,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Гъвкавост на глезените, ускорение, децелерация.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 17,
   },
   {
     id: "u17_backhand_clear_deep",
@@ -638,6 +853,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Максимална скорост и спиране.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 24,
   },
   {
     id: "u17_defensive_lift_deep",
@@ -663,6 +879,36 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     equipment: "Маркери задна линия.",
     scoring: "Успешност на измамата и точността от 10 опита.",
     focus: "Контрол на палеца, липса на предварителни знаци (tell).",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u17_fast_grip_transition",
+    ageGroup: "U17",
+    name: "Бърз преход на хватове (Basic / Thumb / Bevel)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "Мултифийд от 20 пера в средна зона (тяло, форхенд, бекхенд, над глава), изискващ мигновен преход между форхенд, палечен и скосен (bevel) хват.",
+    equipment: "Кош с пера, треньор.",
+    scoring: "Брой технически чисти удари с точен хват от 20 подавания.",
+    focus: "Скорост на прехват с пръстите, липса на „замръзнал“ хват.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u17_bh_deep_lift",
+    ageGroup: "U17",
+    name: "Дълбоко бекхенд изтегляне от мрежа (BH Deep Lift)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "При ниско късо подаване в предния бекхенд ъгъл състезателят прави пълен напад и изтегля перото с бекхенд до последния метър на задната линия.",
+    equipment: "Мрежа, кош с пера, маркери на задната линия.",
+    scoring:
+      "10 опита. 1 точка за всяко дълбоко и контролирано бекхенд изтегляне.",
+    focus:
+      "Супинация и палечен импулс от ниска точка на контакт, баланс при оттласкване.",
     maxScore: 10,
     scoreUnit: "т.",
     scoreType: "number",
@@ -805,6 +1051,51 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Оттласкване назад, китайска стъпка, ножичен отскок.",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 22,
+  },
+  {
+    id: "u19_multifeed_grip_speed",
+    ageGroup: "U19",
+    name: "Мултифийд скорост на прехват (20 пера)",
+    source: "BWF Technical Manual",
+    description:
+      "Високоинтензивен мултифийд от 20 пера с редуване в тялото, преден БХ и заден ФХ за тестване на скоростта на прехват под игрово темпо.",
+    equipment: "Кош с пера, треньор.",
+    scoring: "Брой прецизни връщания без техническа грешка в хвата (от 20).",
+    focus: "Рефлексивна смяна на хват и finger power при високо темпо.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u19_reactive_split_step",
+    ageGroup: "U19",
+    name: "Реактивен сплит степ по сигнал (6 посоки)",
+    source: "BWF Coach Education Level 2",
+    description:
+      "Треньорът подава визуален сигнал с ракетата към един от 6-те ъгъла. Състезателят изпълнява навременен directional split-step и експлозивна първа крачка.",
+    equipment: "Корт, ракета.",
+    scoring:
+      "20 повторения. 1 точка за перфектен тайминг на кацане и експлозивен старт.",
+    focus: "Тайминг на сплит степа (кацане при контакт), посочен старт.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "u19_bh_tumble_cross",
+    ageGroup: "U19",
+    name: "Диагонално бекхенд късо с въртене (BH Cross Net)",
+    source: "BWF Technical Manual",
+    description:
+      "От предния бекхенд ъгъл след старт от базата състезателят изпълнява 10 диагонални бекхенд къси удара с плътно минаване над лентата.",
+    equipment: "Мрежа, кош с пера, целева зона в далечния преден ъгъл.",
+    scoring:
+      "10 опита. 1 точка за всяко прецизно диагонално бекхенд късо перо.",
+    focus: "Фин ъгъл на ракетата, децепция на мрежата, контрол на инерцията.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
   },
 
   // ================= Мъже и Жени =================
@@ -862,6 +1153,7 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus: "Възстановяване след загуба на баланс (dive).",
     scoreUnit: "сек.",
     scoreType: "time",
+    targetTimeSec: 22,
   },
   {
     id: "adult_decision_making",
@@ -943,6 +1235,79 @@ export const BADMINTON_TESTS: BadmintonTest[] = [
     focus:
       "Спортно майсторство, контрол на фината моторика при изключителен стрес.",
     maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "adult_grip_precision_pressure",
+    ageGroup: "Мъже и Жени",
+    name: "Прецизност на хватовете под напрежение",
+    source: "BWF Technical Manual",
+    description:
+      "Серия от 20 високоскоростни удара (драйв в тяло, бекхенд блок, форхенд срез) с изискване за мигновена смяна на хвата и точност в целеви зони.",
+    equipment: "Кош с пера, целеви маркери.",
+    scoring: "Брой прецизни удари с чист прехват (от 20).",
+    focus: "Микро-прехват под максимално състезателно напрежение.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "adult_pro_6_corner_speed",
+    ageGroup: "Мъже и Жени",
+    name: "Професионален 6-ъглов тест за скорост (Pro 6-Corner)",
+    source: "BWF Technical Manual",
+    description:
+      "2 пълни цикъла (12 докосвания) по 6-те точки на корта с пълна имитация на удар и задължителен сплит степ в центъра при всяко връщане.",
+    equipment: "Корт за единично, хронометър.",
+    scoring:
+      "Време за завършване на 2 цикъла (по-ниското е по-добро; цел <= 20 сек.).",
+    focus:
+      "Елитна скорост на придвижване, икономичност на стъпките и сплит степ.",
+    scoreUnit: "сек.",
+    scoreType: "time",
+    targetTimeSec: 20,
+  },
+  {
+    id: "adult_bh_net_deception",
+    ageGroup: "Мъже и Жени",
+    name: "Бекхенд децепция на мрежата (Hold & Flick / Cross)",
+    source: "BWF Technical Manual",
+    description:
+      "От предния бекхенд ъгъл състезателят изпълнява 10 прикрити бекхенд завършвания (задържане + флик или диагонално късо) с еднаква подготовка.",
+    equipment: "Мрежа, кош с пера, мишени.",
+    scoring: "10 опита. 1 точка за всяко успешно прикрито бекхенд изпълнение.",
+    focus:
+      "Задържане (hold), микро-движение с палеца, децепция на високо ниво.",
+    maxScore: 10,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "adult_tactical_serve_combo",
+    ageGroup: "Мъже и Жени",
+    name: "Тактически сервис и 3-ти удар под напрежение",
+    source: "BWF Technical Manual",
+    description:
+      "20 разигравания на сервис (къс към Т, широк къс, флик) + незабавна готовност и контрол на 3-тия удар срещу активен посрещащ.",
+    equipment: "Мрежа, спаринг партньор, пера.",
+    scoring: "Брой спечелени/контролирани ситуации от 20 опита.",
+    focus: "Тактическа вариативност на сервиса и доминация в първите 3 удара.",
+    maxScore: 20,
+    scoreUnit: "т.",
+    scoreType: "number",
+  },
+  {
+    id: "adult_deep_clear_consistency",
+    ageGroup: "Мъже и Жени",
+    name: "Постоянство на дълбок клиър (20 удара)",
+    source: "BWF Technical Manual",
+    description:
+      "20 последователни редувани защитни и атакуващи клиъра от задната линия под високо темпо в последния 1 метър на противниковия корт.",
+    equipment: "Корт, кош с пера, маркери в последния 1 м.",
+    scoring: "Брой точни дълбоки клиъри в целевата зона (от 20).",
+    focus: "Стабилност на кинетичната верига и дълбочина на клиъра под умора.",
+    maxScore: 20,
     scoreUnit: "т.",
     scoreType: "number",
   },

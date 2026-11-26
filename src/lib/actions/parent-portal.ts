@@ -8,8 +8,13 @@ import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
 
 import { ensureAdmin } from "@/lib/auth-utils";
+import { BWF_FUNDAMENTAL_BY_ID } from "@/lib/bwf-fundamentals";
 import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
 import { getBackupDb } from "@/lib/firebase-admin-backup";
+import {
+  evaluateMemberFundamentals,
+  type MemberFundamentalProfile,
+} from "@/lib/fundamental-engine";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
 import { serverCache } from "@/lib/server-cache";
 
@@ -41,6 +46,8 @@ import {
 import { arePhoneNumbersEqual, normalizePhoneNumber } from "@/lib/phone-utils";
 import { formatDobString, serializeFirestoreData } from "@/lib/serialize-utils";
 import { getAgeGroup } from "@/lib/utils";
+import type { MemberAssessment } from "@/types/assessment.types";
+import type { BeepTestResult } from "@/types/beep-test.types";
 import {
   DOCUMENT_TITLES,
   type DocumentRequest,
@@ -63,13 +70,16 @@ import {
   ParentFeeStatusData,
   ParentFinancialItemDetail,
   ParentFinancialTransactionItem,
+  ParentLatestBeepTest,
   ParentMemberPermissions,
   ParentRankingData,
   ParentRole,
   ParentSentDocumentItem,
+  ParentSessionReportItem,
   ParentShadowAndQuizzesData,
   ParentUser,
 } from "@/types/parent-portal.types";
+import type { FundamentalId } from "@/types/planner.types";
 
 const PARENT_REQUESTS_COLLECTION = "parent_requests";
 const PARENT_USERS_COLLECTION = "parent_users";
@@ -3337,6 +3347,143 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
                   )
                 );
 
+              let fundamentalProfile: MemberFundamentalProfile | null = null;
+              let latestBeepTest: ParentLatestBeepTest | null = null;
+              const recentSessionReports: ParentSessionReportItem[] = [];
+
+              try {
+                const [assessmentsSnap, beepSnap, plannerAttSnap] =
+                  await Promise.all([
+                    adminDb
+                      .collection("member_assessments")
+                      .where("memberId", "==", activeChildId)
+                      .get(),
+                    adminDb
+                      .collection("beep_test_results")
+                      .where("memberId", "==", activeChildId)
+                      .get(),
+                    adminDb
+                      .collection("training_attendance")
+                      .where("memberId", "==", activeChildId)
+                      .get(),
+                  ]);
+
+                const assessments: MemberAssessment[] =
+                  assessmentsSnap.docs.map((d) => ({
+                    id: d.id,
+                    ...(d.data() as Omit<MemberAssessment, "id">),
+                  }));
+
+                const beepResults: BeepTestResult[] = beepSnap.docs
+                  .map((d) => ({
+                    id: d.id,
+                    ...(d.data() as Omit<BeepTestResult, "id">),
+                  }))
+                  .sort((a, b) =>
+                    String(b.date || "").localeCompare(String(a.date || ""))
+                  );
+
+                if (beepResults.length > 0) {
+                  const latest = beepResults[0];
+                  latestBeepTest = {
+                    date: String(latest.date || ""),
+                    level: Number(latest.level || 0),
+                    shuttle: Number(latest.shuttle || 0),
+                    vo2Max:
+                      typeof latest.vo2max === "number"
+                        ? latest.vo2max
+                        : undefined,
+                    score: latest.score ? String(latest.score) : undefined,
+                  };
+                }
+
+                fundamentalProfile = evaluateMemberFundamentals({
+                  memberId: activeChildId,
+                  birthDate:
+                    typeof selectedChildRaw.dateOfBirth === "string"
+                      ? selectedChildRaw.dateOfBirth
+                      : null,
+                  assessments,
+                  beepResults,
+                });
+
+                // Fetch published planner session reports for recent attendances
+                const attDocs = plannerAttSnap.docs
+                  .map((d) => d.data())
+                  .filter((a) => Boolean(a.sessionId))
+                  .sort((a, b) =>
+                    String(b.date || "").localeCompare(String(a.date || ""))
+                  )
+                  .slice(0, 12);
+
+                const uniqueSessionIds = Array.from(
+                  new Set(attDocs.map((a) => String(a.sessionId)))
+                );
+
+                if (uniqueSessionIds.length > 0) {
+                  const sessionSnaps = await Promise.all(
+                    uniqueSessionIds.map((sid) =>
+                      adminDb
+                        .collection("planner_sessions")
+                        .doc(sid)
+                        .get()
+                        .catch(() => null)
+                    )
+                  );
+                  const sessionMap = new Map<string, Record<string, unknown>>();
+                  for (const sSnap of sessionSnaps) {
+                    if (sSnap && sSnap.exists) {
+                      sessionMap.set(
+                        sSnap.id,
+                        (sSnap.data() || {}) as Record<string, unknown>
+                      );
+                    }
+                  }
+
+                  for (const att of attDocs) {
+                    if (recentSessionReports.length >= 6) break;
+                    const sid = String(att.sessionId);
+                    const sData = sessionMap.get(sid);
+                    if (!sData) continue;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const smartPlan = sData.smartPlan as any;
+                    if (smartPlan?.publishedToParentPortal !== true) continue;
+
+                    const primaryFid = (smartPlan?.primaryFundamentalId ||
+                      smartPlan?.fundamentalId) as FundamentalId | undefined;
+                    const fundamentalTitle =
+                      primaryFid && BWF_FUNDAMENTAL_BY_ID[primaryFid]
+                        ? BWF_FUNDAMENTAL_BY_ID[primaryFid].title
+                        : typeof smartPlan?.fundamentalTitle === "string"
+                          ? smartPlan.fundamentalTitle
+                          : undefined;
+
+                    const note =
+                      (typeof att.notes === "string" && att.notes.trim()) ||
+                      (typeof smartPlan?.parentSummary === "string" &&
+                        smartPlan.parentSummary.trim()) ||
+                      (typeof sData.notes === "string" && sData.notes.trim()) ||
+                      undefined;
+
+                    recentSessionReports.push({
+                      sessionId: sid,
+                      date: String(att.date || sData.date || ""),
+                      title: String(sData.title || "Тренировка"),
+                      fundamentalTitle,
+                      note,
+                      effort:
+                        typeof att.effort === "number" ? att.effort : undefined,
+                      rpe: typeof att.rpe === "number" ? att.rpe : undefined,
+                    });
+                  }
+                }
+              } catch (devErr) {
+                console.warn(
+                  "Error fetching fundamentals/beep/session reports for parent portal:",
+                  devErr
+                );
+              }
+
               shadowAndQuizzes = {
                 shadowSessionsCount: shadowDocs.length,
                 totalShadowMinutes,
@@ -3357,6 +3504,9 @@ export async function getParentDashboardDataAction(requestedChildId?: string) {
                   status: String(q.status || "COMPLETED"),
                   coachFeedback: q.coachFeedback || q.aiFeedback || null,
                 })),
+                fundamentalProfile,
+                recentSessionReports,
+                latestBeepTest,
               };
             } catch (err) {
               console.warn("Error fetching shadow and quizzes data:", err);

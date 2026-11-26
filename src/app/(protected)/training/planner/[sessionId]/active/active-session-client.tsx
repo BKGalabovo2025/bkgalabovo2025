@@ -84,6 +84,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
   const { activeBranch } = useAppStore();
   const [session, setSession] = useState<PlannerSession | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
+  const [allClubMembers, setAllClubMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -130,6 +131,11 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       setCoachNotes(targetSession.coachNotes || "");
 
       const allMembers = await getAllMembers();
+      setAllClubMembers(
+        allMembers.filter(
+          (m) => m.siteId !== "recoveryzone" && m.status !== "inactive"
+        )
+      );
 
       let initialMembers: Member[] = [];
 
@@ -460,7 +466,7 @@ export default function ActiveSessionClient({ sessionId }: Props) {
       <SmartCourtBoardView
         session={session}
         initialPlan={session.smartPlan as unknown as SmartTrainingPlan}
-        allMembers={members}
+        allMembers={allClubMembers}
       />
     );
   }

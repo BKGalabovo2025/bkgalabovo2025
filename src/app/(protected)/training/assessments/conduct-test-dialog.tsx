@@ -25,6 +25,8 @@ interface ConductTestDialogProps {
   test: BadmintonTest | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialMemberId?: string;
+  onSaved?: () => void;
 }
 
 type ParticipantEntry = {
@@ -40,6 +42,8 @@ export default function ConductTestDialog({
   test,
   open,
   onOpenChange,
+  initialMemberId,
+  onSaved,
 }: ConductTestDialogProps) {
   const { user } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
@@ -53,12 +57,17 @@ export default function ConductTestDialog({
   useEffect(() => {
     if (open) {
       loadMembers();
-      // Initialize with one empty participant
+      // Initialize with one participant (pre-selected if initialMemberId is provided)
       setParticipants([
-        { memberId: "", scoreDisplay: "", scoreNum: 0, notes: "" },
+        {
+          memberId: initialMemberId || "",
+          scoreDisplay: "",
+          scoreNum: 0,
+          notes: "",
+        },
       ]);
     }
-  }, [open]);
+  }, [open, initialMemberId]);
 
   const loadMembers = async () => {
     setIsLoading(true);
@@ -149,6 +158,7 @@ export default function ConductTestDialog({
 
       await Promise.all(promises);
       toast.success("Резултатите са запазени успешно!");
+      onSaved?.();
       onOpenChange(false);
     } catch (error) {
       console.error(error);

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Eye, Medal, Trophy, Zap } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { CourtVisualizer } from "@/components/training/CourtVisualizer";
@@ -29,12 +30,48 @@ interface Props {
 }
 
 export function MemberTrainingsHistory({ memberId }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const sessionParam = searchParams?.get("session") || null;
+
   const { user, idToken, loading: authLoading } = useAuth();
   const [trainings, setTrainings] = useState<TrainingSession[]>([]);
   const [selectedSession, setSelectedSession] =
     useState<TrainingSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const syncSessionUrl = useCallback(
+    (sessionId: string | null) => {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      if (sessionId) {
+        params.set("session", sessionId);
+      } else {
+        params.delete("session");
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const handleOpenSession = useCallback(
+    (session: TrainingSession) => {
+      setSelectedSession(session);
+      if (session.id) {
+        syncSessionUrl(session.id);
+      }
+    },
+    [syncSessionUrl]
+  );
+
+  const handleCloseSession = useCallback(() => {
+    setSelectedSession(null);
+    if (sessionParam) {
+      syncSessionUrl(null);
+    }
+  }, [sessionParam, syncSessionUrl]);
 
   const fetchTrainings = useCallback(async () => {
     if (authLoading) return;
@@ -64,6 +101,15 @@ export function MemberTrainingsHistory({ memberId }: Props) {
   useEffect(() => {
     void fetchTrainings();
   }, [fetchTrainings]);
+
+  useEffect(() => {
+    if (!loading && sessionParam && trainings.length > 0) {
+      const match = trainings.find((t) => t.id === sessionParam);
+      if (match && selectedSession?.id !== match.id) {
+        setSelectedSession(match);
+      }
+    }
+  }, [loading, sessionParam, trainings, selectedSession?.id]);
 
   // Calculate Badges & Agility Personal Best before conditional returns
   const totalMinutes = useMemo(
@@ -108,7 +154,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
           <div className="space-y-4">
             <p>Няма записани тренировки за този член.</p>
             <Link
-              href="/training/shadow"
+              href={`/training/shadow?memberId=${memberId}`}
               className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
               <Zap className="size-3.5" />
@@ -199,8 +245,8 @@ export function MemberTrainingsHistory({ memberId }: Props) {
       {/* History List */}
       <div className="rounded-3xl border border-zinc-100 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
         <h3 className="mb-6 flex items-center gap-2 text-[11px] font-medium tracking-widest text-zinc-400 uppercase">
-          <Zap className="size-4" /> История на тренировките (Общо:{" "}
-          {totalMinutes} мин)
+          <Zap className="size-4" /> Shadow тренировки (Общо: {totalMinutes}{" "}
+          мин)
         </h3>
 
         <div className="space-y-4">
@@ -268,7 +314,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedSession(session)}
+                      onClick={() => handleOpenSession(session)}
                       className="h-8 rounded-xl border-zinc-200 text-xs font-bold hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
                     >
                       <Eye size={13} className="mr-1.5" />
@@ -292,7 +338,7 @@ export function MemberTrainingsHistory({ memberId }: Props) {
         <Dialog
           open={Boolean(selectedSession)}
           onOpenChange={(open) => {
-            if (!open) setSelectedSession(null);
+            if (!open) handleCloseSession();
           }}
         >
           <DialogContent className="max-h-[90vh] overflow-y-auto rounded-3xl sm:max-w-xl">

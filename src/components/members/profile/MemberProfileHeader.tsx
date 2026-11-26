@@ -84,7 +84,7 @@ export function MemberProfileHeader() {
             </TooltipContent>
           </Tooltip>
 
-          <div className="flex w-full items-center gap-2.5 sm:w-auto">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-2.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -92,15 +92,18 @@ export function MemberProfileHeader() {
                   variant="outline"
                   onClick={handleCopyProfileLink}
                   title="Копирай директен линк към досието"
-                  className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-[11px] font-semibold tracking-wider text-zinc-700 uppercase shadow-2xs transition-all hover:bg-zinc-50 hover:text-zinc-950 sm:h-11 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  className="h-10 flex-1 rounded-xl border-zinc-200 bg-white px-3.5 text-[11px] font-semibold tracking-wider text-zinc-700 uppercase shadow-2xs transition-all hover:bg-zinc-50 hover:text-zinc-950 sm:h-11 sm:flex-initial sm:px-4 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                 >
                   {copiedLink ? (
                     <Check
-                      className="mr-2 size-4 text-emerald-600"
+                      className="mr-2 size-4 shrink-0 text-emerald-600"
                       strokeWidth={1.75}
                     />
                   ) : (
-                    <Link2 className="mr-2 size-4" strokeWidth={1.75} />
+                    <Link2
+                      className="mr-2 size-4 shrink-0"
+                      strokeWidth={1.75}
+                    />
                   )}
                   Копирай линк
                 </Button>
@@ -115,10 +118,10 @@ export function MemberProfileHeader() {
                 <Button
                   asChild
                   variant="outline"
-                  className="h-10 w-full rounded-xl border-blue-200 bg-blue-50/70 px-4 text-[11px] font-semibold tracking-wider text-blue-700 uppercase shadow-2xs transition-all hover:bg-blue-100/80 sm:h-11 sm:w-auto dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                  className="h-10 flex-1 rounded-xl border-blue-200 bg-blue-50/70 px-3.5 text-[11px] font-semibold tracking-wider text-blue-700 uppercase shadow-2xs transition-all hover:bg-blue-100/80 sm:h-11 sm:flex-initial sm:px-4 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60"
                 >
                   <Link href={`/members/${member.id}/ai-workouts/new`}>
-                    <Sparkles className="mr-2 size-4 text-blue-600 dark:text-blue-400" />
+                    <Sparkles className="mr-2 size-4 shrink-0 text-blue-600 dark:text-blue-400" />
                     AI Тренировка
                   </Link>
                 </Button>
@@ -134,10 +137,13 @@ export function MemberProfileHeader() {
               <TooltipTrigger asChild>
                 <Button
                   asChild
-                  className="h-10 w-full rounded-xl bg-zinc-950 px-6 text-[11px] font-semibold tracking-wider text-white uppercase shadow-2xs transition-all hover:bg-zinc-800 sm:h-11 sm:w-auto dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+                  className="h-10 flex-1 rounded-xl bg-zinc-950 px-5 text-[11px] font-semibold tracking-wider text-white uppercase shadow-2xs transition-all hover:bg-zinc-800 sm:h-11 sm:flex-initial sm:px-6 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
                 >
                   <Link href={`/members/${member.id}/edit`}>
-                    <Pencil className="mr-2 size-4" strokeWidth={1.75} />
+                    <Pencil
+                      className="mr-2 size-4 shrink-0"
+                      strokeWidth={1.75}
+                    />
                     Редактирай
                   </Link>
                 </Button>
@@ -174,9 +180,9 @@ export function MemberProfileHeader() {
               {/* Identity & Badges */}
               <div className="mb-1 flex-1 space-y-2 sm:mb-2 sm:space-y-3">
                 <div className="flex flex-wrap items-center justify-center gap-3 md:justify-start">
-                  <h1 className="text-2xl font-bold tracking-tight text-zinc-950 sm:text-4xl dark:text-zinc-50">
+                  <h2 className="text-2xl font-bold tracking-tight text-zinc-950 sm:text-4xl dark:text-zinc-50">
                     {fullName}
-                  </h1>
+                  </h2>
                   {member.isCoach && (
                     <Badge className="border-none bg-amber-100 px-2.5 py-0.5 text-xs font-semibold tracking-wider text-amber-800 uppercase hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300">
                       Треньор

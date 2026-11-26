@@ -104,7 +104,33 @@ export function ShadowActiveScreen({
     trainer.courtSlots && trainer.courtSlots.length > 1 ? "hall" : "focus"
   );
   const [focusedCourt, setFocusedCourt] = useState<number | null>(null);
-  const [isPresenterHelpOpen, setIsPresenterHelpOpen] = useState(false);
+  const [isPresenterHelpOpen, setIsPresenterHelpOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return (
+        new URLSearchParams(window.location.search).get("modal") ===
+        "presenter-help"
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const handlePresenterHelpOpenChange = (open: boolean) => {
+    setIsPresenterHelpOpen(open);
+    if (typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      if (open) {
+        url.searchParams.set("modal", "presenter-help");
+      } else if (url.searchParams.get("modal") === "presenter-help") {
+        url.searchParams.delete("modal");
+      }
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    } catch {
+      // Ignore URL errors
+    }
+  };
 
   const toggleWorkoutMusic = () => {
     if (isMusicPlaying) {
@@ -488,7 +514,7 @@ export function ShadowActiveScreen({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setIsPresenterHelpOpen(true)}
+              onClick={() => handlePresenterHelpOpenChange(true)}
               className="h-9 cursor-pointer rounded-xl border-zinc-800 bg-zinc-900 text-xs font-bold text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
               title="Управление с безжично дистанционно / Bluetooth Презентер"
             >
@@ -841,7 +867,7 @@ export function ShadowActiveScreen({
               <span>•</span>
               <button
                 type="button"
-                onClick={() => setIsPresenterHelpOpen(true)}
+                onClick={() => handlePresenterHelpOpenChange(true)}
                 className="inline-flex items-center gap-1 text-blue-400 hover:underline"
               >
                 <Radio size={12} />
@@ -853,7 +879,10 @@ export function ShadowActiveScreen({
       </Card>
 
       {/* ─── ДИАЛОГ: БЕЗЖИЧНО ДИСТАНЦИОННО / BLUETOOTH ПРЕЗЕНТЕР ─── */}
-      <Dialog open={isPresenterHelpOpen} onOpenChange={setIsPresenterHelpOpen}>
+      <Dialog
+        open={isPresenterHelpOpen}
+        onOpenChange={handlePresenterHelpOpenChange}
+      >
         <DialogContent className="max-w-md border-zinc-800 bg-zinc-950 p-6 text-white shadow-2xl">
           <DialogHeader>
             <div className="flex items-center gap-2">
@@ -938,7 +967,7 @@ export function ShadowActiveScreen({
             <Button
               type="button"
               size="sm"
-              onClick={() => setIsPresenterHelpOpen(false)}
+              onClick={() => handlePresenterHelpOpenChange(false)}
               className="h-8 rounded-lg bg-zinc-800 px-3 text-xs font-bold text-white hover:bg-zinc-700"
             >
               Разбрах

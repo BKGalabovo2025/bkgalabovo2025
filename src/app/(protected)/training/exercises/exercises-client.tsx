@@ -56,6 +56,7 @@ export default function ExercisesClient({
   const idParam = searchParams.get("id");
   const exerciseParam =
     searchParams.get("exercise") ?? searchParams.get("edit");
+  const methodologyParam = searchParams.get("methodology");
   const highlightExerciseId = idParam || exerciseParam;
   const isNewParam = searchParams.get("new") === "true";
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -64,8 +65,6 @@ export default function ExercisesClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [ageGroupFilter, setAgeGroupFilter] = useState("all");
-  const [methodologyExercise, setMethodologyExercise] =
-    useState<Exercise | null>(null);
 
   useDeepLinkHighlight(
     "exercise",
@@ -113,8 +112,24 @@ export default function ExercisesClient({
   const selectedExercise = exerciseParam
     ? (exercises.find((e) => e.id === exerciseParam) ?? null)
     : null;
+  const methodologyExercise = methodologyParam
+    ? (exercises.find((e) => e.id === methodologyParam) ?? null)
+    : null;
   const isDialogOpen =
     isNewParam || (Boolean(exerciseParam) && selectedExercise !== null);
+
+  const openMethodologyDialog = (ex: Exercise) => {
+    const sp = new URLSearchParams(searchParams?.toString() || "");
+    sp.set("methodology", ex.id);
+    router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
+  };
+
+  const closeMethodologyDialog = () => {
+    const sp = new URLSearchParams(searchParams?.toString() || "");
+    sp.delete("methodology");
+    const q = sp.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
 
   const closeDialog = () => router.replace(pathname, { scroll: false });
 
@@ -174,24 +189,26 @@ export default function ExercisesClient({
   });
 
   const getCategoryCount = (cat: string) => {
-    if (cat === "all") return exercises.length;
+    if (cat === "all") return sectionExercises.length;
     if (cat === "beach")
-      return exercises.filter((ex) => ex.location?.includes("beach")).length;
-    if (cat === "circuit")
-      return exercises.filter((ex) => ex.name.toLowerCase().includes("станция"))
+      return sectionExercises.filter((ex) => ex.location?.includes("beach"))
         .length;
+    if (cat === "circuit")
+      return sectionExercises.filter((ex) =>
+        ex.name.toLowerCase().includes("станция")
+      ).length;
     if (cat === "tactical")
-      return exercises.filter(
+      return sectionExercises.filter(
         (ex) =>
           ex.category === "tactics" ||
           ex.name.toLowerCase().includes("мулти-шатъл")
       ).length;
-    return exercises.filter((ex) => ex.category === cat).length;
+    return sectionExercises.filter((ex) => ex.category === cat).length;
   };
 
   const getAgeGroupCount = (ag: string) => {
-    if (ag === "all") return exercises.length;
-    return exercises.filter((ex) => ex.ageGroups.includes(ag)).length;
+    if (ag === "all") return sectionExercises.length;
+    return sectionExercises.filter((ex) => ex.ageGroups.includes(ag)).length;
   };
 
   return (
@@ -411,7 +428,7 @@ export default function ExercisesClient({
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            setMethodologyExercise(ex);
+                            openMethodologyDialog(ex);
                           }}
                           className="size-7 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-950/50"
                           title="Пълна BWF треньорска методика и схема на корта"
@@ -486,7 +503,7 @@ export default function ExercisesClient({
         <CoachMethodologyDialog
           open={Boolean(methodologyExercise)}
           onOpenChange={(open) => {
-            if (!open) setMethodologyExercise(null);
+            if (!open) closeMethodologyDialog();
           }}
           title={methodologyExercise.name}
           subtitle={methodologyExercise.description}

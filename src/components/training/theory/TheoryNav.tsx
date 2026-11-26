@@ -12,12 +12,30 @@ interface TheoryNavProps {
   className?: string;
 }
 
+const TRANSIENT_PARAMS = [
+  "action",
+  "testId",
+  "test",
+  "id",
+  "editQuiz",
+  "sendQuiz",
+  "quizId",
+  "quiz",
+  "memberId",
+  "result",
+  "resultId",
+];
+
 export function TheoryNav({ className }: TheoryNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const activeSection = getActiveTheorySection(pathname);
 
-  const queryString = searchParams?.toString();
+  const cleanedParams = new URLSearchParams(searchParams?.toString() || "");
+  for (const key of TRANSIENT_PARAMS) {
+    cleanedParams.delete(key);
+  }
+  const queryString = cleanedParams.toString();
   const preservedQuery = queryString ? `?${queryString}` : "";
 
   return (

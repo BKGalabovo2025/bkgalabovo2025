@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { MemberFundamentalProfile } from "@/lib/fundamental-engine";
+
 export const ParentRoleSchema = z.enum(["mother", "father", "guardian"]);
 export type ParentRole = z.infer<typeof ParentRoleSchema>;
 
@@ -319,6 +321,24 @@ export interface ParentRankingData {
   isLicensed: boolean;
 }
 
+export interface ParentSessionReportItem {
+  sessionId: string;
+  date: string;
+  title: string;
+  fundamentalTitle?: string;
+  note?: string;
+  effort?: number;
+  rpe?: number;
+}
+
+export interface ParentLatestBeepTest {
+  date: string;
+  level: number;
+  shuttle: number;
+  vo2Max?: number;
+  score?: string;
+}
+
 export interface ParentShadowAndQuizzesData {
   shadowSessionsCount: number;
   lastShadowDate?: string | null;
@@ -342,6 +362,9 @@ export interface ParentShadowAndQuizzesData {
     status: string;
     coachFeedback?: string | null;
   }>;
+  fundamentalProfile?: MemberFundamentalProfile | null;
+  recentSessionReports?: ParentSessionReportItem[];
+  latestBeepTest?: ParentLatestBeepTest | null;
 }
 
 export const ParentCommunicationLogSchema = z.object({

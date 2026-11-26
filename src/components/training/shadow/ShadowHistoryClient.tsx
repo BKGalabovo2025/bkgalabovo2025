@@ -99,6 +99,7 @@ export function ShadowHistoryClient({
     searchParams.get("sessionId");
   const cardParam = searchParams.get("card");
   const playerParam = searchParams.get("player");
+  const protocolParam = searchParams.get("protocol");
 
   const [searchQuery, setSearchQuery] = useState(
     () => searchParams.get("q") || ""
@@ -183,6 +184,9 @@ export function ShadowHistoryClient({
     const match = sessions.find((s) => s.id === sessionParam);
     if (match) {
       setInspectSession(match);
+      if (protocolParam === "1") {
+        setShowInspectProtocol(true);
+      }
       setTimeout(() => {
         const el = document.getElementById(`session-${match.id}`);
         if (el && typeof el.scrollIntoView === "function") {
@@ -190,7 +194,7 @@ export function ShadowHistoryClient({
         }
       }, 150);
     }
-  }, [sessionParam, sessions]);
+  }, [sessionParam, protocolParam, sessions]);
 
   const handleOpenInspect = (session: TrainingSession) => {
     setInspectSession(session);
@@ -203,12 +207,25 @@ export function ShadowHistoryClient({
 
   const handleCloseInspect = () => {
     setInspectSession(null);
+    setShowInspectProtocol(false);
     const sp = new URLSearchParams(searchParams?.toString() || "");
     sp.delete("session");
     sp.delete("id");
     sp.delete("sessionId");
+    sp.delete("protocol");
     const q = sp.toString();
     router.replace(q ? `?${q}` : window.location.pathname, { scroll: false });
+  };
+
+  const handleInspectProtocolOpenChange = (open: boolean) => {
+    setShowInspectProtocol(open);
+    syncQueryParams((sp) => {
+      if (open) {
+        sp.set("protocol", "1");
+      } else {
+        sp.delete("protocol");
+      }
+    });
   };
 
   const handleModeChange = (modeId: string) => {
@@ -1050,7 +1067,7 @@ export function ShadowHistoryClient({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowInspectProtocol(true)}
+                  onClick={() => handleInspectProtocolOpenChange(true)}
                   className="h-8 rounded-xl border-blue-300 bg-blue-50/80 text-xs font-bold text-blue-900 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200"
                 >
                   <FileText className="mr-1.5 size-3.5 text-blue-600 dark:text-blue-400" />
@@ -1074,7 +1091,7 @@ export function ShadowHistoryClient({
       {inspectSession && (
         <ShadowExportProtocolDialog
           open={showInspectProtocol}
-          onOpenChange={setShowInspectProtocol}
+          onOpenChange={handleInspectProtocolOpenChange}
           date={inspectSession.date}
           coachName={inspectSession.createdBy?.name || "Мира Георгиева"}
           mode={inspectSession.shadowDetails?.mode || inspectSession.type}

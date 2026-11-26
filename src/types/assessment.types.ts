@@ -13,6 +13,8 @@ export type BadmintonTest = {
   maxScore?: number; // Used for progress charts if applicable
   scoreUnit?: string; // e.g., "т.", "сек.", "бр."
   scoreType: "number" | "time" | "percentage" | "text"; // Determine how to validate and display
+  higherIsBetter?: boolean; // For time-based tests where higher seconds = better (e.g. plank)
+  targetTimeSec?: number; // Excellent benchmark in seconds for time-based tests
 };
 
 export type MemberAssessment = {

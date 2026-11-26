@@ -16,11 +16,28 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { createFamilyAction } from "@/lib/actions/families";
 
-export const CreateFamilyDialog = () => {
+interface CreateFamilyDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const CreateFamilyDialog = ({
+  open: controlledOpen,
+  onOpenChange,
+}: CreateFamilyDialogProps = {}) => {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) {
+      setInternalOpen(next);
+    }
+    onOpenChange?.(next);
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

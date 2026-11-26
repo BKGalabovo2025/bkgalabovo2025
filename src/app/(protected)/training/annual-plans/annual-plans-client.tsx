@@ -9,8 +9,9 @@ import {
   Info,
   Trophy,
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,9 +43,23 @@ import {
 } from "@/types/planner.types";
 export default function AnnualPlansClient() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const planParam = searchParams.get("plan");
+  const weekParam = searchParams.get("week");
+  const dayParam = searchParams.get("day");
+  const exerciseParam = searchParams.get("exercise");
   const { activeBranch: siteId } = useAppStore();
+
+  const updateUrlParams = useCallback(
+    (mutator: (sp: URLSearchParams) => void) => {
+      const sp = new URLSearchParams(searchParams?.toString() || "");
+      mutator(sp);
+      const q = sp.toString();
+      router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
   const [plans, setPlans] = useState<AnnualPlan[]>([]);
   const [templates, setTemplates] = useState<TrainingTemplate[]>([]);
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
@@ -84,12 +99,83 @@ export default function AnnualPlansClient() {
 
   const handleSelectPlan = (id: string) => {
     setSelectedPlanId(id);
-    const sp = new URLSearchParams(searchParams?.toString() || "");
-    sp.set("plan", id);
-    router.replace(`?${sp.toString()}`, { scroll: false });
+    updateUrlParams((sp) => {
+      sp.set("plan", id);
+      sp.delete("week");
+      sp.delete("day");
+    });
   };
 
   const activePlan = plans.find((p) => p.id === selectedPlanId);
+
+  // Sync Session Preview (?week=&day=) from URL
+  useEffect(() => {
+    if (!activePlan) return;
+    if (!weekParam || !dayParam) {
+      setSessionPreview(null);
+      return;
+    }
+    const wNum = Number(weekParam);
+    const dNum = Number(dayParam);
+    if (Number.isNaN(wNum) || Number.isNaN(dNum)) return;
+
+    for (const phase of activePlan.phases) {
+      const week = phase.weeks.find((w) => w.weekNumber === wNum);
+      if (week) {
+        const session = week.sessions.find((s) => s.dayOfWeek === dNum);
+        if (session) {
+          setSessionPreview({ session, week, phase });
+          return;
+        }
+      }
+    }
+  }, [activePlan, weekParam, dayParam]);
+
+  // Sync Exercise Preview (?exercise=) from URL
+  useEffect(() => {
+    if (!exerciseParam) {
+      setExercisePreview(null);
+      return;
+    }
+    const foundEx = allExercises.find((e) => e.id === exerciseParam);
+    if (foundEx) {
+      setExercisePreview(foundEx);
+    }
+  }, [exerciseParam, allExercises]);
+
+  const handleOpenSessionPreview = (
+    session: AnnualPlanSession,
+    week: AnnualPlanWeek,
+    phase: AnnualPlanPhase
+  ) => {
+    setSessionPreview({ session, week, phase });
+    updateUrlParams((sp) => {
+      sp.set("week", String(week.weekNumber));
+      sp.set("day", String(session.dayOfWeek));
+    });
+  };
+
+  const handleCloseSessionPreview = () => {
+    setSessionPreview(null);
+    updateUrlParams((sp) => {
+      sp.delete("week");
+      sp.delete("day");
+    });
+  };
+
+  const handleOpenExercisePreview = (ex: Exercise) => {
+    setExercisePreview(ex);
+    updateUrlParams((sp) => {
+      sp.set("exercise", ex.id);
+    });
+  };
+
+  const handleCloseExercisePreview = () => {
+    setExercisePreview(null);
+    updateUrlParams((sp) => {
+      sp.delete("exercise");
+    });
+  };
 
   // Dynamic Date calculation
   const handleStartDateChange = async (dateStr: string) => {
@@ -118,8 +204,22 @@ export default function AnnualPlansClient() {
     );
   if (!plans.length)
     return (
-      <div className="p-8 text-center">
-        Няма намерени годишни планове. Изпълнете seed скрипта.
+      <div className="mx-auto max-w-2xl rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900/50">
+        <Calendar className="mx-auto mb-4 size-12 text-zinc-300 dark:text-zinc-700" />
+        <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          Все още няма добавени годишни планове
+        </h3>
+        <p className="mx-auto mb-6 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
+          Годишните цикли и периодизационни планове за този филиал все още не са
+          заредени. Можете да планирате дневни тренировки директно в
+          Тренировъчния планировчик.
+        </p>
+        <Button
+          asChild
+          className="rounded-xl bg-indigo-600 hover:bg-indigo-700"
+        >
+          <Link href="/training/planner">Към Тренировъчния планировчик</Link>
+        </Button>
       </div>
     );
 
@@ -183,7 +283,7 @@ export default function AnnualPlansClient() {
                       phase={phase}
                       planStartDate={plan.seasonStartDate}
                       onPreviewSession={(session, week) =>
-                        setSessionPreview({ session, week, phase })
+                        handleOpenSessionPreview(session, week, phase)
                       }
                       getTemplate={getTemplate}
                     />
@@ -200,7 +300,7 @@ export default function AnnualPlansClient() {
         open={!!sessionPreview}
         onOpenChange={(open) => {
           if (!open) {
-            setSessionPreview(null);
+            handleCloseSessionPreview();
           }
         }}
       >
@@ -283,7 +383,7 @@ export default function AnnualPlansClient() {
                                             (e) => e.id === ex.exerciseId
                                           );
                                           if (foundEx)
-                                            setExercisePreview(foundEx);
+                                            handleOpenExercisePreview(foundEx);
                                           else
                                             alert(
                                               "Упражнението не е намерено в базата данни."
@@ -320,7 +420,7 @@ export default function AnnualPlansClient() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => setSessionPreview(null)}
+                        onClick={handleCloseSessionPreview}
                         className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
                       >
                         Затвори
@@ -350,7 +450,7 @@ export default function AnnualPlansClient() {
       {/* EXERCISE PREVIEW DIALOG */}
       <Dialog
         open={!!exercisePreview}
-        onOpenChange={(open) => !open && setExercisePreview(null)}
+        onOpenChange={(open) => !open && handleCloseExercisePreview()}
       >
         <DialogContent className="flex max-h-[90dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md md:max-w-xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           {exercisePreview && (
@@ -462,7 +562,7 @@ export default function AnnualPlansClient() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setExercisePreview(null)}
+                  onClick={handleCloseExercisePreview}
                   className="h-9 rounded-xl border-zinc-200 text-xs font-semibold dark:border-zinc-800"
                 >
                   Затвори

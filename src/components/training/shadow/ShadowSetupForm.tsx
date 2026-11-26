@@ -162,6 +162,7 @@ export function ShadowSetupForm({
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDescription, setNewPresetDescription] = useState("");
   const autoSelectedMemberRef = useRef<string | null>(null);
+  const autoSelectedMembersListRef = useRef<string | null>(null);
   const loadedScheduleRef = useRef<string | null>(null);
 
   // ─── ОФЛАЙН КЕШ & СЪСТОЯНИЕ НА ЗАЛАТА ───
@@ -266,6 +267,76 @@ export function ShadowSetupForm({
       const modal = params.get("modal");
       if (modal === "add-member") {
         setIsAddMemberOpen(true);
+      } else if (modal === "save-preset") {
+        setIsSavePresetOpen(true);
+      } else if (modal === "offline-cache") {
+        setIsOfflineModalOpen(true);
+      }
+
+      // Bridge params from SmartCourtBoardView & ActiveSessionClient (?corners=&sets=&work=&rest=&pace=&drillMode=)
+      const urlOverrides: Partial<ShadowSettings> = {};
+      const cornersParam = params.get("corners");
+      if (cornersParam) {
+        if (
+          cornersParam === "2-corners" ||
+          cornersParam === "4-corners" ||
+          cornersParam === "6-corners"
+        ) {
+          urlOverrides.cornersMode = cornersParam;
+        } else {
+          const list = cornersParam
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (list.length > 0) {
+            urlOverrides.cornersMode =
+              list.length <= 2
+                ? "2-corners"
+                : list.length <= 4
+                  ? "4-corners"
+                  : "6-corners";
+          }
+        }
+      }
+      const setsParam = params.get("sets");
+      if (setsParam) {
+        const n = parseInt(setsParam, 10);
+        if (!Number.isNaN(n) && n >= 1 && n <= 20) urlOverrides.sets = n;
+      }
+      const workParam = params.get("work");
+      if (workParam) {
+        const n = parseInt(workParam, 10);
+        if (!Number.isNaN(n) && n >= 5 && n <= 300) urlOverrides.workSec = n;
+      }
+      const restParam = params.get("rest");
+      if (restParam) {
+        const n = parseInt(restParam, 10);
+        if (!Number.isNaN(n) && n >= 5 && n <= 300) urlOverrides.restSec = n;
+      }
+      const paceParam = params.get("pace");
+      if (paceParam) {
+        const n = parseFloat(paceParam);
+        if (!Number.isNaN(n) && n >= 0.5 && n <= 10) urlOverrides.paceSec = n;
+      }
+      const drillModeParam = params.get("drillMode");
+      if (
+        drillModeParam &&
+        [
+          "all",
+          "front_only",
+          "back_only",
+          "forehand_only",
+          "backhand_only",
+          "front_back",
+        ].includes(drillModeParam)
+      ) {
+        urlOverrides.drillMode = drillModeParam as ShadowSettings["drillMode"];
+      }
+      if (Object.keys(urlOverrides).length > 0) {
+        setSettings((prev) => ({
+          ...prev,
+          ...urlOverrides,
+        }));
       }
 
       const mod = params.get("modifiers");
@@ -316,6 +387,28 @@ export function ShadowSetupForm({
       if (open) {
         params.set("modal", "add-member");
       } else if (params.get("modal") === "add-member") {
+        params.delete("modal");
+      }
+    });
+  }, []);
+
+  const handleSavePresetOpenChange = useCallback((open: boolean) => {
+    setIsSavePresetOpen(open);
+    updateUrlParams((params) => {
+      if (open) {
+        params.set("modal", "save-preset");
+      } else if (params.get("modal") === "save-preset") {
+        params.delete("modal");
+      }
+    });
+  }, []);
+
+  const handleOfflineModalOpenChange = useCallback((open: boolean) => {
+    setIsOfflineModalOpen(open);
+    updateUrlParams((params) => {
+      if (open) {
+        params.set("modal", "offline-cache");
+      } else if (params.get("modal") === "offline-cache") {
         params.delete("modal");
       }
     });
@@ -394,11 +487,17 @@ export function ShadowSetupForm({
     updateUrlParams((params) => {
       params.set("preset", saved.id);
     });
-    setIsSavePresetOpen(false);
+    handleSavePresetOpenChange(false);
     setNewPresetName("");
     setNewPresetDescription("");
     toast.success(`Шаблонът „${saved.name}“ беше успешно запазен!`);
-  }, [newPresetName, newPresetDescription, settings, setSettings]);
+  }, [
+    newPresetName,
+    newPresetDescription,
+    settings,
+    setSettings,
+    handleSavePresetOpenChange,
+  ]);
 
   const handleDeleteCustomPreset = useCallback((presetId: string) => {
     deleteCustomCoachPreset(presetId);
@@ -488,6 +587,52 @@ export function ShadowSetupForm({
       });
     }
   }, [membersList, preselectedMemberId, setSettings]);
+
+  // Auto-select multiple players from URL ?members=id1,id2,...
+  useEffect(() => {
+    if (typeof window === "undefined" || membersList.length === 0) return;
+    let membersParam: string | null = null;
+    try {
+      membersParam = new URLSearchParams(window.location.search).get("members");
+    } catch {
+      return;
+    }
+    if (!membersParam || autoSelectedMembersListRef.current === membersParam)
+      return;
+    const ids = membersParam
+      .split(",")
+      .map((id) => id.trim())
+      .filter(Boolean);
+    if (ids.length === 0) return;
+
+    const matched: ShadowPlayer[] = [];
+    ids.forEach((id) => {
+      const found = membersList.find((m) => m.id === id);
+      if (found) {
+        matched.push({
+          id: found.id,
+          displayName:
+            found.displayName ||
+            `${found.firstName || ""} ${found.lastName || ""}`.trim() ||
+            "Играч",
+          ageGroup: found.ageGroup || resolveMemberAgeGroup(found),
+        });
+      }
+    });
+
+    if (matched.length > 0) {
+      autoSelectedMembersListRef.current = membersParam;
+      setSettings((prev) => {
+        const existingIds = new Set(prev.activePlayers.map((p) => p.id));
+        const toAdd = matched.filter((p) => !existingIds.has(p.id));
+        if (toAdd.length === 0) return prev;
+        return {
+          ...prev,
+          activePlayers: [...prev.activePlayers, ...toAdd],
+        };
+      });
+    }
+  }, [membersList, setSettings]);
 
   // Auto-load session & attendees from URL ?scheduleId=...
   useEffect(() => {
@@ -941,7 +1086,7 @@ export function ShadowSetupForm({
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <button
                     type="button"
-                    onClick={() => setIsOfflineModalOpen(true)}
+                    onClick={() => handleOfflineModalOpenChange(true)}
                     className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
                     title="Кликнете за преглед на офлайн статуса и кеширане на всички 32 MP3 звуци"
                   >
@@ -1113,7 +1258,7 @@ export function ShadowSetupForm({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => setIsSavePresetOpen(true)}
+                      onClick={() => handleSavePresetOpenChange(true)}
                       className="h-7 rounded-lg border-blue-500/30 bg-blue-500/10 px-2 text-[11px] font-bold text-blue-700 hover:bg-blue-500/20 dark:text-blue-300"
                     >
                       <BookmarkPlus size={13} className="mr-1" />
@@ -2732,7 +2877,10 @@ export function ShadowSetupForm({
         />
 
         {/* ── МОДАЛ ЗА ЗАПАЗВАНЕ НА НОВ ТРЕНЬОРСКИ ШАБЛОН ── */}
-        <Dialog open={isSavePresetOpen} onOpenChange={setIsSavePresetOpen}>
+        <Dialog
+          open={isSavePresetOpen}
+          onOpenChange={handleSavePresetOpenChange}
+        >
           <DialogContent className="max-w-md rounded-2xl p-5">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-base font-black">
@@ -2779,7 +2927,7 @@ export function ShadowSetupForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsSavePresetOpen(false)}
+                onClick={() => handleSavePresetOpenChange(false)}
                 className="text-xs"
               >
                 Отказ
@@ -2797,7 +2945,10 @@ export function ShadowSetupForm({
         </Dialog>
 
         {/* ─── МОДАЛ: ОФЛАЙН ГОТОВНОСТ & АУДИО КЕШ В ЗАЛАТА ─── */}
-        <Dialog open={isOfflineModalOpen} onOpenChange={setIsOfflineModalOpen}>
+        <Dialog
+          open={isOfflineModalOpen}
+          onOpenChange={handleOfflineModalOpenChange}
+        >
           <DialogContent className="max-w-md border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
             <DialogHeader>
               <div className="flex items-center gap-2.5">
@@ -2886,7 +3037,7 @@ export function ShadowSetupForm({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsOfflineModalOpen(false)}
+                onClick={() => handleOfflineModalOpenChange(false)}
                 className="h-9 rounded-xl border-zinc-200 text-xs font-bold dark:border-zinc-800"
               >
                 Затвори

@@ -11,8 +11,8 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -56,15 +56,22 @@ export default function AssessmentsClient({
   initialTab = "bwf",
 }: AssessmentsClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
-  const testParam = searchParams.get("test") || idParam;
+  const testIdParam = searchParams.get("testId");
+  const testParam = testIdParam || searchParams.get("test") || idParam;
+  const memberIdParam = searchParams.get("memberId") || undefined;
+  const actionParam = searchParams.get("action");
   const assessmentParam = searchParams.get("assessment") || idParam;
   const dateParam = searchParams.get("date");
 
   const { activeBranch } = useAppStore();
   const [selectedTest, setSelectedTest] = useState<BadmintonTest | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<
+    AssessmentAgeGroup | "all"
+  >("all");
   const [printFilter, setPrintFilter] = useState<string | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -89,6 +96,11 @@ export default function AssessmentsClient({
     if (activeTab === "bwf" && testParam) {
       const match = BADMINTON_TESTS.find((t) => t.id === testParam);
       if (match) {
+        setSelectedAgeGroup(match.ageGroup);
+        if (actionParam === "conduct" || Boolean(testIdParam)) {
+          setSelectedTest(match);
+          setIsDialogOpen(true);
+        }
         setTimeout(() => {
           const el = document.getElementById(`test-${match.id}`);
           if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -107,7 +119,15 @@ export default function AssessmentsClient({
         }, 150);
       }
     }
-  }, [activeTab, testParam, assessmentParam, dateParam, isHistoryLoading]);
+  }, [
+    activeTab,
+    testParam,
+    testIdParam,
+    actionParam,
+    assessmentParam,
+    dateParam,
+    isHistoryLoading,
+  ]);
 
   useEffect(() => {
     getAllMembers().then(setMembers).catch(console.error);
@@ -185,10 +205,32 @@ export default function AssessmentsClient({
     return () => window.removeEventListener("afterprint", handleAfterPrint);
   }, []);
 
-  const handleConductTest = (test: BadmintonTest) => {
-    setSelectedTest(test);
-    setIsDialogOpen(true);
-  };
+  const handleConductTest = useCallback(
+    (test: BadmintonTest) => {
+      setSelectedTest(test);
+      setIsDialogOpen(true);
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("action", "conduct");
+      params.set("testId", test.id);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
+
+  const handleDialogOpenChange = useCallback(
+    (open: boolean) => {
+      setIsDialogOpen(open);
+      if (!open) {
+        setSelectedTest(null);
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("action");
+        params.delete("testId");
+        const query = params.toString() ? `?${params.toString()}` : "";
+        router.replace(`${pathname}${query}`, { scroll: false });
+      }
+    },
+    [pathname, router, searchParams]
+  );
 
   const handlePrint = (filter: string | "all") => {
     setPrintFilter(filter);
@@ -296,6 +338,36 @@ export default function AssessmentsClient({
           </div>
 
           <TabsContent value="bwf" className="duration-300 animate-in fade-in">
+            <div className="no-print mb-5 flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSelectedAgeGroup("all")}
+                className={cn(
+                  "rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
+                  selectedAgeGroup === "all"
+                    ? "border-indigo-600 bg-indigo-600 text-white"
+                    : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                )}
+              >
+                Всички ({BADMINTON_TESTS.length})
+              </button>
+              {ageGroups.map((group) => (
+                <button
+                  key={group}
+                  type="button"
+                  onClick={() => setSelectedAgeGroup(group)}
+                  className={cn(
+                    "rounded-xl border px-3 py-1.5 text-xs font-bold transition-colors",
+                    selectedAgeGroup === group
+                      ? "border-indigo-600 bg-indigo-600 text-white"
+                      : "border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                  )}
+                >
+                  {group}
+                </button>
+              ))}
+            </div>
+
             <div className="printable-area space-y-12 bg-white p-2 dark:bg-transparent">
               <div className="mb-8 hidden text-center print:block">
                 <h1 className="text-2xl font-bold uppercase">
@@ -304,160 +376,165 @@ export default function AssessmentsClient({
                 <p>Дата: ______________ Треньор: _________________________</p>
               </div>
 
-              {ageGroups.map((group) => {
-                const q = searchQuery.trim().toLowerCase();
-                const groupTests = BADMINTON_TESTS.filter(
-                  (t: BadmintonTest) =>
-                    t.ageGroup === group &&
-                    (!q ||
-                      t.name.toLowerCase().includes(q) ||
-                      t.description.toLowerCase().includes(q) ||
-                      t.focus.toLowerCase().includes(q) ||
-                      t.ageGroup.toLowerCase().includes(q))
-                );
-                if (groupTests.length === 0) return null;
+              {ageGroups
+                .filter(
+                  (group) =>
+                    selectedAgeGroup === "all" || selectedAgeGroup === group
+                )
+                .map((group) => {
+                  const q = searchQuery.trim().toLowerCase();
+                  const groupTests = BADMINTON_TESTS.filter(
+                    (t: BadmintonTest) =>
+                      t.ageGroup === group &&
+                      (!q ||
+                        t.name.toLowerCase().includes(q) ||
+                        t.description.toLowerCase().includes(q) ||
+                        t.focus.toLowerCase().includes(q) ||
+                        t.ageGroup.toLowerCase().includes(q))
+                  );
+                  if (groupTests.length === 0) return null;
 
-                let groupPrintClass = "print:hidden";
-                if (printFilter === "all") {
-                  groupPrintClass = "page-break-after-always";
-                } else if (groupTests.some((t) => t.id === printFilter)) {
-                  groupPrintClass = "";
-                }
+                  let groupPrintClass = "print:hidden";
+                  if (printFilter === "all") {
+                    groupPrintClass = "page-break-after-always";
+                  } else if (groupTests.some((t) => t.id === printFilter)) {
+                    groupPrintClass = "";
+                  }
 
-                return (
-                  <div key={group} className={cn("mb-10", groupPrintClass)}>
-                    <div className="mb-4 flex items-center gap-3">
-                      <span className="rounded-lg bg-indigo-600 px-3 py-1 text-lg font-black tracking-widest text-white uppercase">
-                        {group}
-                      </span>
-                      <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800"></div>
-                    </div>
+                  return (
+                    <div key={group} className={cn("mb-10", groupPrintClass)}>
+                      <div className="mb-4 flex items-center gap-3">
+                        <span className="rounded-lg bg-indigo-600 px-3 py-1 text-lg font-black tracking-widest text-white uppercase">
+                          {group}
+                        </span>
+                        <div className="h-px flex-1 bg-zinc-200 dark:bg-zinc-800"></div>
+                      </div>
 
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      {groupTests.map((test: BadmintonTest) => {
-                        const isHighlighted = testParam === test.id;
-                        return (
-                          <div
-                            key={test.id}
-                            id={`test-${test.id}`}
-                            className={cn(
-                              "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
-                              isHighlighted && "ring-2 ring-indigo-500",
-                              printFilter !== "all" &&
-                                printFilter !== test.id &&
-                                "print:hidden"
-                            )}
-                          >
-                            <div>
-                              <div className="mb-2 flex items-start justify-between">
-                                <h3 className="text-lg leading-tight font-bold dark:text-zinc-100">
-                                  {test.name}
-                                </h3>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase dark:bg-zinc-800">
-                                    {test.source}
-                                  </span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="no-print size-7 rounded-lg text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
-                                    onClick={() => {
-                                      const url = `${window.location.origin}${window.location.pathname}?id=${test.id}`;
-                                      void navigator.clipboard.writeText(url);
-                                      toast.success("Линкът е копиран!");
-                                    }}
-                                    title="Копирай директен линк"
-                                    aria-label="Копирай директен линк"
-                                  >
-                                    <Link2 className="size-3.5" />
-                                  </Button>
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        {groupTests.map((test: BadmintonTest) => {
+                          const isHighlighted = testParam === test.id;
+                          return (
+                            <div
+                              key={test.id}
+                              id={`test-${test.id}`}
+                              className={cn(
+                                "flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900",
+                                isHighlighted && "ring-2 ring-indigo-500",
+                                printFilter !== "all" &&
+                                  printFilter !== test.id &&
+                                  "print:hidden"
+                              )}
+                            >
+                              <div>
+                                <div className="mb-2 flex items-start justify-between">
+                                  <h3 className="text-lg leading-tight font-bold dark:text-zinc-100">
+                                    {test.name}
+                                  </h3>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="rounded bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-zinc-400 uppercase dark:bg-zinc-800">
+                                      {test.source}
+                                    </span>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      className="no-print size-7 rounded-lg text-zinc-400 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                                      onClick={() => {
+                                        const url = `${window.location.origin}${window.location.pathname}?id=${test.id}`;
+                                        void navigator.clipboard.writeText(url);
+                                        toast.success("Линкът е копиран!");
+                                      }}
+                                      title="Копирай директен линк"
+                                      aria-label="Копирай директен линк"
+                                    >
+                                      <Link2 className="size-3.5" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                                  {test.description}
+                                </p>
+
+                                <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
+                                  <p>
+                                    <strong className="text-zinc-800 dark:text-zinc-200">
+                                      Оборудване:
+                                    </strong>{" "}
+                                    <span className="text-zinc-600 dark:text-zinc-400">
+                                      {test.equipment}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <strong className="text-zinc-800 dark:text-zinc-200">
+                                      Оценяване:
+                                    </strong>{" "}
+                                    <span className="text-zinc-600 dark:text-zinc-400">
+                                      {test.scoring}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <strong className="text-zinc-800 dark:text-zinc-200">
+                                      Фокус:
+                                    </strong>{" "}
+                                    <span className="text-zinc-600 dark:text-zinc-400">
+                                      {test.focus}
+                                    </span>
+                                  </p>
                                 </div>
                               </div>
-                              <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                                {test.description}
-                              </p>
 
-                              <div className="space-y-2 rounded-lg border border-zinc-100 bg-zinc-50 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                                <p>
-                                  <strong className="text-zinc-800 dark:text-zinc-200">
-                                    Оборудване:
-                                  </strong>{" "}
-                                  <span className="text-zinc-600 dark:text-zinc-400">
-                                    {test.equipment}
-                                  </span>
-                                </p>
-                                <p>
-                                  <strong className="text-zinc-800 dark:text-zinc-200">
-                                    Оценяване:
-                                  </strong>{" "}
-                                  <span className="text-zinc-600 dark:text-zinc-400">
-                                    {test.scoring}
-                                  </span>
-                                </p>
-                                <p>
-                                  <strong className="text-zinc-800 dark:text-zinc-200">
-                                    Фокус:
-                                  </strong>{" "}
-                                  <span className="text-zinc-600 dark:text-zinc-400">
-                                    {test.focus}
-                                  </span>
-                                </p>
+                              <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+                                <Button
+                                  onClick={() => handlePrint(test.id)}
+                                  variant="ghost"
+                                  className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto dark:text-zinc-400 dark:hover:text-zinc-100"
+                                >
+                                  <Printer className="mr-2 size-4" />
+                                  Принтирай
+                                </Button>
+                                <Button
+                                  onClick={() => handleConductTest(test)}
+                                  className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                                >
+                                  <ClipboardList className="mr-2 size-4" />
+                                  Проведи тест
+                                </Button>
+                              </div>
+
+                              {/* Print-only empty table rows for writing results */}
+                              <div className="mt-4 hidden border-t border-zinc-200 pt-2 print:block">
+                                <table className="w-full border-collapse border border-zinc-300 text-left text-xs">
+                                  <thead>
+                                    <tr className="bg-zinc-100">
+                                      <th className="w-1/2 border border-zinc-300 p-1">
+                                        Име на състезател
+                                      </th>
+                                      <th className="w-1/4 border border-zinc-300 p-1">
+                                        Резултат
+                                      </th>
+                                      <th className="w-1/4 border border-zinc-300 p-1">
+                                        Бележка
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {[1, 2, 3, 4, 5, 6].map((row) => (
+                                      <tr key={row}>
+                                        <td className="border border-zinc-300 p-3"></td>
+                                        <td className="border border-zinc-300 p-3"></td>
+                                        <td className="border border-zinc-300 p-3"></td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
-
-                            <div className="no-print mt-4 flex justify-end gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
-                              <Button
-                                onClick={() => handlePrint(test.id)}
-                                variant="ghost"
-                                className="w-full text-zinc-500 hover:text-zinc-800 sm:w-auto dark:text-zinc-400 dark:hover:text-zinc-100"
-                              >
-                                <Printer className="mr-2 size-4" />
-                                Принтирай
-                              </Button>
-                              <Button
-                                onClick={() => handleConductTest(test)}
-                                className="w-full bg-indigo-50 font-bold text-indigo-700 hover:bg-indigo-100 sm:w-auto dark:bg-indigo-950/60 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
-                              >
-                                <ClipboardList className="mr-2 size-4" />
-                                Проведи тест
-                              </Button>
-                            </div>
-
-                            {/* Print-only empty table rows for writing results */}
-                            <div className="mt-4 hidden border-t border-zinc-200 pt-2 print:block">
-                              <table className="w-full border-collapse border border-zinc-300 text-left text-xs">
-                                <thead>
-                                  <tr className="bg-zinc-100">
-                                    <th className="w-1/2 border border-zinc-300 p-1">
-                                      Име на състезател
-                                    </th>
-                                    <th className="w-1/4 border border-zinc-300 p-1">
-                                      Резултат
-                                    </th>
-                                    <th className="w-1/4 border border-zinc-300 p-1">
-                                      Бележка
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {[1, 2, 3, 4, 5, 6].map((row) => (
-                                    <tr key={row}>
-                                      <td className="border border-zinc-300 p-3"></td>
-                                      <td className="border border-zinc-300 p-3"></td>
-                                      <td className="border border-zinc-300 p-3"></td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </TabsContent>
 
@@ -634,7 +711,11 @@ export default function AssessmentsClient({
       <ConductTestDialog
         test={selectedTest}
         open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        onOpenChange={handleDialogOpenChange}
+        initialMemberId={memberIdParam}
+        onSaved={() => {
+          void loadHistory();
+        }}
       />
     </>
   );

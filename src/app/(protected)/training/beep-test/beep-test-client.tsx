@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -82,7 +82,9 @@ export default function BeepTestClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
+  const memberIdParam = searchParams.get("memberId");
   const resultIdParam = searchParams.get("id") || searchParams.get("resultId");
+  const hasAppliedMemberParamRef = useRef(false);
 
   const { activeBranch } = useAppStore();
   const { state: beepState, start, pause, reset } = useBeepTestEngine();
@@ -207,8 +209,17 @@ export default function BeepTestClient({
   }, [members, selectedAgeGroup, selectedGender]);
 
   useEffect(() => {
+    if (
+      memberIdParam &&
+      !hasAppliedMemberParamRef.current &&
+      filteredMembers.some((m) => m.id === memberIdParam)
+    ) {
+      hasAppliedMemberParamRef.current = true;
+      setSelectedParticipantIds([memberIdParam]);
+      return;
+    }
     setSelectedParticipantIds(filteredMembers.map((m) => m.id));
-  }, [filteredMembers]);
+  }, [filteredMembers, memberIdParam]);
 
   const groupedHistory = useMemo(() => {
     const q = historySearch.trim().toLowerCase();
@@ -707,7 +718,7 @@ export default function BeepTestClient({
             <Button
               size="lg"
               onClick={beepState.isPlaying ? pause : start}
-              className={`h-14 w-40 text-lg ${beepState.isPlaying ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-500 hover:bg-emerald-600"}`}
+              className={`h-14 w-40 text-lg text-white ${beepState.isPlaying ? "bg-amber-500 hover:bg-amber-600" : "bg-emerald-500 hover:bg-emerald-600"}`}
             >
               {beepState.isPlaying ? (
                 <>
@@ -734,7 +745,7 @@ export default function BeepTestClient({
 
       {/* Grid Layout (Състезатели) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {participants
+        {[...participants]
           .sort((a, b) => Number(a.hasDroppedOut) - Number(b.hasDroppedOut))
           .map((p) => (
             <Card

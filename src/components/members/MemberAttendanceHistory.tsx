@@ -20,12 +20,11 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import useSWR from "swr";
 
+import { useMemberProfileContext } from "@/components/members/profile/MemberProfileContext";
 import { Badge } from "@/components/ui/badge";
 import { formatTimeRange } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
-import { getEventsByMemberId } from "@/services/schedule-service";
 import { Attendee, ScheduleEvent, ScheduleEventType } from "@/types";
 
 interface MemberAttendanceHistoryProps {
@@ -89,10 +88,8 @@ export function MemberAttendanceHistory({
   const [attendanceFilter, setAttendanceFilter] = useState<
     "all" | "attended" | "missed"
   >("all");
-  const { data: memberEvents, isLoading: loading } = useSWR(
-    memberId ? `events_${memberId}` : null,
-    () => getEventsByMemberId(memberId)
-  );
+  const [cutoff30d] = useState(() => Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const { attendances: memberEvents, loading } = useMemberProfileContext();
 
   const memberParticipationEvents = useMemo(() => {
     if (!memberEvents) return [];
@@ -118,6 +115,37 @@ export function MemberAttendanceHistory({
   );
 
   const missedCount = memberParticipationEvents.length - attendedCount;
+
+  const activity30d = useMemo(() => {
+    const recentAttended = memberParticipationEvents.filter((event) => {
+      const t = new Date(event.startDate).getTime();
+      if (Number.isNaN(t) || t < cutoff30d) return false;
+      const rec = event.attendees?.find(
+        (a: Attendee) => a.memberId === memberId
+      );
+      return rec?.attended === true;
+    }).length;
+
+    if (recentAttended >= 4) {
+      return {
+        label: `Активен (${recentAttended} / 30д)`,
+        badgeClass:
+          "border-green-100 bg-green-50 text-green-600 dark:border-green-900/50 dark:bg-green-950/40 dark:text-green-400",
+      };
+    }
+    if (recentAttended >= 1) {
+      return {
+        label: `Умерен (${recentAttended} / 30д)`,
+        badgeClass:
+          "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300",
+      };
+    }
+    return {
+      label: "Неактивен (30д)",
+      badgeClass:
+        "border-zinc-200 bg-zinc-100 text-zinc-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
+    };
+  }, [memberParticipationEvents, memberId, cutoff30d]);
 
   const filteredEvents = useMemo(() => {
     if (attendanceFilter === "all") return memberParticipationEvents;
@@ -173,7 +201,7 @@ export function MemberAttendanceHistory({
     return (
       <div className="flex justify-center py-20">
         <Loader2
-          className="size-8 animate-spin text-zinc-200"
+          className="size-8 animate-spin text-zinc-400 dark:text-zinc-600"
           strokeWidth={1.5}
         />
       </div>
@@ -253,13 +281,16 @@ export function MemberAttendanceHistory({
           <div className="flex items-end justify-between">
             <Badge
               variant="outline"
-              className="rounded-full border-green-100 dark:border-green-900/50 bg-green-50 dark:bg-green-950/40 px-3 py-0.5 text-[9px] font-medium tracking-widest text-green-600 dark:text-green-400 uppercase sm:text-[10px]"
+              className={cn(
+                "rounded-full px-3 py-0.5 text-[9px] font-medium tracking-widest uppercase sm:text-[10px]",
+                activity30d.badgeClass
+              )}
             >
-              Активен
+              {activity30d.label}
             </Badge>
             <div className="flex size-9 items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 sm:size-12">
               <Trophy
-                className="size-4 text-zinc-300 dark:text-zinc-500 sm:size-5"
+                className="size-4 text-zinc-300 dark:text-zinc-600 sm:size-5"
                 strokeWidth={1.5}
               />
             </div>
@@ -512,14 +543,14 @@ function MemberAttendanceEventCard({
 
       <div className="mt-auto flex items-center gap-4 border-t border-zinc-50 dark:border-zinc-800/60 pt-4">
         <div className="flex items-center gap-1.5">
-          <Clock className="size-3 text-zinc-300" />
+          <Clock className="size-3 text-zinc-400 dark:text-zinc-600" />
           <span className="text-[10px] font-light tracking-widest text-zinc-400 uppercase">
             {formatTimeRange(event.startDate, event.endDate)}
           </span>
         </div>
         {event.location && (
           <div className="ml-auto flex items-center gap-1.5">
-            <MapPin className="size-3 text-zinc-300" />
+            <MapPin className="size-3 text-zinc-400 dark:text-zinc-600" />
             <span className="max-w-20 truncate text-[10px] font-light text-zinc-400">
               {event.location}
             </span>

@@ -82,7 +82,32 @@ export function ShadowReportForm({
   const [recordingMemberId, setRecordingMemberId] = useState<string | null>(
     null
   );
-  const [showProtocolDialog, setShowProtocolDialog] = useState(false);
+  const [showProtocolDialog, setShowProtocolDialog] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return (
+        new URLSearchParams(window.location.search).get("modal") === "protocol"
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  const handleProtocolDialogOpenChange = (open: boolean) => {
+    setShowProtocolDialog(open);
+    if (typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      if (open) {
+        url.searchParams.set("modal", "protocol");
+      } else if (url.searchParams.get("modal") === "protocol") {
+        url.searchParams.delete("modal");
+      }
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+    } catch {
+      // Ignore URL errors
+    }
+  };
 
   const effectiveIndividualRpe = useMemo(() => {
     const map: Record<string, number> = {};
@@ -456,7 +481,7 @@ export function ShadowReportForm({
               type="button"
               variant="outline"
               size="lg"
-              onClick={() => setShowProtocolDialog(true)}
+              onClick={() => handleProtocolDialogOpenChange(true)}
               className="h-11 w-full rounded-xl border-blue-300 bg-blue-50/70 text-xs font-bold text-blue-900 transition-colors hover:bg-blue-100 sm:text-sm dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-200 dark:hover:bg-blue-900/60"
             >
               <FileText className="mr-2 size-4 text-blue-600 dark:text-blue-400" />
@@ -495,7 +520,7 @@ export function ShadowReportForm({
       {/* Official PDF & Print Protocol Dialog */}
       <ShadowExportProtocolDialog
         open={showProtocolDialog}
-        onOpenChange={setShowProtocolDialog}
+        onOpenChange={handleProtocolDialogOpenChange}
         coachName={user?.displayName || user?.email || "Мира Георгиева"}
         mode={settings?.mode}
         preset={settings?.preset}

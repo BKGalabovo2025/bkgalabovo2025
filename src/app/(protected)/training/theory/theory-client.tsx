@@ -21,8 +21,8 @@ import {
   Trophy,
   Users,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
@@ -57,12 +57,38 @@ interface TheoryClientProps {
 export default function TheoryClient({
   initialTab = "library",
 }: TheoryClientProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
+  const actionParam = searchParams.get("action");
+  const quizIdParam = searchParams.get("quizId");
   const quizParam = searchParams.get("quiz") || idParam;
-  const editQuizParam = searchParams.get("editQuiz");
-  const sendQuizParam = searchParams.get("sendQuiz");
+  const editQuizParam =
+    actionParam === "edit" ? quizIdParam : searchParams.get("editQuiz");
+  const sendQuizParam =
+    actionParam === "send" ? quizIdParam : searchParams.get("sendQuiz");
+  const isBankActionParam = actionParam === "question-bank";
   const resultParam = searchParams.get("result") || idParam;
+
+  const syncModalUrl = useCallback(
+    (action: "send" | "edit" | "question-bank" | null, quizId?: string) => {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      params.delete("action");
+      params.delete("quizId");
+      params.delete("editQuiz");
+      params.delete("sendQuiz");
+      if (action) {
+        params.set("action", action);
+        if (quizId) {
+          params.set("quizId", quizId);
+        }
+      }
+      const query = params.toString() ? `?${params.toString()}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [pathname, router, searchParams]
+  );
 
   const { activeBranch } = useAppStore();
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
@@ -91,38 +117,6 @@ export default function TheoryClient({
       setActiveTab(initialTab);
     }
   }, [initialTab]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      if (editQuizParam && quizzes.length > 0) {
-        const q = quizzes.find((x) => x.id === editQuizParam);
-        if (q) openEdit(q);
-      } else if (sendQuizParam && quizzes.length > 0) {
-        const q = quizzes.find((x) => x.id === sendQuizParam);
-        if (q) openSend(q);
-      } else if (quizParam) {
-        setTimeout(() => {
-          const el = document.getElementById(`quiz-${quizParam}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 150);
-      } else if (resultParam) {
-        setTimeout(() => {
-          const el =
-            document.getElementById(`result-${resultParam}`) ||
-            document.getElementById(`pending-result-${resultParam}`) ||
-            document.getElementById(`sent-result-${resultParam}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 150);
-      }
-    }
-  }, [
-    isLoading,
-    quizParam,
-    editQuizParam,
-    sendQuizParam,
-    resultParam,
-    quizzes,
-  ]);
 
   // Send modal
   const [sendQuiz, setSendQuiz] = useState<Quiz | null>(null);
@@ -155,6 +149,54 @@ export default function TheoryClient({
   const [bankSearch, setBankSearch] = useState("");
   const [bankCategory, setBankCategory] = useState<string>("Всички");
   const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (editQuizParam && quizzes.length > 0) {
+        const q = quizzes.find((x) => x.id === editQuizParam);
+        if (q && editQuiz?.id !== q.id) {
+          setEditQuiz(q);
+          setEditTitle(q.title);
+          setEditDescription(q.description);
+          setEditQuestions(
+            JSON.parse(JSON.stringify(q.questions)) as QuizQuestion[]
+          );
+        }
+      } else if (sendQuizParam && quizzes.length > 0) {
+        const q = quizzes.find((x) => x.id === sendQuizParam);
+        if (q && sendQuiz?.id !== q.id) {
+          setSendQuiz(q);
+          setGeneratedLink("");
+          setSelectedMemberId("");
+        }
+      } else if (isBankActionParam) {
+        setIsBankOpen(true);
+      } else if (quizParam) {
+        setTimeout(() => {
+          const el = document.getElementById(`quiz-${quizParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      } else if (resultParam) {
+        setTimeout(() => {
+          const el =
+            document.getElementById(`result-${resultParam}`) ||
+            document.getElementById(`pending-result-${resultParam}`) ||
+            document.getElementById(`sent-result-${resultParam}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+  }, [
+    isLoading,
+    quizParam,
+    editQuizParam,
+    sendQuizParam,
+    isBankActionParam,
+    resultParam,
+    quizzes,
+    editQuiz?.id,
+    sendQuiz?.id,
+  ]);
 
   useEffect(() => {
     void load();
@@ -230,6 +272,12 @@ export default function TheoryClient({
     setSendQuiz(quiz);
     setGeneratedLink("");
     setSelectedMemberId("");
+    syncModalUrl("send", quiz.id);
+  };
+
+  const closeSend = () => {
+    setSendQuiz(null);
+    syncModalUrl(null);
   };
 
   // ── EDIT ─────────────────────────────────────────────────────────────────
@@ -240,6 +288,23 @@ export default function TheoryClient({
     setEditQuestions(
       JSON.parse(JSON.stringify(quiz.questions)) as QuizQuestion[]
     );
+    syncModalUrl("edit", quiz.id);
+  };
+
+  const closeEdit = () => {
+    setEditQuiz(null);
+    syncModalUrl(null);
+  };
+
+  const openBank = () => {
+    setSelectedBankIds([]);
+    setIsBankOpen(true);
+    syncModalUrl("question-bank");
+  };
+
+  const closeBank = () => {
+    setIsBankOpen(false);
+    syncModalUrl(null);
   };
 
   const saveEdit = async () => {
@@ -252,7 +317,7 @@ export default function TheoryClient({
         isCustom: true,
       });
       toast.success("Тестът е обновен!");
-      setEditQuiz(null);
+      closeEdit();
       void load();
     } catch (err) {
       console.error("Theory save edit error:", err);
@@ -268,7 +333,7 @@ export default function TheoryClient({
         editQuiz.baseTemplateId
       );
       toast.success("Тестът е върнат към оригиналния шаблон!");
-      setEditQuiz(null);
+      closeEdit();
       void load();
     } catch (err) {
       console.error("Theory reset to base error:", err);
@@ -320,7 +385,7 @@ export default function TheoryClient({
       setNewTitle("");
       setNewDesc("");
       setNewQuestions([]);
-      setActiveTab("library");
+      router.push("/training/theory");
       void load();
     } catch (err) {
       console.error("Theory create quiz error:", err);
@@ -561,7 +626,7 @@ export default function TheoryClient({
                     </Button>
                     <Button
                       size="sm"
-                      className="flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                      className="flex-1 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                       onClick={() => openSend(quiz)}
                     >
                       <Send className="mr-1 size-3" /> Изпрати
@@ -613,7 +678,7 @@ export default function TheoryClient({
               <CardContent className="space-y-3 p-5">
                 <div className="flex items-center justify-between">
                   <Badge
-                    className={`text-xs ${q.type === "OPEN_TEXT" ? "bg-purple-100 text-purple-700" : "bg-indigo-100 text-indigo-700"}`}
+                    className={`text-xs ${q.type === "OPEN_TEXT" ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300" : "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"}`}
                   >
                     {q.type === "OPEN_TEXT"
                       ? "🧠 Тактическа мисия"
@@ -645,7 +710,7 @@ export default function TheoryClient({
                   q.options?.map((opt, oi) => (
                     <div key={oi} className="flex items-center gap-2">
                       <span
-                        className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${q.correctAnswer === oi ? "bg-green-500 text-white" : "bg-zinc-100 text-zinc-500"}`}
+                        className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${q.correctAnswer === oi ? "bg-green-500 text-white" : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"}`}
                       >
                         {["А", "Б", "В"][oi]}
                       </span>
@@ -672,7 +737,7 @@ export default function TheoryClient({
                             return c;
                           })
                         }
-                        className={`rounded-lg px-2 py-1 text-xs font-bold ${q.correctAnswer === oi ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-500 hover:bg-green-50"}`}
+                        className={`rounded-lg px-2 py-1 text-xs font-bold ${q.correctAnswer === oi ? "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-300" : "bg-zinc-100 text-zinc-500 hover:bg-green-50 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-green-950/40"}`}
                       >
                         {q.correctAnswer === oi ? (
                           <Check className="size-3" />
@@ -689,13 +754,10 @@ export default function TheoryClient({
           <div className="flex flex-wrap gap-2 sm:gap-3">
             <Button
               variant="outline"
-              className="flex-1 rounded-xl border-indigo-200 bg-indigo-50/50 text-indigo-700 hover:bg-indigo-100"
-              onClick={() => {
-                setSelectedBankIds([]);
-                setIsBankOpen(true);
-              }}
+              className="flex-1 rounded-xl border-indigo-200 bg-indigo-50/50 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-900/60 dark:bg-indigo-950/40 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+              onClick={openBank}
             >
-              <Database className="mr-2 size-4 text-indigo-600" />
+              <Database className="mr-2 size-4 text-indigo-600 dark:text-indigo-400" />
               📚 Банка с 100 въпроса
             </Button>
             <Button
@@ -707,14 +769,14 @@ export default function TheoryClient({
             </Button>
             <Button
               variant="outline"
-              className="flex-1 rounded-xl border-purple-200 text-purple-700 hover:bg-purple-50"
+              className="flex-1 rounded-xl border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-900/60 dark:bg-purple-950/30 dark:text-purple-300 dark:hover:bg-purple-900/50"
               onClick={() => addQuestion("OPEN_TEXT")}
             >
               <MessageSquare className="mr-2 size-4" /> Тактическа мисия (28 т.)
             </Button>
           </div>
           <Button
-            className="w-full rounded-xl bg-indigo-600 py-6 text-base font-bold hover:bg-indigo-700"
+            className="w-full rounded-xl bg-indigo-600 py-6 text-base font-bold text-white hover:bg-indigo-700"
             onClick={() => void saveNewQuiz()}
           >
             <Sparkles className="mr-2 size-5" /> Запази Новия Тест
@@ -1047,7 +1109,7 @@ export default function TheoryClient({
                         />
                       </div>
                       <Button
-                        className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700"
+                        className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
                         onClick={() => void submitReview()}
                       >
                         <Check className="mr-2 size-4" /> Одобри и Запиши в
@@ -1294,7 +1356,7 @@ export default function TheoryClient({
       <Dialog
         open={!!sendQuiz}
         onOpenChange={(o) => {
-          if (!o) setSendQuiz(null);
+          if (!o) closeSend();
         }}
       >
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
@@ -1355,7 +1417,7 @@ export default function TheoryClient({
                           onClick={() => setSelectedMemberId("custom")}
                           className={
                             selectedMemberId === "custom"
-                              ? "border-indigo-200 bg-indigo-50 text-indigo-700"
+                              ? "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-900/60 dark:bg-indigo-950/50 dark:text-indigo-300"
                               : ""
                           }
                         >
@@ -1369,7 +1431,7 @@ export default function TheoryClient({
             </div>
             {!generatedLink ? (
               <Button
-                className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                className="w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                 onClick={() => void handleGenerateLink()}
                 disabled={!selectedMemberId}
               >
@@ -1394,7 +1456,7 @@ export default function TheoryClient({
                   </Button>
                 </div>
                 <Button
-                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                   onClick={copyLink}
                 >
                   <Copy className="mr-2 size-4" /> Копирай линк
@@ -1409,7 +1471,7 @@ export default function TheoryClient({
       <Dialog
         open={!!editQuiz}
         onOpenChange={(o) => {
-          if (!o) setEditQuiz(null);
+          if (!o) closeEdit();
         }}
       >
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-2xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
@@ -1496,7 +1558,7 @@ export default function TheoryClient({
               </Button>
             )}
             <Button
-              className="rounded-xl bg-indigo-600 hover:bg-indigo-700"
+              className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
               onClick={() => void saveEdit()}
             >
               <Check className="mr-2 size-4" /> Запази
@@ -1506,7 +1568,13 @@ export default function TheoryClient({
       </Dialog>
 
       {/* ══════════ QUESTION BANK MODAL ══════════════════════════════════════ */}
-      <Dialog open={isBankOpen} onOpenChange={setIsBankOpen}>
+      <Dialog
+        open={isBankOpen}
+        onOpenChange={(o) => {
+          if (o) openBank();
+          else closeBank();
+        }}
+      >
         <DialogContent className="flex max-h-[92dvh] sm:max-h-[85vh] w-[calc(100%-1.25rem)] sm:w-full sm:max-w-3xl lg:max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-0 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 [&>button:last-child]:top-3.5 [&>button:last-child]:right-3.5">
           <div className="shrink-0 border-b border-zinc-100 bg-zinc-50/50 px-4 py-3 sm:px-5 sm:py-3.5 pr-10 dark:border-zinc-800 dark:bg-zinc-900/40">
             <div className="flex items-center justify-between">
@@ -1638,8 +1706,8 @@ export default function TheoryClient({
                                 key={oi}
                                 className={`flex items-center gap-1.5 text-xs ${
                                   item.correctAnswer === oi
-                                    ? "font-medium text-emerald-700"
-                                    : "text-zinc-500"
+                                    ? "font-medium text-emerald-700 dark:text-emerald-400"
+                                    : "text-zinc-500 dark:text-zinc-400"
                                 }`}
                               >
                                 <span className="font-mono text-[10px] text-zinc-400">
@@ -1647,7 +1715,7 @@ export default function TheoryClient({
                                 </span>
                                 {opt}
                                 {item.correctAnswer === oi && (
-                                  <span className="ml-1 text-[10px] font-bold text-emerald-600">
+                                  <span className="ml-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                                     (Верен)
                                   </span>
                                 )}
@@ -1671,13 +1739,13 @@ export default function TheoryClient({
               <Button
                 variant="outline"
                 className="rounded-xl"
-                onClick={() => setIsBankOpen(false)}
+                onClick={closeBank}
               >
                 Отказ
               </Button>
               <Button
                 disabled={selectedBankIds.length === 0}
-                className="rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                className="rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                 onClick={() => {
                   const toAdd = QUESTION_BANK.filter((q) =>
                     selectedBankIds.includes(q.id)
@@ -1687,7 +1755,7 @@ export default function TheoryClient({
                   }));
                   setNewQuestions((prev) => [...prev, ...toAdd]);
                   toast.success(`Добавени са ${toAdd.length} въпроса в теста!`);
-                  setIsBankOpen(false);
+                  closeBank();
                 }}
               >
                 <Plus className="mr-1.5 size-4" /> Добави в теста (

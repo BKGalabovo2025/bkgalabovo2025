@@ -36,6 +36,11 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "u9_balloon_taps",
       "u9_hanging_shuttle",
       "u11_wall_drive",
+      "u13_grip_switch_wall",
+      "u15_flat_drive_control",
+      "u17_fast_grip_transition",
+      "u19_multifeed_grip_speed",
+      "adult_grip_precision_pressure",
     ],
     shadowCorners: [1, 2],
     methodology: {
@@ -115,6 +120,8 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "u15_t_test_agility",
       "u17_illinois_agility",
       "u17_shadow_1min",
+      "u19_reactive_split_step",
+      "adult_pro_6_corner_speed",
     ],
     shadowCorners: [1, 2, 3, 4, 5, 6],
     methodology: {
@@ -182,11 +189,13 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Приставна крачка + напад към преден форхенд ъгъл и 4-те основни варианта на завършване: добиване, късо по правата, късо по диагонала и изтегляне към задна линия.",
     accentColor: "emerald",
     linkedTestIds: [
+      "u9_fh_net_lift",
+      "u11_fh_net_touch",
       "u13_net_spin",
       "u15_net_kill_spin",
       "u17_defensive_lift_deep",
       "u19_net_kill_reaction",
-      "u13_serve_receive",
+      "adult_high_hr_accuracy",
     ],
     shadowCorners: [2],
     methodology: {
@@ -274,10 +283,13 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Придвижване с приставна крачка и напад към преден бекхенд ъгъл: бекхенд добиване, късо по правата/диагонала и високо бекхенд изтегляне.",
     accentColor: "teal",
     linkedTestIds: [
-      "u13_net_spin",
-      "u15_net_kill_spin",
-      "u17_defensive_lift_deep",
-      "u19_net_kill_reaction",
+      "u9_bh_net_lift",
+      "u11_bh_net_touch",
+      "u13_bh_net_control",
+      "u15_bh_net_kill",
+      "u17_bh_deep_lift",
+      "u19_bh_tumble_cross",
+      "adult_bh_net_deception",
     ],
     shadowCorners: [1],
     methodology: {
@@ -350,6 +362,7 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Странично придвижване назад (Chasse), завъртане на тялото, ножична стъпка (Scissor Kick) и бързо възстановяване към центъра.",
     accentColor: "violet",
     linkedTestIds: [
+      "u9_rear_chasse_recovery",
       "u11_scissor_jump",
       "u13_complex_8_corners",
       "u15_shuttle_run",
@@ -427,10 +440,12 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
     linkedTestIds: [
       "u9_short_serve_target",
       "u11_backhand_serve",
-      "u13_high_clear",
       "u13_serve_receive",
+      "u13_high_clear",
+      "u15_serve_precision_combo",
       "u17_flick_serve",
       "u19_match_serve",
+      "adult_tactical_serve_combo",
     ],
     shadowCorners: [1, 2],
     methodology: {
@@ -503,11 +518,14 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Висок защитен клиър и плосък атакуващ клиър — основата на цялата биомеханика над глава (Overhead Kinetic Chain).",
     accentColor: "sky",
     linkedTestIds: [
+      "u9_target_throw",
       "u11_forehand_clear",
-      "u13_high_clear",
+      "u13_rear_forehand_clear",
+      "u15_cross_straight_clear",
       "u17_attacking_clear",
       "u17_backhand_clear_deep",
       "u19_fatigue_accuracy",
+      "adult_deep_clear_consistency",
     ],
     shadowCorners: [5, 6],
     methodology: {
@@ -570,6 +588,8 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Бавен и бърз дроп шот, прав и диагонален смаш, стик-смаш и скок-смаш — с еднаква подготовка над глава.",
     accentColor: "rose",
     linkedTestIds: [
+      "u9_overhead_drop_zone",
+      "u11_med_ball_throw",
       "u13_rear_drop_shot",
       "u13_smash_speed",
       "u15_jump_smash",
@@ -651,9 +671,11 @@ export const BWF_FUNDAMENTAL_CHAPTERS: readonly BwfFundamentalChapter[] = [
       "Ниска защитна стойка, бекхенд защита пред тялото, блок на мрежата, плоски драйв удари и преход в контраатака.",
     accentColor: "orange",
     linkedTestIds: [
+      "u9_underhand_defense_catch",
       "u11_underhand_wall",
       "u11_sponge_defense",
       "u11_drive_rally",
+      "u13_pace_control",
       "u15_smash_defense",
       "u15_attacking_drive_line",
       "u17_defense_counter",

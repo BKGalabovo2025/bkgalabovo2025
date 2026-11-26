@@ -26,6 +26,8 @@ interface FundamentalMapCardProps {
   profile: MemberFundamentalProfile;
   /** При true скрива админ бутоните за тестване (за Родителския портал) */
   readOnly?: boolean;
+  /** Когато е подадено, отваря директен модал за въвеждане на теста без напускане на страницата */
+  onConductTest?: (testId: string) => void;
 }
 
 const STATUS_STYLE: Record<
@@ -61,6 +63,7 @@ const STATUS_STYLE: Record<
 export function FundamentalMapCard({
   profile,
   readOnly = false,
+  onConductTest,
 }: FundamentalMapCardProps) {
   const masteredCount = profile.evaluations.filter(
     (e) => e.status === "apply"
@@ -86,20 +89,33 @@ export function FundamentalMapCard({
             </p>
           </div>
 
-          {!readOnly && profile.needsBaseline && profile.nextBaselineTest && (
-            <Button
-              asChild
-              size="sm"
-              className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700"
-            >
-              <Link
-                href={`/training/assessments?memberId=${profile.memberId}&testId=${profile.nextBaselineTest.id}`}
+          {!readOnly &&
+            profile.needsBaseline &&
+            profile.nextBaselineTest &&
+            (onConductTest ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => onConductTest(profile.nextBaselineTest!.id)}
+                className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700"
               >
                 <Sparkles className="mr-1.5 size-3.5" />
                 Проведи входен тест: {profile.nextBaselineTest.name}
-              </Link>
-            </Button>
-          )}
+              </Button>
+            ) : (
+              <Button
+                asChild
+                size="sm"
+                className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700"
+              >
+                <Link
+                  href={`/training/assessments?memberId=${profile.memberId}&testId=${profile.nextBaselineTest.id}`}
+                >
+                  <Sparkles className="mr-1.5 size-3.5" />
+                  Проведи входен тест: {profile.nextBaselineTest.name}
+                </Link>
+              </Button>
+            ))}
         </div>
 
         {/* Умни треньорски сигнали */}
@@ -184,10 +200,17 @@ export function FundamentalMapCard({
                   </Badge>
 
                   {ev.latestAssessment ? (
-                    <p className="truncate text-[11px] text-zinc-500 dark:text-zinc-400">
-                      Последно: {ev.latestAssessment.testName} (
-                      {ev.latestAssessment.scoreDisplay})
-                    </p>
+                    <div className="space-y-0.5">
+                      <p className="truncate text-[11px] text-zinc-500 dark:text-zinc-400">
+                        Последно: {ev.latestAssessment.testName} (
+                        {ev.latestAssessment.scoreDisplay})
+                      </p>
+                      {ev.isProgressionTest && ev.recommendedTest && (
+                        <p className="truncate text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                          Следващ тест (Прогресия): {ev.recommendedTest.name}
+                        </p>
+                      )}
+                    </div>
                   ) : (
                     ev.recommendedTest && (
                       <p className="truncate text-[11px] text-zinc-500 dark:text-zinc-400">
@@ -226,16 +249,34 @@ export function FundamentalMapCard({
 
                 {!readOnly && ev.recommendedTest && (
                   <div className="pt-1">
-                    <Link
-                      href={`/training/assessments?memberId=${profile.memberId}&testId=${ev.recommendedTest.id}`}
-                      className="inline-flex text-[11px] font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
-                    >
-                      {ev.readyForRetest
-                        ? "🔥 Проведи контролен тест →"
-                        : ev.status === "untested"
-                          ? "Проведи входен тест →"
-                          : "Нов тест →"}
-                    </Link>
+                    {onConductTest ? (
+                      <button
+                        type="button"
+                        onClick={() => onConductTest(ev.recommendedTest!.id)}
+                        className="inline-flex text-left text-[11px] font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                      >
+                        {ev.readyForRetest
+                          ? "🔥 Проведи контролен тест →"
+                          : ev.isProgressionTest
+                            ? `Следваща стъпка: ${ev.recommendedTest.name} →`
+                            : ev.status === "untested"
+                              ? "Проведи входен тест →"
+                              : "Нов тест →"}
+                      </button>
+                    ) : (
+                      <Link
+                        href={`/training/assessments?memberId=${profile.memberId}&testId=${ev.recommendedTest.id}`}
+                        className="inline-flex text-[11px] font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                      >
+                        {ev.readyForRetest
+                          ? "🔥 Проведи контролен тест →"
+                          : ev.isProgressionTest
+                            ? `Следваща стъпка: ${ev.recommendedTest.name} →`
+                            : ev.status === "untested"
+                              ? "Проведи входен тест →"
+                              : "Нов тест →"}
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
