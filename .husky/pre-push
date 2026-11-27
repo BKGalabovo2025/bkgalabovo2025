@@ -1,2 +1,2 @@
-npm run lighthouse:gate && npm run typecheck && npm run lint && npm test
+npm run lighthouse:gate && npm run typecheck && npm run lint && npm run test:changed
 

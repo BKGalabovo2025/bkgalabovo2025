@@ -41,6 +41,7 @@
     "test:visual": "playwright test visual.spec.ts",
     "check-all": "npm run typecheck && npm run lint && npm run check:deps && npm run check:circular && npm run check:dup-code && npm run check:dup-funcs && npm run test && npm run knip && npm run security-check",
     "test": "vitest run",
+    "test:changed": "vitest run --changed origin/main --passWithNoTests",
     "test:rules": "cross-env TEST_ENV=rules firebase emulators:exec \"vitest run src/__tests__/firestore.rules.test.ts\" --project bkgalabovo-test",
     "test:integration": "cross-env TEST_ENV=integration firebase emulators:exec \"vitest run src/integration-tests\" --project bkgalabovo-test",
     "security-check": "npm audit --audit-level=critical --omit=dev",
