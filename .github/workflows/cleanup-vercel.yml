@@ -30,12 +30,6 @@ jobs:
             echo "has_token=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Wait for Vercel deployment to finish
-        if: github.event_name == 'push' && steps.check-token.outputs.has_token == 'true'
-        run: |
-          echo "Waiting 2 minutes for Vercel production build to complete and become active..."
-          sleep 120
-
       - name: Run Vercel Deployments Cleanup
         if: steps.check-token.outputs.has_token == 'true'
         env:

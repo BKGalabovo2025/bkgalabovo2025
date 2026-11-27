@@ -26,17 +26,30 @@
 Проектът е изграден по най-високите съвременни стандарти за уеб архитектура и бързина:
 
 - **Среда за изпълнение:** Node.js `24.x` LTS.
-- **Frontend Framework:** [Next.js 16.4.3](https://nextjs.org/) (App Router, Turbopack, Server Actions, React Server Components).
+- **Frontend Framework:** [Next.js 16.4.6](https://nextjs.org/) (App Router, Turbopack, Server Actions, React Server Components).
 - **Библиотека за интерфейс:** [React 19.3.0](https://react.dev/) + [Framer Motion 12.43](https://motion.dev/).
 - **Стилизиране & Дизайн система:** [Tailwind CSS 4.3.3](https://tailwindcss.com/) + Shadcn/ui (Radix UI примитиви) с пълна поддръжка на тъмна тема (`next-themes`).
 - **Backend & База данни:** [Firebase 12.19](https://firebase.google.com/) (Cloud Firestore, Authentication, Cloud Storage) и [Firebase Admin SDK 13.10](https://firebase.google.com/docs/admin/setup).
 - **Хостинг и CI/CD:** [Vercel](https://vercel.com/) (Edge Network, Serverless Functions) с автоматизирани GitHub Actions работни потоци за качество и деплой.
-- **Интелигентно разпознаване & Експорт:** OCR сканиране чрез `tesseract.js 7.0`, PDF генерация чрез `jspdf 4.2` и `pdf-lib 1.17`, електронни таблици чрез `exceljs 4.4` и графичен подпис чрез `react-signature-canvas`.
+- **Интелигентно разпознаване & Експорт:** OCR сканиране чрез `tesseract.js 7.0`, PDF генерация чрез `jspdf 4.2` и `pdf-lib 1.17`, електронни таблици чрез `exceljs 4.4` и графичен подпис чрез собствен HTML5 `<canvas>` компонент (`SignatureCanvas`).
 - **Контрол на качеството (QA):**
-  - **Vitest 4.1.11:** 83 тестови файла с 555 преминаващи модулни и интеграционни теста.
+  - **Vitest 4.1.11:** 105+ тестови файла с 729+ преминаващи модулни и интеграционни теста.
   - **Playwright 1.63:** End-to-End и визуални регресионни тестове.
-  - **Lighthouse CI:** Автоматизирани прецизни одити на всички 213 страници (Desktop и Mobile) с интелигентно диференциално кеширане за гарантиране на **100/100** във всички категории (Performance, Accessibility, Best Practices, SEO).
-  - **Линтинг и сигурност:** ESLint 10, Stylelint 17, TypeScript 5.8 (строг типчекинг), Knip, Madge, Dependency Cruiser.
+  - **Lighthouse CI:** Автоматизирани одити за Performance, Accessibility, Best Practices и SEO.
+  - **Линтинг и сигурност:** ESLint 10, Stylelint 17, TypeScript 6.0 (строг типчекинг), Knip, Madge, Dependency Cruiser.
+
+---
+
+## 🔌 API Endpoints Справочник
+
+- `POST /api/auth/session` — Създаване на `httpOnly` административна сесия от Firebase ID token.
+- `POST / GET / DELETE /api/upload` — Качване/сваляне/изтриване на файлове (Cloud Storage signed URLs + chunked Firestore fallback).
+- `POST / GET / PATCH / DELETE /api/inquiries` — Публични запитвания (rate-limited + Zod) и админ управление по `siteId`.
+- `POST /api/send-email` & `POST /api/marketing/send-email` — Системни и масови имейли (до 200 получатели).
+- `POST /api/ai/generate-workout`, `POST /api/quiz/ai-eval`, `POST /api/quiz/ai-feedback` — Gemini AI генерация и оценка на тренировки/тестове.
+- `POST /api/parents/session-report` — Отчет за активност в Родителския портал.
+- `GET /api/admin/backup/download` — Изтегляне на криптирани/резервни JSON архиви по `siteId`.
+- `GET /api/cron/*` — `backup`, `sync-backup`, `check-statuses`, `reminders`, `cleanup-uploads` (защитени с `CRON_SECRET`).
 
 ---
 

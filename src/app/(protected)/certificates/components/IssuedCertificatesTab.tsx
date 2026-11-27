@@ -39,6 +39,7 @@ import {
   exportCertificatePng,
   printCertificate,
 } from "@/lib/certificate-export-helpers";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { certificateIssuanceService } from "@/services/certificate-issuance-service";
 import {
   getCertificateTypeLabel,
@@ -136,9 +137,9 @@ export function IssuedCertificatesTab({
 
   const handleDelete = async (cert: IssuedCertificate) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         `Сигурни ли сте, че искате да премахнете документ № ${cert.serialNumber} на ${cert.recipient.name}?`
-      )
+      ))
     ) {
       return;
     }

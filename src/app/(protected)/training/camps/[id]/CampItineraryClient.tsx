@@ -50,6 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCampSeenSessions } from "@/hooks/useCampSeenSessions";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { plannerService } from "@/services/planner-service";
 import { updateCampSessions } from "@/services/schedule-service";
@@ -519,7 +520,12 @@ export function CampItineraryClient({
   };
 
   const handleDeleteSession = async (id: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете тази сесия?")) return;
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете тази сесия?"
+      ))
+    )
+      return;
 
     const newSessions = sessions.filter((s) => s.id !== id);
     try {
@@ -636,9 +642,9 @@ export function CampItineraryClient({
     }
 
     if (
-      !confirm(
+      !(await confirmDialog(
         "Това ще копира програмата от предходния ден към текущия. Продължаваме ли?"
-      )
+      ))
     )
       return;
 
@@ -1499,7 +1505,7 @@ export function CampItineraryClient({
                             size="icon"
                             onClick={async () => {
                               if (
-                                confirm(
+                                await confirmDialog(
                                   `Сигурни ли сте, че искате да изтриете "${ps.title}"?`
                                 )
                               ) {

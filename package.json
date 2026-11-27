@@ -102,7 +102,6 @@
     "react-email": "^6.11.0",
     "react-hook-form": "^7.89.0",
     "react-is": "^19.3.1",
-    "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "sonner": "^2.0.8",

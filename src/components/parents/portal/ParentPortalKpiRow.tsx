@@ -14,7 +14,7 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/currency";
-import { cn } from "@/lib/utils";
+import { cn, handleKeyboardClick } from "@/lib/utils";
 
 import { useParentPortalContext } from "./ParentPortalContext";
 
@@ -107,6 +107,9 @@ export function ParentPortalKpiRow() {
         {/* Card 1: Следваща тренировка */}
         {permissions?.showNextTrainingCard !== false && (
           <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={handleKeyboardClick}
             onClick={() => setActiveTab("attendance")}
             className={cn(
               "group relative flex flex-col justify-between rounded-3xl border p-4.5 shadow-2xs transition-all cursor-pointer hover:shadow-md",
@@ -168,6 +171,9 @@ export function ParentPortalKpiRow() {
         {/* Card 2: Присъствия този месец */}
         {permissions?.showAttendance !== false && (
           <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={handleKeyboardClick}
             onClick={() => setActiveTab("attendance")}
             className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-4.5 shadow-2xs transition-all cursor-pointer hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
           >
@@ -218,6 +224,9 @@ export function ParentPortalKpiRow() {
 
         {/* Card 3: Членски внос / Такси */}
         <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={handleKeyboardClick}
           onClick={() => setActiveTab("finances")}
           className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-4.5 shadow-2xs transition-all cursor-pointer hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
         >
@@ -282,6 +291,9 @@ export function ParentPortalKpiRow() {
 
         {/* Card 4: Документи & Картотека */}
         <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={handleKeyboardClick}
           onClick={() => setActiveTab("documents")}
           className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-4.5 shadow-2xs transition-all cursor-pointer hover:border-blue-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
         >

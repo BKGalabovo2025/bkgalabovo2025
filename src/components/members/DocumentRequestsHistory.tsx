@@ -23,6 +23,7 @@ import {
   deleteDocumentRequestAction,
   getMemberDocumentRequestsAction,
 } from "@/lib/actions/document-requests";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getCalendarYearValidity } from "@/lib/document-validity";
 import { cn } from "@/lib/utils";
 import { DocumentRequest } from "@/types/document-request.types";
@@ -87,7 +88,11 @@ export function DocumentRequestsHistory({
   const handleCancelRequest = async (requestId: string) => {
     const token = idToken || (await getFreshToken());
     if (!token) return;
-    if (!window.confirm("Сигурни ли сте, че искате да анулирате този линк?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да анулирате този линк?"
+      ))
+    )
       return;
 
     try {
@@ -113,7 +118,7 @@ export function DocumentRequestsHistory({
     if (!token) return;
 
     const confirmMsg = `Сигурни ли сте, че искате да ИЗТРИЕТЕ този документ от базата данни?\n\nДокумент: ${req.documentTitle}\nСтатус: ${req.status}\n\nТова действие ще изтрие записа перманентно от системата!`;
-    if (!window.confirm(confirmMsg)) return;
+    if (!(await confirmDialog(confirmMsg))) return;
 
     setDeletingId(req.id);
     try {

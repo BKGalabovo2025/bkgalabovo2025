@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import React from "react";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 
 import ProtectedLayoutClient from "./ProtectedLayoutClient";
 
@@ -19,12 +19,10 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // 1. Verify the session cookie on the server before rendering protected UI or prefetching
-  const user = await getAuthUserFromSessionCookie();
-
-  if (!user) {
-    // Cannot delete cookies in a Server Component in Next.js 15+
-    // Redirect to login page and let client/middleware handle session invalidation
+  // 1. Verify the session cookie and admin role on the server before rendering protected UI
+  try {
+    await ensureAdminFromSession();
+  } catch {
     redirect("/login");
   }
 

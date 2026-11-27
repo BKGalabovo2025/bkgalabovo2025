@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateCampaignStatusServerAction } from "@/lib/actions/feedback";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { feedbackService } from "@/services/feedback-service";
 import {
   FeedbackCampaign,
@@ -128,7 +129,11 @@ export function FeedbackTemplatesTab({
   };
 
   const handleDelete = async (tmplId: string) => {
-    if (!window.confirm("Сигурни ли сте, че искате да изтриете този шаблон?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този шаблон?"
+      ))
+    )
       return;
     try {
       await feedbackService.deleteTemplate(tmplId);
@@ -145,7 +150,7 @@ export function FeedbackTemplatesTab({
       siteId === "recoveryzone"
         ? "Това ще възстанови стандартните шаблони за Recovery Zone by ZM. Желаете ли да продължите?"
         : "Това ще премахне дублираните шаблони и ще възстанови 4-те стандартни шаблона на клуба. Желаете ли да продължите?";
-    if (!window.confirm(confirmMsg)) return;
+    if (!(await confirmDialog(confirmMsg))) return;
     try {
       await feedbackService.seedDefaultTemplates(siteId, true);
       toast.success(

@@ -750,18 +750,47 @@ export function InquiriesTab({
                       )}
 
                       {inq.status === "enrolled" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isUpdating}
-                          onClick={() =>
-                            handleUpdateStatus(inq.id!, "contacted")
-                          }
-                          className="h-9 rounded-xl text-xs font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400"
-                          title="Върни статус в Свързан"
-                        >
-                          <Undo2 className="mr-1 size-3.5" />В Свързан
-                        </Button>
+                        <>
+                          <Button
+                            asChild
+                            size="sm"
+                            className="h-9 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-500"
+                            title="Конвертирай запитването в нов член на клуба"
+                          >
+                            <Link
+                              href={`/members?createFromInquiry=1&name=${encodeURIComponent(inq.name || "")}&phone=${encodeURIComponent(inq.phone || "")}`}
+                            >
+                              <UserCheck className="mr-1 size-3.5" />
+                              Създай Член
+                            </Link>
+                          </Button>
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="sm"
+                            className="h-9 rounded-xl text-xs font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400"
+                            title="Създай резервация с данните от запитването"
+                          >
+                            <Link
+                              href={`/schedule?createReservation=1&name=${encodeURIComponent(inq.name || "")}&phone=${encodeURIComponent(inq.phone || "")}`}
+                            >
+                              <Calendar className="mr-1 size-3.5" />
+                              Резервация
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isUpdating}
+                            onClick={() =>
+                              handleUpdateStatus(inq.id!, "contacted")
+                            }
+                            className="h-9 rounded-xl text-xs font-semibold text-amber-600 hover:bg-amber-50 dark:text-amber-400"
+                            title="Върни статус в Свързан"
+                          >
+                            <Undo2 className="mr-1 size-3.5" />В Свързан
+                          </Button>
+                        </>
                       )}
 
                       {/* Archive / Unarchive */}

@@ -68,30 +68,35 @@ export const updateTournamentDoc = async (
  */
 export const deleteTournamentCascading = async (id: string): Promise<void> => {
   const db = getDb();
-  const batch = writeBatch(db);
 
-  // 1. Delete the tournament doc
-  const tournamentRef = doc(getTournamentsCollection(), id);
-  batch.delete(tournamentRef);
-
-  // 2. Delete all matches
   const matchesQ = query(
     getTournamentMatchesQuery(),
     where("tournamentId", "==", id)
   );
-  const matchesSnap = await getDocs(matchesQ);
-  matchesSnap.docs.forEach((d) => batch.delete(d.ref));
-
-  // 3. Delete all entries
   const entriesQ = query(
     getTournamentEntriesQuery(),
     where("tournamentId", "==", id)
   );
-  const entriesSnap = await getDocs(entriesQ);
-  entriesSnap.docs.forEach((d) => batch.delete(d.ref));
+  const [matchesSnap, entriesSnap] = await Promise.all([
+    getDocs(matchesQ),
+    getDocs(entriesQ),
+  ]);
 
-  // Commit batch
-  await batch.commit();
+  const refsToDelete = [
+    doc(getTournamentsCollection(), id),
+    ...matchesSnap.docs.map((d) => d.ref),
+    ...entriesSnap.docs.map((d) => d.ref),
+  ];
+
+  for (let i = 0; i < refsToDelete.length; i += 400) {
+    const batch = writeBatch(db);
+    refsToDelete
+      .slice(i, i + 400)
+      .forEach((ref) =>
+        batch.delete(ref as Parameters<typeof batch.delete>[0])
+      );
+    await batch.commit();
+  }
 };
 
 /**

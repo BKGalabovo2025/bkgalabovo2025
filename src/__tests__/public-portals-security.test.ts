@@ -132,6 +132,11 @@ describe("Public Portals Security", () => {
     });
 
     beforeEach(() => {
+      mockEnsureAdminFromSession.mockResolvedValue({
+        uid: "user-1",
+        email: "staff@example.com",
+        admin: true,
+      });
       mockGetAuthUserFromSessionCookie.mockResolvedValue({
         uid: "user-1",
         email: "staff@example.com",

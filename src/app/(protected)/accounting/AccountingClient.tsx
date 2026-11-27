@@ -20,6 +20,7 @@ import {
   Search,
   SlidersHorizontal,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -28,8 +29,21 @@ import { toast } from "sonner";
 import type { AccountingSectionId } from "@/components/accounting/accounting-sections";
 import { AccountingKpiRibbon } from "@/components/accounting/AccountingKpiRibbon";
 import { AccountingNav } from "@/components/accounting/AccountingNav";
-import { BusinessTripManagerDialog } from "@/components/business-trips/BusinessTripManagerDialog";
-import { BusinessTripPdfTemplates } from "@/components/business-trips/BusinessTripPdfTemplates";
+
+const BusinessTripManagerDialog = dynamic(
+  () =>
+    import("@/components/business-trips/BusinessTripManagerDialog").then(
+      (m) => m.BusinessTripManagerDialog
+    ),
+  { ssr: false }
+);
+const BusinessTripPdfTemplates = dynamic(
+  () =>
+    import("@/components/business-trips/BusinessTripPdfTemplates").then(
+      (m) => m.BusinessTripPdfTemplates
+    ),
+  { ssr: false }
+);
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

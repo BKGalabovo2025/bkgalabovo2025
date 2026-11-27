@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { handleKeyboardClick } from "@/lib/utils";
 
 import { MemberFormValues } from "./member-form-types";
 import { VisualCheckbox } from "./VisualCheckbox";
@@ -167,6 +168,9 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
               <div className="mt-2 grid grid-cols-1 gap-5 border-t border-zinc-100 dark:border-zinc-800 pt-6 sm:col-span-2 sm:grid-cols-3 sm:gap-6">
                 <div
                   className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() =>
                     form.setValue(
                       "hasSignedDeclaration",
@@ -190,6 +194,9 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                 </div>
                 <div
                   className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() =>
                     form.setValue(
                       "hasMedicalCertificate",
@@ -213,6 +220,9 @@ export function MemberFormStep3({ form, isActive }: MemberFormStep3Props) {
                 </div>
                 <div
                   className="flex cursor-pointer flex-row items-start space-y-0 space-x-3 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 p-4 sm:p-5"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() =>
                     form.setValue("isLicensed", !isLicensed, {
                       shouldValidate: true,

@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { handleKeyboardClick } from "@/lib/utils";
 import { ClubService } from "@/types";
 
 interface RecoverySessionFormProps {
@@ -372,6 +373,9 @@ export function RecoverySessionForm({
                   {SUPPORTED_ZONES.map((zone) => (
                     <div
                       key={zone}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={handleKeyboardClick}
                       onClick={() => handleZoneToggle(zone)}
                       className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all ${zones.includes(zone) ? "border-cyan-600 bg-cyan-600 text-white" : "border-zinc-100 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"}`}
                     >
@@ -532,6 +536,9 @@ export function RecoverySessionForm({
                   return (
                     <div
                       key={path}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={handleKeyboardClick}
                       onClick={() => handleImageToggle(path)}
                       className={`relative aspect-video cursor-pointer overflow-hidden rounded-2xl border-2 transition-all ${
                         isSelected

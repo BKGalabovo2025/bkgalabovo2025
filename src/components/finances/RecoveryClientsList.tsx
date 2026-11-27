@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/context/auth-context";
 import { deleteMemberAction } from "@/lib/actions/members";
+import { handleKeyboardClick } from "@/lib/utils";
 import { Member } from "@/types";
 
 const ITEMS_PER_PAGE = 9;
@@ -264,6 +265,9 @@ export function RecoveryClientsList({
               {paginatedClients.map((client) => (
                 <div
                   key={client.id}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() => router.push(`/members/${client.id}`)}
                   className="group cursor-pointer rounded-3xl border border-zinc-100 bg-white p-5 transition-all duration-300 hover:border-indigo-200 hover:shadow-lg hover:shadow-indigo-500/5 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-indigo-800"
                 >

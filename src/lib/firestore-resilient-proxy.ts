@@ -160,7 +160,7 @@ function getCacheKey(steps: ChainStep[], args: unknown[]): string {
   try {
     return `${steps.map((s) => `${s.method}(${JSON.stringify(s.args)})`).join(".")}#${JSON.stringify(args)}`;
   } catch {
-    return steps.map((s) => s.method).join(".");
+    return "";
   }
 }
 
@@ -178,20 +178,34 @@ function invalidateCacheForCollection(collectionName?: string): void {
     memoryReadCache.clear();
     return;
   }
-  const needle = `collection(["${collectionName}"])`;
+  const colNeedle = `collection(["${collectionName}"])`;
+  const groupNeedle = `collectionGroup(["${collectionName}"])`;
+  const docNeedle = `doc(["${collectionName}/`;
   for (const key of memoryReadCache.keys()) {
-    if (key.includes(needle)) {
+    if (
+      key.includes(colNeedle) ||
+      key.includes(groupNeedle) ||
+      key.includes(docNeedle)
+    ) {
       memoryReadCache.delete(key);
     }
   }
 }
 
 function invalidateCacheForSteps(steps: ChainStep[]): void {
-  const colStep = steps.find((s) => s.method === "collection");
-  const colName =
+  const colStep = steps.find(
+    (s) => s.method === "collection" || s.method === "collectionGroup"
+  );
+  let colName =
     colStep && typeof colStep.args[0] === "string"
       ? colStep.args[0]
       : undefined;
+  if (!colName) {
+    const docStep = steps.find((s) => s.method === "doc");
+    if (docStep && typeof docStep.args[0] === "string") {
+      colName = docStep.args[0].split("/")[0] || undefined;
+    }
+  }
   invalidateCacheForCollection(colName);
 }
 
@@ -378,13 +392,17 @@ async function tryInMemoryIndexFallback(
   const limitStep = steps.find((s) => s.method === "limit");
   const limit = limitStep ? (limitStep.args[0] as number) : undefined;
 
-  // Filter out orderBy and limit so Firestore will execute without composite index
+  // Filter out orderBy and limit so Firestore will execute without composite index,
+  // and apply a safety cap of 500 documents when .limit() is supported.
   const relaxedSteps = steps.filter(
     (s) => s.method !== "orderBy" && s.method !== "limit"
   );
 
   try {
-    const target = replayChain(db, relaxedSteps) as Record<string, unknown>;
+    let target = replayChain(db, relaxedSteps) as Record<string, unknown>;
+    if (typeof target.limit === "function") {
+      target = (target.limit as (n: number) => Record<string, unknown>)(500);
+    }
     const fn = target.get;
     if (typeof fn !== "function") return null;
 
@@ -800,16 +818,8 @@ function wrapWriteBatch(
       );
     },
     async commit(): Promise<admin.firestore.WriteResult[]> {
-      const invalidateTouchedCollections = () => {
-        const cols = new Set(
-          ops.map((o) => o.path.split("/")[0]).filter(Boolean)
-        );
-        if (cols.size === 0) {
-          memoryReadCache.clear();
-        } else {
-          cols.forEach((c) => invalidateCacheForCollection(c));
-        }
-      };
+      const invalidateTouchedCollections = () =>
+        invalidateCacheForBatchOps(ops);
 
       if (isPrimaryQuotaCurrentlyExhausted()) {
         const backupDb = getBackupDb();
@@ -864,6 +874,15 @@ function getActiveFirestore(
   return primaryDb;
 }
 
+function invalidateCacheForBatchOps(ops: RecordedBatchOp[]): void {
+  const cols = new Set(ops.map((o) => o.path.split("/")[0]).filter(Boolean));
+  if (cols.size === 0) {
+    memoryReadCache.clear();
+  } else {
+    cols.forEach((c) => invalidateCacheForCollection(c));
+  }
+}
+
 async function handleRunTransaction<T>(
   primaryDb: admin.firestore.Firestore,
   getBackupDb: () => admin.firestore.Firestore | null,
@@ -873,8 +892,80 @@ async function handleRunTransaction<T>(
   >[1]
 ): Promise<T> {
   const activeDb = getActiveFirestore(primaryDb, getBackupDb);
+  let recordedOps: RecordedBatchOp[] = [];
+
+  const wrappedUpdateFn = (tx: admin.firestore.Transaction) => {
+    recordedOps = [];
+    const txProxy = new Proxy(tx, {
+      get(target, prop, receiver) {
+        const orig = Reflect.get(target, prop, receiver);
+        if (prop === "set" && typeof orig === "function") {
+          return (
+            docRef: admin.firestore.DocumentReference,
+            data: unknown,
+            options?: unknown
+          ) => {
+            recordedOps.push({
+              type: "set",
+              path: docRef.path,
+              args: options !== undefined ? [data, options] : [data],
+              primaryRef: docRef,
+            });
+            return orig.call(target, docRef, data, options);
+          };
+        }
+        if (prop === "update" && typeof orig === "function") {
+          return (
+            docRef: admin.firestore.DocumentReference,
+            ...args: unknown[]
+          ) => {
+            recordedOps.push({
+              type: "update",
+              path: docRef.path,
+              args,
+              primaryRef: docRef,
+            });
+            return orig.call(target, docRef, ...args);
+          };
+        }
+        if (prop === "delete" && typeof orig === "function") {
+          return (
+            docRef: admin.firestore.DocumentReference,
+            precondition?: unknown
+          ) => {
+            recordedOps.push({
+              type: "delete",
+              path: docRef.path,
+              args: precondition !== undefined ? [precondition] : [],
+              primaryRef: docRef,
+            });
+            return orig.call(target, docRef, precondition);
+          };
+        }
+        return typeof orig === "function" ? orig.bind(target) : orig;
+      },
+    });
+    return updateFunction(txProxy);
+  };
+
   try {
-    return await activeDb.runTransaction(updateFunction, transactionOptions);
+    const res = await activeDb.runTransaction(
+      wrappedUpdateFn,
+      transactionOptions
+    );
+    invalidateCacheForBatchOps(recordedOps);
+    if (activeDb === primaryDb && recordedOps.length > 0) {
+      const backupDb = getBackupDb();
+      if (backupDb) {
+        replayBatchOps(backupDb, recordedOps).catch((repErr) => {
+          console.warn(
+            "[firestore-replication] ⚠️ Dual-write transaction replication to backup DB failed:",
+            repErr instanceof Error ? repErr.message : String(repErr)
+          );
+        });
+      }
+    }
+    return res;
   } catch (err) {
     if (isQuotaError(err)) {
       markPrimaryQuotaExhausted();
@@ -883,7 +974,12 @@ async function handleRunTransaction<T>(
       console.warn(
         "[firestore-failover] 🔀 runTransaction exceeded quota. Retrying on backup Firestore..."
       );
-      return await backupDb.runTransaction(updateFunction, transactionOptions);
+      const res = await backupDb.runTransaction(
+        updateFunction,
+        transactionOptions
+      );
+      memoryReadCache.clear();
+      return res;
     }
     throw err;
   }

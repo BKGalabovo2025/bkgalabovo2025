@@ -3,12 +3,34 @@
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
+import { getCookieConsent } from "@/components/shared/CookieConsentBanner";
+
+declare global {
+  interface Window {
+    googleTranslateElementInit?: () => void;
+    google?: {
+      translate?: {
+        TranslateElement?: new (
+          options: {
+            pageLanguage: string;
+            includedLanguages: string;
+            layout?: unknown;
+            autoDisplay: boolean;
+          },
+          elementId: string
+        ) => unknown;
+      };
+    };
+  }
+}
+
 export function GoogleTranslateWidget() {
   const [isClient, setIsClient] = useState(false);
   const [currentLang, setCurrentLang] = useState("bg");
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+    if (getCookieConsent() !== "accepted") return;
     const match = document.cookie.match(/googtrans=\/bg\/([a-z]{2})/);
     if (match && match[1] === "en") {
       setCurrentLang("en");
@@ -51,11 +73,11 @@ export function GoogleTranslateWidget() {
     ensureSelectAttributes();
 
     if (currentLang === "en") {
-      // @ts-expect-error - Google Translate API is loaded externally
       window.googleTranslateElementInit = () => {
-        // @ts-expect-error - Google Translate API is loaded externally
+        const TranslateElement = window.google?.translate?.TranslateElement;
+        if (!TranslateElement) return;
         // eslint-disable-next-line sonarjs/constructor-for-side-effects
-        new window.google.translate.TranslateElement(
+        new TranslateElement(
           {
             pageLanguage: "bg",
             includedLanguages: "bg,en",

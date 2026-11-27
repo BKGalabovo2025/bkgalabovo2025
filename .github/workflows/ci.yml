@@ -34,7 +34,6 @@ jobs:
         with:
           path: ./
           extra_args: --only-verified
-        continue-on-error: true
 
       - name: Dependency Security Audit
         run: npm run security-check
@@ -56,6 +55,14 @@ jobs:
 
       - name: Duplicate Code Check
         run: npm run check:dup-code
+
+      - name: Unused Exports & Dead Code Check (Knip)
+        run: npm run knip
+        continue-on-error: true
+
+      - name: Prettier Format Check
+        run: npm run format:check
+        continue-on-error: true
 
   unit-and-security-tests:
     name: Vitest Unit & Multi-Tenancy Suite

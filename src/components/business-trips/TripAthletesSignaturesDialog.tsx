@@ -29,6 +29,7 @@ import {
   getOrCreateTripSigningTokenAction,
   saveDirectAthleteSignatureAction,
 } from "@/lib/actions/trip-signatures";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import type { BusinessTrip } from "@/types/business-trip.types";
 import type { Member } from "@/types/member.types";
 
@@ -238,9 +239,9 @@ export function TripAthletesSignaturesDialog({
 
   const handleClearSignature = async (memberId: string, memberName: string) => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         `Сигурни ли сте, че искате да премахнете подписа на ${memberName}?`
-      )
+      ))
     ) {
       return;
     }

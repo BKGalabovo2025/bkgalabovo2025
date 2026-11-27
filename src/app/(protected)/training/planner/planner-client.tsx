@@ -41,6 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
 import { PlannerSession } from "@/types/planner.types";
@@ -175,7 +176,9 @@ function PlannerClientContent({
 
   const handleDeleteSession = async (sessionId: string) => {
     if (
-      !window.confirm("Сигурни ли сте, че искате да изтриете тази тренировка?")
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете тази тренировка?"
+      ))
     )
       return;
     try {
@@ -193,9 +196,9 @@ function PlannerClientContent({
 
   const handleRevertToPlanned = async (sessionId: string) => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         "Искате ли да върнете тази тренировка в списъка с Предстоящи тренировки?"
-      )
+      ))
     )
       return;
     try {

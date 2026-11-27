@@ -1,6 +1,5 @@
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
 import Link from "next/link";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
@@ -74,36 +73,34 @@ function serializeDoc(data: unknown): unknown {
   return data;
 }
 
-const getCachedCollection = unstable_cache(
-  async (collectionName: string): Promise<Record<string, unknown>[]> => {
-    return serverCache.get(
-      `catalog:${collectionName}`,
-      async () => {
-        try {
-          const adminDb = getAdminDb();
-          const snap = await adminDb.collection(collectionName).get();
-          return snap.docs.map(
-            (doc) =>
-              serializeDoc({ id: doc.id, ...doc.data() }) as Record<
-                string,
-                unknown
-              >
-          );
-        } catch (error) {
-          console.error(
-            "Failed to fetch %s for catalog page:",
-            collectionName,
-            error
-          );
-          return [];
-        }
-      },
-      300_000 // 5 minutes in-memory TTL
-    );
-  },
-  ["catalog-collection"],
-  { revalidate: 300, tags: ["catalog"] }
-);
+async function getCachedCollection(
+  collectionName: string
+): Promise<Record<string, unknown>[]> {
+  return serverCache.get(
+    `catalog:${collectionName}`,
+    async () => {
+      try {
+        const adminDb = getAdminDb();
+        const snap = await adminDb.collection(collectionName).get();
+        return snap.docs.map(
+          (doc) =>
+            serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+              string,
+              unknown
+            >
+        );
+      } catch (error) {
+        console.error(
+          "Failed to fetch %s for catalog page:",
+          collectionName,
+          error
+        );
+        return [];
+      }
+    },
+    300_000 // 5 minutes in-memory TTL
+  );
+}
 
 export default async function CatalogPage() {
   const [servicesRaw, generalRaw, productsRaw, recoveryRaw, clubSite] =

@@ -6,30 +6,25 @@ import { getAdminDb } from "@/lib/firebase-admin";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const listOnly = searchParams.get("list") === "true";
+  const requestedBackupId = searchParams.get("backupId");
+  const siteId = searchParams.get("siteId") || getSiteConfig().id;
+
   const authHeader = request.headers.get("authorization");
   try {
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.split("Bearer ")[1]
-      : null;
+      : undefined;
 
-    if (token) {
-      const { ensureAdmin } = await import("@/lib/auth-utils");
-      await ensureAdmin(token);
-    } else {
-      const { ensureAdminFromSession } = await import("@/lib/auth-utils");
-      await ensureAdminFromSession();
-    }
+    const { ensureAdminWithSite } = await import("@/lib/auth-utils");
+    await ensureAdminWithSite(token, siteId);
   } catch (err) {
     console.error("Unauthorized backup download attempt:", err);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { searchParams } = new URL(request.url);
-    const listOnly = searchParams.get("list") === "true";
-    const requestedBackupId = searchParams.get("backupId");
-    const siteId = searchParams.get("siteId") || getSiteConfig().id;
-
     const adminDb = getAdminDb();
 
     // 1. If user just wants the history list of backups
@@ -78,6 +73,9 @@ export async function GET(request: NextRequest) {
     }
 
     const backupMeta = backupDoc.data();
+    if (backupMeta?.siteId && backupMeta.siteId !== siteId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // 4. Fetch all subcollections data
     const subCollectionsSnap = await adminDb
@@ -86,9 +84,23 @@ export async function GET(request: NextRequest) {
       .collection("collections")
       .get();
 
-    const collectionsData: Record<string, unknown> = {};
-    for (const doc of subCollectionsSnap.docs) {
-      collectionsData[doc.id] = doc.data().data || [];
+    const collectionsData: Record<string, unknown[]> = {};
+    const sortedDocs = [...subCollectionsSnap.docs].sort((a, b) => {
+      const idxA = Number(a.data().chunkIndex ?? 0);
+      const idxB = Number(b.data().chunkIndex ?? 0);
+      return idxA - idxB;
+    });
+    for (const doc of sortedDocs) {
+      const docData = doc.data();
+      const targetCol =
+        typeof docData.collection === "string"
+          ? docData.collection
+          : doc.id.replace(/__chunk_\d+$/, "");
+      const items = Array.isArray(docData.data) ? docData.data : [];
+      if (!collectionsData[targetCol]) {
+        collectionsData[targetCol] = [];
+      }
+      collectionsData[targetCol].push(...items);
     }
 
     const fullPayload = {
@@ -114,7 +126,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Backup download error:", error);
-    const message = error instanceof Error ? error.message : "Internal Error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Internal Error" }, { status: 500 });
   }
 }

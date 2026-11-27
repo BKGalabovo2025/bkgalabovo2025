@@ -4,6 +4,11 @@ import { getSiteConfig } from "@/config/sites";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
+
+const BACKUP_CHUNK_SIZE = 200;
+const BACKUP_RETENTION_DAYS = 30;
+const ALL_BACKUP_SITES = ["bkgalabovo", "recoveryzone"] as const;
 
 export const BACKUP_COLLECTIONS = [
   "members",
@@ -87,43 +92,48 @@ export async function executeBackup(siteId = getSiteConfig().id) {
     (c) => !EXCLUDED_FROM_BACKUP.has(c)
   );
 
-  for (const colName of collectionsToExport) {
-    try {
-      let snapshot = await adminDb
-        .collection(colName)
-        .where("siteId", "==", siteId)
-        .get();
+  const CHUNK_CONCURRENCY = 5;
+  for (let i = 0; i < collectionsToExport.length; i += CHUNK_CONCURRENCY) {
+    const slice = collectionsToExport.slice(i, i + CHUNK_CONCURRENCY);
+    await Promise.all(
+      slice.map(async (colName) => {
+        try {
+          let snapshot = await adminDb
+            .collection(colName)
+            .where("siteId", "==", siteId)
+            .get();
 
-      if (
-        snapshot.empty &&
-        (colName === "club_settings" || colName === "settings")
-      ) {
-        snapshot = await adminDb.collection(colName).get();
-      }
+          if (
+            snapshot.empty &&
+            (colName === "club_settings" || colName === "settings")
+          ) {
+            snapshot = await adminDb.collection(colName).get();
+          }
 
-      const docs = snapshot.docs.map((doc) => ({
-        _id: doc.id,
-        ...doc.data(),
-      }));
+          const docs = snapshot.docs.map((doc) => ({
+            _id: doc.id,
+            ...doc.data(),
+          }));
 
-      stats[colName] = docs.length;
-      collectionsData[colName] = docs;
-    } catch {
-      // Fallback without siteId filter if collection is not partitioned
-      try {
-        const fallbackSnap = await adminDb.collection(colName).get();
-        const docs = fallbackSnap.docs.map((doc) => ({
-          _id: doc.id,
-          ...doc.data(),
-        }));
-        stats[colName] = docs.length;
-        collectionsData[colName] = docs;
-      } catch (err) {
-        console.error("Error backing up collection %s:", colName, err);
-        stats[colName] = 0;
-        collectionsData[colName] = [];
-      }
-    }
+          stats[colName] = docs.length;
+          collectionsData[colName] = docs;
+        } catch {
+          try {
+            const fallbackSnap = await adminDb.collection(colName).get();
+            const docs = fallbackSnap.docs.map((doc) => ({
+              _id: doc.id,
+              ...doc.data(),
+            }));
+            stats[colName] = docs.length;
+            collectionsData[colName] = docs;
+          } catch (err) {
+            console.error("Error backing up collection %s:", colName, err);
+            stats[colName] = 0;
+            collectionsData[colName] = [];
+          }
+        }
+      })
+    );
   }
 
   // 2. Export uploaded_files metadata
@@ -165,18 +175,65 @@ export async function executeBackup(siteId = getSiteConfig().id) {
     createdAt: now.toISOString(),
   });
 
-  // 4. Save collections segmented to avoid Firestore 1MB document limit
+  // 4. Save collections segmented in 200-doc chunks to avoid Firestore 1MB document limit
   for (const [colName, docs] of Object.entries(collectionsData)) {
     if (docs.length === 0) continue;
-    await backupRef.collection("collections").doc(colName).set({
-      count: docs.length,
-      data: docs,
-      updatedAt: now.toISOString(),
-    });
+    if (docs.length <= BACKUP_CHUNK_SIZE) {
+      await backupRef.collection("collections").doc(colName).set({
+        collection: colName,
+        chunkIndex: 0,
+        count: docs.length,
+        data: docs,
+        updatedAt: now.toISOString(),
+      });
+    } else {
+      for (let i = 0; i < docs.length; i += BACKUP_CHUNK_SIZE) {
+        const chunk = docs.slice(i, i + BACKUP_CHUNK_SIZE);
+        const chunkIndex = Math.floor(i / BACKUP_CHUNK_SIZE);
+        await backupRef
+          .collection("collections")
+          .doc(`${colName}__chunk_${chunkIndex}`)
+          .set({
+            collection: colName,
+            chunkIndex,
+            count: chunk.length,
+            data: chunk,
+            updatedAt: now.toISOString(),
+          });
+      }
+    }
+  }
+
+  // 5. Retention: delete backups older than BACKUP_RETENTION_DAYS for this site
+  try {
+    const cutoff = new Date(
+      now.getTime() - BACKUP_RETENTION_DAYS * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const oldBackupsSnap = await adminDb
+      .collection("system_backups")
+      .where("siteId", "==", siteId)
+      .where("createdAt", "<", cutoff)
+      .limit(20)
+      .get();
+
+    for (const oldDoc of oldBackupsSnap.docs) {
+      const subCols = await oldDoc.ref.collection("collections").get();
+      if (!subCols.empty) {
+        const batch = adminDb.batch();
+        subCols.docs.forEach((c) => batch.delete(c.ref));
+        batch.delete(oldDoc.ref);
+        await batch.commit();
+      } else {
+        await oldDoc.ref.delete();
+      }
+    }
+  } catch (retErr) {
+    console.warn("[backup] Retention cleanup warning:", retErr);
   }
 
   return {
     success: true,
+    siteId,
     backupId,
     timestamp: now.toISOString(),
     sofiaTime,
@@ -192,15 +249,29 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await executeBackup();
+    const { searchParams } = new URL(request.url);
+    const requestedSite = searchParams.get("siteId");
+    const sitesToBackup =
+      requestedSite === "bkgalabovo" || requestedSite === "recoveryzone"
+        ? [requestedSite]
+        : [...ALL_BACKUP_SITES];
+
+    const results = [];
+    for (const siteId of sitesToBackup) {
+      results.push(await executeBackup(siteId));
+    }
+
     return NextResponse.json({
       message: "Автоматичният бекъп завърши успешно.",
-      ...result,
+      backups: results,
+      ...(results[0] || {}),
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Backup Cron Error:", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Backup execution failed" },
+      { status: 500 }
+    );
   }
 }
 

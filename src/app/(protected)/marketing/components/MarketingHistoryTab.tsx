@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { MarketingLog, MarketingStats } from "@/types/marketing.types";
 
 interface Props {
@@ -54,7 +55,7 @@ export function MarketingHistoryTab({
 
   const handleDelete = async (id: string, recipientName: string) => {
     if (
-      window.confirm(
+      await confirmDialog(
         `Сигурни ли сте, че искате да изтриете това изпратено съобщение за ${recipientName} от базата данни?`
       )
     ) {
@@ -77,9 +78,9 @@ export function MarketingHistoryTab({
   const handleClearAll = async () => {
     if (
       onClearHistory &&
-      window.confirm(
+      (await confirmDialog(
         "ВНИМАНИЕ: Сигурни ли сте, че искате да изчистите ЦЯЛАТА история на съобщенията от базата данни?"
-      )
+      ))
     ) {
       setIsDeleting(true);
       try {

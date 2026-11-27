@@ -22,6 +22,9 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-400/20 bg-black/85 backdrop-blur-xl">
+      <a href="#main-content" className="skip-link">
+        Към основното съдържание
+      </a>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-5 lg:gap-3 lg:px-6">
         <Link
           prefetch={false}
@@ -31,7 +34,7 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
           <div className="relative size-8 shrink-0 overflow-hidden rounded-xl shadow-[0_0_10px_rgba(30,58,138,0.5)]">
             <Image
               src="/icons/badge-option-3-light-squircle.png"
-              alt="Logo"
+              alt={brandName}
               width={32}
               height={32}
               className="object-cover"
@@ -242,7 +245,7 @@ export function PublicNav({ clubSite }: { clubSite?: Site | null }) {
               prefetch={false}
               href="/club/parents/login"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 rounded-xl border border-blue-500/40 bg-blue-950/40 px-3.5 py-2.5 font-bold text-blue-300 hover:bg-blue-900/60 hover:text-white"
+              className="flex items-center gap-2 rounded-xl border border-blue-300 bg-blue-50 px-3.5 py-2.5 font-bold text-blue-700 hover:bg-blue-100 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/60 dark:hover:text-white"
             >
               <Users size={16} />
               <span>Родителски портал</span>

@@ -2,33 +2,40 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
-import { ensureAdmin, ensureAdminFromSession } from "@/lib/auth-utils";
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const InquiryInputSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Моля, въведете име и фамилия (поне 2 символа)."),
-  phone: z.string().trim().min(6, "Моля, въведете валиден телефонен номер."),
+    .min(2, "Моля, въведете име и фамилия (поне 2 символа).")
+    .max(120),
+  phone: z
+    .string()
+    .trim()
+    .min(6, "Моля, въведете валиден телефонен номер.")
+    .max(40),
   target: z.enum(["self", "child"]).optional().nullable(),
-  childAge: z.string().trim().optional().nullable(),
+  childAge: z.string().trim().max(30).optional().nullable(),
   level: z.enum(["beginner", "intermediate", "advanced"]).optional().nullable(),
-  notes: z.string().trim().optional().nullable(),
-  eventId: z.string().optional().nullable(),
+  notes: z.string().trim().max(1500).optional().nullable(),
+  eventId: z.string().max(120).optional().nullable(),
   eventTitle: z
     .string()
     .trim()
-    .min(1, "Липсва заглавие на събитието или процедурата."),
-  eventDate: z.string().optional().nullable(),
-  eventTime: z.string().optional().nullable(),
-  eventLocation: z.string().optional().nullable(),
-  siteId: z.string().default("bkgalabovo"),
+    .min(1, "Липсва заглавие на събитието или процедурата.")
+    .max(200),
+  eventDate: z.string().max(60).optional().nullable(),
+  eventTime: z.string().max(60).optional().nullable(),
+  eventLocation: z.string().max(200).optional().nullable(),
+  siteId: z.enum(["bkgalabovo", "recoveryzone"]).default("bkgalabovo"),
   // Recovery zone specific fields
-  procedureName: z.string().trim().optional().nullable(),
-  preferredZone: z.string().trim().optional().nullable(),
-  goal: z.string().trim().optional().nullable(),
-  preferredTimeSlot: z.string().trim().optional().nullable(),
+  procedureName: z.string().trim().max(150).optional().nullable(),
+  preferredZone: z.string().trim().max(100).optional().nullable(),
+  goal: z.string().trim().max(200).optional().nullable(),
+  preferredTimeSlot: z.string().trim().max(100).optional().nullable(),
 });
 
 const targetTranslations: Record<string, string> = {
@@ -42,57 +49,14 @@ const levelTranslations: Record<string, string> = {
   advanced: "Напреднал",
 };
 
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 5;
-const inquiryRateLimitMap = new Map<
-  string,
-  { count: number; resetAt: number }
->();
-
-function getClientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return request.headers.get("x-real-ip")?.trim() || "unknown";
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  // Prune expired entries occasionally to keep memory bounded
-  if (inquiryRateLimitMap.size > 500) {
-    for (const [key, entry] of inquiryRateLimitMap.entries()) {
-      if (now >= entry.resetAt) {
-        inquiryRateLimitMap.delete(key);
-      }
-    }
-  }
-
-  const existing = inquiryRateLimitMap.get(ip);
-  if (!existing || now >= existing.resetAt) {
-    inquiryRateLimitMap.set(ip, {
-      count: 1,
-      resetAt: now + RATE_LIMIT_WINDOW_MS,
-    });
-    return false;
-  }
-
-  if (existing.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return true;
-  }
-
-  existing.count += 1;
-  return false;
-}
-
 /**
  * Public endpoint: Submit new inquiry
  */
 export async function POST(request: Request) {
   try {
     const clientIp = getClientIp(request);
-    if (isRateLimited(clientIp)) {
+    const rate = await checkRateLimit(`inquiries:${clientIp}`, 5, 60_000);
+    if (!rate.allowed) {
       return NextResponse.json(
         {
           error:
@@ -324,9 +288,12 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split("Bearer ")[1];
 
-    // Check either Bearer token or session cookie
+    // Check either Bearer token or session cookie with site check
     if (token) {
-      await ensureAdmin(token);
+      await ensureAdminWithSite(
+        token,
+        siteId === "all" ? "bkgalabovo" : siteId
+      );
     } else {
       await ensureAdminFromSession();
     }
@@ -400,9 +367,7 @@ export async function PATCH(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split("Bearer ")[1];
-    if (token) {
-      await ensureAdmin(token);
-    } else {
+    if (!token) {
       await ensureAdminFromSession();
     }
 
@@ -416,6 +381,18 @@ export async function PATCH(request: Request) {
     }
 
     const adminDb = getAdminDb();
+    const docSnap = await adminDb.collection("inquiries").doc(id).get();
+    if (!docSnap.exists) {
+      return NextResponse.json(
+        { error: "Запитването не е намерено." },
+        { status: 404 }
+      );
+    }
+    if (token) {
+      const docSiteId =
+        (docSnap.data()?.siteId as string | undefined) || "bkgalabovo";
+      await ensureAdminWithSite(token, docSiteId);
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: Record<string, any> = {};
 
@@ -485,9 +462,7 @@ export async function DELETE(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split("Bearer ")[1];
-    if (token) {
-      await ensureAdmin(token);
-    } else {
+    if (!token) {
       await ensureAdminFromSession();
     }
 
@@ -510,7 +485,14 @@ export async function DELETE(request: Request) {
     }
 
     const adminDb = getAdminDb();
-    await adminDb.collection("inquiries").doc(id).delete();
+    const docRef = adminDb.collection("inquiries").doc(id);
+    const docSnap = await docRef.get();
+    if (token) {
+      const docSiteId =
+        (docSnap.data()?.siteId as string | undefined) || "bkgalabovo";
+      await ensureAdminWithSite(token, docSiteId);
+    }
+    await docRef.delete();
 
     return NextResponse.json({
       success: true,

@@ -261,7 +261,15 @@ export default function ParentLoginPage() {
 
       {/* Forgot Password Modal */}
       {forgotOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="forgot-password-title"
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setForgotOpen(false);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+        >
           <div className="w-full max-w-sm rounded-2xl border border-zinc-700/80 bg-zinc-900 p-6 shadow-2xl">
             {resetSuccess ? (
               <div className="text-center">
@@ -288,7 +296,10 @@ export default function ParentLoginPage() {
                     <Lock size={18} />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase">
+                    <h3
+                      id="forgot-password-title"
+                      className="text-sm font-bold text-white uppercase"
+                    >
                       Забравена парола
                     </h3>
                     <p className="text-[11px] text-zinc-400">

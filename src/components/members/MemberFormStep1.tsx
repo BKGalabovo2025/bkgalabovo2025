@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, handleKeyboardClick } from "@/lib/utils";
 
 import { DateSelectorField } from "./DateSelectorField";
 import { MemberFormValues } from "./member-form-types";
@@ -54,6 +54,9 @@ export function MemberFormStep1({
           </FormLabel>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={handleKeyboardClick}
               onClick={() =>
                 form.setValue("isClubMember", !isClubMember, {
                   shouldValidate: true,
@@ -93,6 +96,9 @@ export function MemberFormStep1({
             </div>
 
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={handleKeyboardClick}
               onClick={() =>
                 form.setValue("isRecoveryMember", !isRecoveryMember, {
                   shouldValidate: true,
@@ -132,6 +138,9 @@ export function MemberFormStep1({
             </div>
 
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={handleKeyboardClick}
               onClick={() =>
                 form.setValue("isGuest", !isGuest, { shouldValidate: true })
               }
@@ -168,6 +177,9 @@ export function MemberFormStep1({
               </span>
             </div>
             <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={handleKeyboardClick}
               onClick={() =>
                 form.setValue("isCoach", !isCoach, { shouldValidate: true })
               }
@@ -389,6 +401,9 @@ export function MemberFormStep1({
               return (
                 <div
                   className="flex h-auto min-h-11 cursor-pointer flex-row items-center justify-between rounded-2xl border border-zinc-100 bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/50 dark:hover:bg-zinc-800"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() =>
                     form.setValue("showOnPublicTeam", !showOnPublicTeam, {
                       shouldValidate: true,

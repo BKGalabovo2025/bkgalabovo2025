@@ -48,6 +48,7 @@ import {
   toggleParentUserStatusAction,
   updateParentMemberPermissionsAction,
 } from "@/lib/actions/parent-portal";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatPhoneDisplay } from "@/lib/phone-utils";
 import { Member } from "@/types";
 import {
@@ -309,9 +310,9 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
 
   const handleResetPassword = async (parent: ParentUser) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         `Да се генерира ли нова временна парола за ${parent.name}? Ще бъде изпратен имейл до родителя и до клубната поща.`
-      )
+      ))
     ) {
       return;
     }
@@ -343,9 +344,9 @@ export function MemberParentsTab({ member, onUpdate }: MemberParentsTabProps) {
 
   const handleDeleteParent = async (parent: ParentUser) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         `Сигурни ли сте, че искате да премахнете профила на ${parent.name}?`
-      )
+      ))
     ) {
       return;
     }

@@ -11,7 +11,6 @@ import {
   where,
 } from "firebase/firestore";
 import React, { useRef, useState } from "react";
-import SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  SignatureCanvas,
+  type SignatureCanvasHandle,
+} from "@/components/ui/signature-canvas";
 import { getSiteConfig } from "@/config/sites";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getDb } from "@/lib/firebase";
 import { Reservation } from "@/types/reservation";
 
@@ -105,16 +109,16 @@ export function DeclarationSignDialog({
     }
   }, [open, reservation]);
 
-  const handleSelectClient = (index: 1 | 2, force: boolean = false) => {
+  const handleSelectClient = async (index: 1 | 2, force: boolean = false) => {
     if (
       !force &&
       !sigCanvasRef.current?.isEmpty() &&
       !signedClients.includes(selectedClientIndex)
     ) {
       if (
-        !confirm(
+        !(await confirmDialog(
           "Имате неположени подписи, които не са запазени. Сигурни ли сте, че искате да смените клиента без да запазите?"
-        )
+        ))
       ) {
         return;
       }
@@ -134,8 +138,8 @@ export function DeclarationSignDialog({
     }, 50);
   };
 
-  const sigCanvasRef = useRef<SignatureCanvas>(null);
-  const parentSigCanvasRef = useRef<SignatureCanvas>(null);
+  const sigCanvasRef = useRef<SignatureCanvasHandle>(null);
+  const parentSigCanvasRef = useRef<SignatureCanvasHandle>(null);
 
   const handleClearSignature = (isParent: boolean = false) => {
     if (isParent) {

@@ -1,7 +1,14 @@
 "use client";
 
+import { Analytics } from "@vercel/analytics/next";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+
+import {
+  CookieConsentBanner,
+  getCookieConsent,
+} from "@/components/shared/CookieConsentBanner";
+import { GlobalConfirmDialog } from "@/components/shared/GlobalConfirmDialog";
 
 const Toaster = dynamic(() => import("sonner").then((mod) => mod.Toaster), {
   ssr: false,
@@ -17,6 +24,18 @@ const OfflineStatusIndicator = dynamic(
 
 export function ClientGlobalOverlays() {
   const [ready, setReady] = useState(false);
+  const [analyticsConsented, setAnalyticsConsented] = useState(false);
+
+  useEffect(() => {
+    setAnalyticsConsented(getCookieConsent() === "accepted");
+    const onConsentChange = (e: Event) => {
+      const detail = (e as CustomEvent<string>).detail;
+      setAnalyticsConsented(detail === "accepted");
+    };
+    window.addEventListener("cookie-consent-changed", onConsentChange);
+    return () =>
+      window.removeEventListener("cookie-consent-changed", onConsentChange);
+  }, []);
 
   useEffect(() => {
     // Defer non-critical global overlays until browser is idle so initial hydration stays fast on mobile
@@ -39,12 +58,19 @@ export function ClientGlobalOverlays() {
     return () => clearTimeout(timer);
   }, []);
 
-  if (!ready) return null;
-
   return (
     <>
-      <OfflineStatusIndicator />
-      <Toaster richColors closeButton position="top-right" />
+      <GlobalConfirmDialog />
+      <CookieConsentBanner />
+      {ready && (
+        <>
+          <OfflineStatusIndicator />
+          <Toaster richColors closeButton position="top-right" />
+          {analyticsConsented &&
+            process.env.NODE_ENV === "production" &&
+            process.env.VERCEL && <Analytics />}
+        </>
+      )}
     </>
   );
 }

@@ -190,7 +190,7 @@ export default async function ClubMainPage(props: {
   } catch (error) {
     console.error("Error reading hall images directory:", error);
     // Fallback if directory fails to read
-    hallImages = ["/hall/zala1.webp"];
+    hallImages = ["/bk-hero.webp"];
   }
 
   const jsonLd = {
@@ -214,7 +214,9 @@ export default async function ClubMainPage(props: {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <ClubClient
         schedule={schedule}

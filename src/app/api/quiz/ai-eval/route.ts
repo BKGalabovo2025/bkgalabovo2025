@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const maxDuration = 60;
+
 import { logSystemError } from "@/lib/actions/error-logging";
 import { getAuthUser } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -85,21 +87,30 @@ ${safeAnswer}
   }
 }
 
-async function authorizeUser(request: Request): Promise<boolean> {
+async function authorizeUser(request: Request) {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) return false;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
   try {
-    await getAuthUser(authHeader.substring(7));
-    return true;
+    return await getAuthUser(authHeader.substring(7));
   } catch {
-    return false;
+    return null;
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const isAuthorized = await authorizeUser(request);
-    if (!isAuthorized) {
+    const { checkRateLimit, getClientIp } = await import("@/lib/rate-limit");
+    const ip = getClientIp(request);
+    const rate = await checkRateLimit(`quiz-ai-eval:${ip}`, 15, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
+    const user = await authorizeUser(request);
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -114,10 +125,26 @@ export async function POST(request: Request) {
 
     const { resultId, questionText, tacticalAnswer, maxPoints } = parsed.data;
 
-    // Verify result exists in Firestore and check replay protection
+    // Verify result exists in Firestore and check ownership / admin
     const adminDb = getAdminDb();
     const docRef = adminDb.collection("theory_results").doc(resultId);
     const docSnap = await docRef.get();
+    if (docSnap.exists) {
+      const rData = docSnap.data();
+      const isAdmin = Boolean(
+        user.admin ||
+        user.email === "bkgalabovo2014@gmail.com" ||
+        user.email === "recoveryzonebyzm@gmail.com"
+      );
+      if (
+        !isAdmin &&
+        rData?.userId &&
+        rData.userId !== user.uid &&
+        rData?.memberId !== user.uid
+      ) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
 
     if (!docSnap.exists) {
       return NextResponse.json({ error: "Result not found" }, { status: 404 });
@@ -186,6 +213,9 @@ export async function POST(request: Request) {
       stack: error instanceof Error ? error.stack : undefined,
       path: "/api/quiz/ai-eval",
     });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

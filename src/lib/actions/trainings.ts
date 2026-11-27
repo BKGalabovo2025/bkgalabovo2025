@@ -6,12 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { getSiteConfig } from "@/config/sites";
-import {
-  ensureAdmin,
-  ensureAdminFromSession,
-  getAuthUser,
-  getAuthUserFromSessionCookie,
-} from "@/lib/auth-utils";
+import { ensureAdmin, ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import {
@@ -294,8 +289,8 @@ export async function saveWorkoutProgramAction(
 ) {
   try {
     const user = idToken
-      ? await getAuthUser(idToken).catch(() => null)
-      : await getAuthUserFromSessionCookie();
+      ? await ensureAdmin(idToken).catch(() => null)
+      : await ensureAdminFromSession().catch(() => null);
     if (!user) throw new Error("Unauthorized");
 
     const db = getAdminDb();
@@ -357,8 +352,8 @@ export async function getMemberWorkoutProgramsAction(
 ) {
   try {
     const user = idToken
-      ? await getAuthUser(idToken).catch(() => null)
-      : await getAuthUserFromSessionCookie();
+      ? await ensureAdmin(idToken).catch(() => null)
+      : await ensureAdminFromSession().catch(() => null);
     if (!user) throw new Error("Unauthorized");
 
     const db = getAdminDb();
@@ -401,8 +396,8 @@ export async function deleteWorkoutProgramAction(
 ) {
   try {
     const user = idToken
-      ? await getAuthUser(idToken).catch(() => null)
-      : await getAuthUserFromSessionCookie();
+      ? await ensureAdmin(idToken).catch(() => null)
+      : await ensureAdminFromSession().catch(() => null);
     if (!user) throw new Error("Unauthorized");
 
     const db = getAdminDb();
@@ -474,9 +469,9 @@ export async function getMemberActiveWorkoutForDateAction(
 }> {
   try {
     const user = idToken
-      ? await getAuthUser(idToken).catch(() => null)
-      : await getAuthUserFromSessionCookie();
-    if (!user && !(await getAuthUserFromSessionCookie())) {
+      ? await ensureAdmin(idToken).catch(() => null)
+      : await ensureAdminFromSession().catch(() => null);
+    if (!user && !(await ensureAdminFromSession().catch(() => null))) {
       throw new Error("Невалидна оторизация. Моля, влезте отново.");
     }
 
@@ -726,9 +721,9 @@ export async function updateWorkoutProgramProgressAction(
 }> {
   try {
     const user = idToken
-      ? await getAuthUser(idToken).catch(() => null)
-      : await getAuthUserFromSessionCookie();
-    if (!user && !(await getAuthUserFromSessionCookie())) {
+      ? await ensureAdmin(idToken).catch(() => null)
+      : await ensureAdminFromSession().catch(() => null);
+    if (!user && !(await ensureAdminFromSession().catch(() => null))) {
       throw new Error("Невалидна оторизация. Моля, влезте отново.");
     }
 

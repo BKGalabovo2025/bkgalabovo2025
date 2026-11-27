@@ -29,6 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { certificateTemplateService } from "@/services/certificate-template-service";
 import {
   CertificateTemplate,
@@ -102,9 +103,9 @@ export function TemplatesTab({
 
   const handleDelete = async (id: string, nameToDelete: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         `Сигурни ли сте, че искате да изтриете шаблона "${nameToDelete}"?`
-      )
+      ))
     ) {
       return;
     }

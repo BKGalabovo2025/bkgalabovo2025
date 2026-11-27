@@ -41,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { inventoryService } from "@/services/inventory-service";
 import { useAppStore } from "@/store/use-app-store";
@@ -270,7 +271,10 @@ export default function InventoryClient({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете този уред?")) return;
+    if (
+      !(await confirmDialog("Сигурни ли сте, че искате да изтриете този уред?"))
+    )
+      return;
     try {
       await inventoryService.deleteInventoryItem(id);
       fetchInventory();

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   const isAuthorized =
@@ -33,10 +36,17 @@ export async function GET(request: Request) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tripsToRemind: any[] = [];
 
-      // Check if the 3-day NKS reporting deadline after endDate has passed
+      // Check if the 3-day NKS reporting deadline after endDate has passed and no reminder was sent in the last 6 days
       const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+      const sixDaysAgo = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
       for (const doc of tripsSnapshot.docs) {
         const data = doc.data();
+        const lastSent = data.lastReminderSentAt
+          ? new Date(data.lastReminderSentAt)
+          : null;
+        if (lastSent && lastSent > sixDaysAgo) {
+          continue;
+        }
         if (data.endDate && new Date(data.endDate) < threeDaysAgo) {
           tripsToRemind.push({ id: doc.id, ...data });
         }
@@ -53,20 +63,28 @@ export async function GET(request: Request) {
           ? "http://localhost:3000"
           : "https://bkgalabovo2025.vercel.app");
 
+      const coachIds = Array.from(
+        new Set(tripsToRemind.map((t) => t.coachId).filter(Boolean) as string[])
+      );
+      const coachMap = new Map<string, FirebaseFirestore.DocumentData>();
+      if (coachIds.length > 0) {
+        const coachRefs = coachIds.map((id) =>
+          adminDb.collection("members").doc(id)
+        );
+        const coachDocs = await adminDb.getAll(...coachRefs);
+        coachDocs.forEach((d) => {
+          if (d.exists && d.data()) coachMap.set(d.id, d.data()!);
+        });
+      }
+
       let emailsSent = 0;
 
       for (const trip of tripsToRemind) {
         if (!trip.coachId) continue;
-        // Get the coach
-        const coachDoc = await adminDb
-          .collection("members")
-          .doc(trip.coachId)
-          .get();
-        if (!coachDoc.exists) continue;
+        const coachData = coachMap.get(trip.coachId);
+        if (!coachData) continue;
 
-        const coachData = coachDoc.data();
-        const email = coachData?.email;
-
+        const email = coachData.email;
         if (!email) continue;
 
         // Call our own /api/send-email endpoint using CRON_SECRET
@@ -89,10 +107,17 @@ export async function GET(request: Request) {
 
         if (response.ok) {
           emailsSent++;
+          await adminDb
+            .collection("business_trips")
+            .doc(trip.id)
+            .update({ lastReminderSentAt: now.toISOString() })
+            .catch((err) =>
+              console.warn("Failed to record lastReminderSentAt:", trip.id, err)
+            );
         } else {
           console.error(
-            "Failed to send email to",
-            email,
+            "Failed to send reminder email for trip",
+            trip.id,
             await response.text()
           );
         }

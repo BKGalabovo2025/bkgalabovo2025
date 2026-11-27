@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+export const maxDuration = 60;
+
 import { getAdminDb } from "@/lib/firebase-admin";
 
 const QuizQuestionPayloadSchema = z.object({
@@ -114,8 +116,7 @@ async function requestGeminiFeedback(
   autoScore: number,
   maxAutoScore: number
 ) {
-  const apiKey =
-    process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   // Find all WRONG single choice questions
   const wrongQuestions = questions.filter((q) => {
@@ -258,6 +259,16 @@ ${promptDetails || "Няма грешни затворени въпроси."}
 
 export async function POST(request: Request) {
   try {
+    const { checkRateLimit, getClientIp } = await import("@/lib/rate-limit");
+    const ip = getClientIp(request);
+    const rate = await checkRateLimit(`quiz-ai-feedback:${ip}`, 15, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = AiFeedbackRequestSchema.safeParse(body);
     if (!parsed.success) {

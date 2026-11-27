@@ -40,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { QUESTION_BANK, QuestionBankItem } from "@/lib/question-bank";
 import { evaluateTacticalAnswer } from "@/lib/tactical-evaluator";
 import { getAllMembers } from "@/services/member-service";
@@ -492,9 +493,9 @@ export default function TheoryClient({
 
   const handleDeleteResult = async (id: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този резултат? Това действие е необратимо."
-      )
+      ))
     )
       return;
     try {

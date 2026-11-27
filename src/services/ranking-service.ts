@@ -1,4 +1,4 @@
-import { getDocs, query, where } from "firebase/firestore";
+import { getDocs, limit, query, where } from "firebase/firestore";
 
 import {
   getTournamentEntriesQuery,
@@ -24,7 +24,8 @@ export async function computeGlobalRankings(dateFilter?: {
   const q = query(
     getTournamentsQuery(),
     where("countsForRanking", "==", true),
-    where("status", "==", "completed")
+    where("status", "==", "completed"),
+    limit(500)
   );
 
   const tourSnap = await getDocs(q);
@@ -41,20 +42,21 @@ export async function computeGlobalRankings(dateFilter?: {
   if (tournaments.length === 0) return [];
 
   const fetchTournamentData = async (tournamentId: string) => {
-    const entriesSnap = await getDocs(
-      query(
-        getTournamentEntriesQuery(),
-        where("tournamentId", "==", tournamentId)
-      )
-    );
+    const [entriesSnap, matchesSnap] = await Promise.all([
+      getDocs(
+        query(
+          getTournamentEntriesQuery(),
+          where("tournamentId", "==", tournamentId)
+        )
+      ),
+      getDocs(
+        query(
+          getTournamentMatchesQuery(),
+          where("tournamentId", "==", tournamentId)
+        )
+      ),
+    ]);
     const entries = entriesSnap.docs.map(mapDocToEntry);
-
-    const matchesSnap = await getDocs(
-      query(
-        getTournamentMatchesQuery(),
-        where("tournamentId", "==", tournamentId)
-      )
-    );
     const matches = matchesSnap.docs.map(mapDocToMatch);
 
     return { entries, matches };

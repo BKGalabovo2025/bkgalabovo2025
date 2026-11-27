@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/auth-context";
 import { deleteRecoverySession } from "@/lib/actions/services";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import { ClubService } from "@/types";
@@ -64,7 +65,9 @@ export function RecoveryMenu({
 
   const handleDelete = async (id: string, name: string) => {
     if (!idToken) return;
-    if (confirm(`Сигурни ли сте, че искате да изтриете "${name}"?`)) {
+    if (
+      await confirmDialog(`Сигурни ли сте, че искате да изтриете "${name}"?`)
+    ) {
       const result = await deleteRecoverySession(idToken, id);
       if (result.success) {
         toast.success(result.message);

@@ -2555,7 +2555,7 @@ export default function CreateSessionWizard({
 
   const handleSave = async () => {
     if (!title) {
-      alert("Въведи заглавие на тренировката.");
+      toast.error("Въведи заглавие на тренировката.");
       return;
     }
 

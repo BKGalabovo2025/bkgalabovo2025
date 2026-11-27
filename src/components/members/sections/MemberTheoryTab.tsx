@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { quizService } from "@/services/quiz-service";
 import { TheoryResult } from "@/types/quiz.types";
 
@@ -71,9 +72,9 @@ export const MemberTheoryTab = ({ memberId }: MemberTheoryTabProps) => {
 
   const handleDelete = async (id: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този резултат? Това действие е необратимо."
-      )
+      ))
     )
       return;
     try {

@@ -231,7 +231,7 @@ export default function RecoveryZoneClient({
                       крака, ръце и ханш.
                     </p>
                     <p className="mb-4">
-                      В ZM RECOVERY ZONE използваме лидера в динамичната
+                      В Recovery Zone by ZM използваме лидера в динамичната
                       въздушна компресия – системата Normatec 3 от Hyperice. Тя
                       използва патентованата технология Pulse, която чрез
                       ритмично притискане имитира естествената работа на

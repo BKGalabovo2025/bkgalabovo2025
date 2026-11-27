@@ -25,6 +25,9 @@ export function RecoveryNav({ onBookClick, site }: RecoveryNavProps) {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-500/20 bg-black/85 backdrop-blur-xl">
+      <a href="#main-content" className="skip-link">
+        Към основното съдържание
+      </a>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-3 sm:px-5 lg:gap-3 lg:px-6">
         {/* Brand */}
         <Link

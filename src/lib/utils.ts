@@ -1,6 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { type ClassValue, clsx } from "clsx";
+import type React from "react";
 import { twMerge } from "tailwind-merge";
+
+export function handleKeyboardClick(e: React.KeyboardEvent<HTMLElement>) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const target = e.target as HTMLElement | null;
+  if (
+    target &&
+    target !== e.currentTarget &&
+    ["INPUT", "TEXTAREA", "SELECT", "BUTTON", "A"].includes(target.tagName)
+  ) {
+    return;
+  }
+  e.preventDefault();
+  e.currentTarget.click();
+}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -42,13 +56,21 @@ export const getAgeGroup = (birthDate: string): string => {
   return "Неопределена";
 };
 
+type RawDateInput =
+  | string
+  | number
+  | Date
+  | { toDate?: () => Date; seconds?: number; _seconds?: number }
+  | null
+  | undefined;
+
 export const resolveMemberAgeGroup = (
   member?: {
     ageGroup?: string | null;
-    dateOfBirth?: any;
-    birthDate?: any;
+    dateOfBirth?: RawDateInput;
+    birthDate?: RawDateInput;
     birthYear?: number | null;
-    dob?: any;
+    dob?: RawDateInput;
   } | null
 ): string | undefined => {
   if (!member) return undefined;
@@ -63,11 +85,15 @@ export const resolveMemberAgeGroup = (
 
   const rawDob = member.dateOfBirth || member.birthDate || member.dob;
   if (rawDob) {
-    if (typeof rawDob?.toDate === "function") {
+    if (
+      typeof rawDob === "object" &&
+      "toDate" in rawDob &&
+      typeof rawDob.toDate === "function"
+    ) {
       const res = getAgeGroup(rawDob.toDate().toISOString());
       if (res && res !== "Неопределена") return res;
     }
-    if (typeof rawDob === "object") {
+    if (typeof rawDob === "object" && !(rawDob instanceof Date)) {
       if ("seconds" in rawDob && typeof rawDob.seconds === "number") {
         const res = getAgeGroup(new Date(rawDob.seconds * 1000).toISOString());
         if (res && res !== "Неопределена") return res;

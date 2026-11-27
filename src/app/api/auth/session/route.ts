@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 import { getAdminAuth } from "@/lib/firebase-admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+const SessionSchema = z.object({
+  idToken: z.string().min(10).max(4096),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { idToken } = await request.json();
+    const ip = getClientIp(request);
+    const rate = await checkRateLimit(`auth-session:${ip}`, 20, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
 
-    if (!idToken) {
+    const body = await request.json().catch(() => null);
+    const parsed = SessionSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "No ID token provided" },
+        { error: "No valid ID token provided" },
         { status: 400 }
       );
     }
+    const { idToken } = parsed.data;
 
     // Set session expiration to 5 days
     const expiresIn = 60 * 60 * 24 * 5 * 1000;

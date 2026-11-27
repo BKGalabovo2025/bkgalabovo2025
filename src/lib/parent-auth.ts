@@ -6,11 +6,16 @@ import { createHmac } from "node:crypto";
 import { cookies } from "next/headers";
 
 const PARENT_SESSION_COOKIE_NAME = "parent_session";
-const SECRET_KEY =
+const RESOLVED_SECRET =
   process.env.AUTH_SECRET ||
   process.env.JWT_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  "bkgalabovo-parent-portal-secure-key-2026";
+  process.env.NEXTAUTH_SECRET;
+if (!RESOLVED_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error(
+    "AUTH_SECRET (or JWT_SECRET / NEXTAUTH_SECRET) must be configured in production."
+  );
+}
+const SECRET_KEY = RESOLVED_SECRET || "dev-only-parent-portal-secret";
 
 /**
  * Hashes a plaintext password using crypto scrypt with a unique random salt.

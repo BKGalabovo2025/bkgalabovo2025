@@ -29,6 +29,7 @@ import {
   deleteSubmissionServerAction,
   updateSubmissionStatusServerAction,
 } from "@/lib/actions/feedback";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { feedbackService } from "@/services/feedback-service";
 import { FeedbackCampaign, FeedbackSubmission } from "@/types/feedback.types";
 
@@ -79,7 +80,11 @@ export function FeedbackSubmissionsTab({
   };
 
   const handleQuickReject = async (sub: FeedbackSubmission) => {
-    if (!window.confirm("Сигурни ли сте, че искате да отхвърлите този отзив?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да отхвърлите този отзив?"
+      ))
+    )
       return;
     try {
       const srvRes = await updateSubmissionStatusServerAction(
@@ -105,7 +110,11 @@ export function FeedbackSubmissionsTab({
   };
 
   const handleDelete = async (submissionId: string) => {
-    if (!window.confirm("Сигурни ли сте, че искате да изтриете този запис?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този запис?"
+      ))
+    )
       return;
     try {
       const srvRes = await deleteSubmissionServerAction(submissionId);

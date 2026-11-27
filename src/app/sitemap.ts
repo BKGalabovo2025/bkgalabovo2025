@@ -85,12 +85,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     if (campsSnapshot) {
-      campRoutes = campsSnapshot.docs.map((doc) => ({
-        url: `${BASE_URL}/club/camps/${doc.id}`,
-        lastModified: now,
-        changeFrequency: "daily" as const,
-        priority: 0.6,
-      }));
+      campRoutes = campsSnapshot.docs
+        .filter((doc) => doc.data()?.isCancelled !== true)
+        .map((doc) => ({
+          url: `${BASE_URL}/club/camps/${doc.id}`,
+          lastModified: doc.updateTime?.toDate() || now,
+          changeFrequency: "daily" as const,
+          priority: 0.6,
+        }));
     }
   } catch (err) {
     console.warn("Sitemap: skipping dynamic camp routes:", err);

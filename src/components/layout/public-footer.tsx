@@ -77,6 +77,15 @@ export function PublicFooter({ clubSite }: { clubSite?: Site | null }) {
           <Link href="/" className="transition-colors hover:text-white">
             Портал
           </Link>
+          <Link
+            href="/privacy-policy"
+            className="transition-colors hover:text-blue-400"
+          >
+            Поверителност
+          </Link>
+          <Link href="/terms" className="transition-colors hover:text-blue-400">
+            Общи условия
+          </Link>
         </div>
 
         <span className="text-[10px] font-bold tracking-widest text-zinc-400 uppercase">

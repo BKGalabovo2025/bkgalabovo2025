@@ -24,6 +24,7 @@ import {
   deleteCampaignServerAction,
   updateCampaignStatusServerAction,
 } from "@/lib/actions/feedback";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { feedbackService } from "@/services/feedback-service";
 import { ScheduleEvent } from "@/types";
 import {
@@ -147,9 +148,9 @@ export function FeedbackCampaignsTab({
 
   const handleDelete = async (campaignId: string) => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете тази кампания за анкета?"
-      )
+      ))
     )
       return;
     try {

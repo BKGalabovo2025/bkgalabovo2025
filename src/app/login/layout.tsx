@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
-  title: "Вход в системата | Бадминтон клуб Гълъбово",
-  description:
-    "Вход в административната система и треньорския портал на Бадминтон клуб Гълъбово и Recovery Zone.",
+  title: "Вход в системата",
+  robots: { index: false, follow: false },
 };
 
 export default function LoginLayout({

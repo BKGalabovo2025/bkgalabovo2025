@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
-import { ensureAdmin, ensureAdminFromSession } from "@/lib/auth-utils";
+export const maxDuration = 60;
+
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 const SendEmailSchema = z.object({
@@ -10,17 +12,22 @@ const SendEmailSchema = z.object({
     .array(
       z.object({
         id: z.string(),
-        name: z.string(),
+        name: z.string().max(150),
         email: z.string().email(),
-        childName: z.string().optional(),
-        phone: z.string().optional(),
+        childName: z.string().max(150).optional(),
+        phone: z.string().max(40).optional(),
       })
     )
-    .min(1, "Моля, изберете поне един получател с валиден имейл адрес."),
-  subject: z.string().trim().min(1, "Моля, въведете тема на имейла."),
-  messageText: z.string().trim().min(1, "Моля, въведете текст на имейла."),
-  templateTitle: z.string().optional(),
-  siteId: z.string().default("bkgalabovo"),
+    .min(1, "Моля, изберете поне един получател с валиден имейл адрес.")
+    .max(200, "Максимум 200 получатели наведнъж."),
+  subject: z.string().trim().min(1, "Моля, въведете тема на имейла.").max(200),
+  messageText: z
+    .string()
+    .trim()
+    .min(1, "Моля, въведете текст на имейла.")
+    .max(10000),
+  templateTitle: z.string().max(150).optional(),
+  siteId: z.enum(["bkgalabovo", "recoveryzone"]).default("bkgalabovo"),
   senderProfile: z.enum(["bkgalabovo", "recoveryzone"]).optional(),
 });
 
@@ -29,14 +36,6 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.split("Bearer ")[1];
     let adminUid = "admin";
-
-    if (token) {
-      const decoded = await ensureAdmin(token);
-      adminUid = decoded.uid;
-    } else {
-      const session = await ensureAdminFromSession();
-      adminUid = session.uid;
-    }
 
     const json = await request.json();
     const parsed = SendEmailSchema.safeParse(json);
@@ -49,6 +48,14 @@ export async function POST(request: Request) {
         },
         { status: 400 }
       );
+    }
+
+    if (token) {
+      const decoded = await ensureAdminWithSite(token, parsed.data.siteId);
+      adminUid = decoded.uid;
+    } else {
+      const session = await ensureAdminFromSession();
+      adminUid = session.uid;
     }
 
     const {
@@ -192,7 +199,8 @@ export async function POST(request: Request) {
           sentBy: adminUid,
         });
       } catch (err) {
-        console.error("Failed to send email to recipient:", r.email, err);
+        const maskedEmail = r.email.replace(/(?<=.{2}).+(?=@)/, "***");
+        console.error("Failed to send email to recipient:", maskedEmail, err);
         failedCount++;
         batchLogs.push({
           siteId,

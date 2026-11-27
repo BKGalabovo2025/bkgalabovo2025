@@ -5,7 +5,6 @@
  * Those had 89%+ identical EventCard implementations — extracted here to avoid duplication.
  */
 
-import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
   ChevronRight,
@@ -402,24 +401,17 @@ export function PublicEventCard({
         </div>
       </div>
 
-      <AnimatePresence>
-        {expanded && event.description && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="ml-6 px-6 pt-2 pb-5 sm:ml-10">
-              <div className="rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
-                <div className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
-                  {renderPublicTextWithLinks(event.description)}
-                </div>
+      {expanded && event.description && (
+        <div className="overflow-hidden animate-in fade-in duration-200">
+          <div className="ml-6 px-6 pt-2 pb-5 sm:ml-10">
+            <div className="rounded-xl border border-blue-900/30 bg-blue-950/20 p-4">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-300">
+                {renderPublicTextWithLinks(event.description)}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
 
       {event.attachmentUrl && (
         <DocumentViewerDialog

@@ -11,6 +11,7 @@ import React, {
 import { toast } from "sonner";
 
 import { syncRankingsAction } from "@/lib/actions/rankings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatDateShort } from "@/lib/date-utils";
 import { generateExcelReport, generatePdfReport } from "@/lib/export-utils";
 import { generateBergerMatches } from "@/lib/match-generator";
@@ -297,9 +298,9 @@ export function TournamentDetailsProvider({
 
     if (matches.length > 0) {
       if (
-        !confirm(
+        !(await confirmDialog(
           "Вече има генерирани мачове. Искате ли да ги изтриете и да генерирате нови? Всички въведени резултати ще бъдат загубени!"
-        )
+        ))
       ) {
         return;
       }
@@ -449,9 +450,9 @@ export function TournamentDetailsProvider({
 
   const handleDeleteEntry = async (entryId: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този участник от турнира?"
-      )
+      ))
     ) {
       return;
     }
@@ -510,7 +511,7 @@ export function TournamentDetailsProvider({
         updatedMatches.every((m: Match) => m.status === "completed");
 
       if (allCompleted && tournament?.status !== "completed") {
-        const shouldComplete = confirm(
+        const shouldComplete = await confirmDialog(
           "Всички срещи в турнира са изиграни! Желаете ли да приключите турнира официално?"
         );
         if (shouldComplete) {

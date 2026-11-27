@@ -9,8 +9,8 @@ import { z } from "zod";
 import { logAuditEvent } from "@/lib/audit-logger";
 import {
   ensureAdmin,
+  ensureAdminFromSession,
   ensureAdminWithSite,
-  getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
 import { getAdminDb, getAdminStorage } from "@/lib/firebase-admin";
 import { getBackupDb } from "@/lib/firebase-admin-backup";
@@ -565,7 +565,7 @@ export async function getMemberProfileDataServerAction(
   }>
 > {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) throw new Error("Unauthorized");
 
     const cleanMemberId = decodeURIComponent(memberId || "").trim();

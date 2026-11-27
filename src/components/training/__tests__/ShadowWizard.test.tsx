@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as trainingsActions from "@/lib/actions/trainings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 
 import { ShadowWizard } from "../ShadowWizard";
 
@@ -65,6 +66,10 @@ vi.mock("sonner", () => ({
     success: vi.fn(),
     info: vi.fn(),
   },
+}));
+
+vi.mock("@/lib/confirm-dialog", () => ({
+  confirmDialog: vi.fn().mockResolvedValue(true),
 }));
 
 // Mock SpeechSynthesis
@@ -143,7 +148,7 @@ describe("ShadowWizard Component Flow", () => {
     fireEvent.click(screen.getByText(/ЗАПИШИ В КЛУБНАТА БАЗА ДАННИ/i));
 
     // Should ask for confirmation because elapsed < 10 seconds
-    expect(window.confirm).toHaveBeenCalled();
+    expect(confirmDialog).toHaveBeenCalled();
 
     vi.useRealTimers();
     await waitFor(() => {

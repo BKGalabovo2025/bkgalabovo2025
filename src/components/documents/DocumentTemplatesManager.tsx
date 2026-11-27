@@ -52,6 +52,7 @@ import {
   getDocumentTemplatesAction,
   updateDocumentTemplateAction,
 } from "@/lib/actions/document-templates";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { cn } from "@/lib/utils";
 import {
   CreateDocumentTemplateInput,
@@ -624,9 +625,9 @@ export function DocumentTemplatesManager() {
   const handleDelete = async (template: DocumentTemplate) => {
     if (!user) return;
     if (
-      !window.confirm(
+      !(await confirmDialog(
         `Сигурни ли сте, че искате да изтриете образеца "${template.title}"?`
-      )
+      ))
     ) {
       return;
     }
@@ -637,10 +638,10 @@ export function DocumentTemplatesManager() {
       if (res.success) {
         setTemplates((prev) => prev.filter((t) => t.id !== template.id));
       } else {
-        alert(res.error || "Грешка при изтриване.");
+        toast.error(res.error || "Грешка при изтриване.");
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Грешка при изтриване.");
+      toast.error(err instanceof Error ? err.message : "Грешка при изтриване.");
     }
   };
 

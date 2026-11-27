@@ -65,6 +65,7 @@ import {
   cn,
   getAgeGroup,
   getValidAvatarUrl,
+  handleKeyboardClick,
   resolveMemberAgeGroup,
 } from "@/lib/utils";
 import { Member } from "@/types";
@@ -809,6 +810,9 @@ export function MembersTableComponent({
                           selectedIds.includes(member.id) &&
                             "bg-primary/5 dark:bg-primary/10"
                         )}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={handleKeyboardClick}
                         onClick={() => router.push(`/members/${member.id}`)}
                       >
                         <TableCell
@@ -1019,6 +1023,9 @@ export function MembersTableComponent({
                 <div
                   key={member.id}
                   id={`member-${member.id}`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={handleKeyboardClick}
                   onClick={() => router.push(`/members/${member.id}`)}
                   className={cn(
                     "p-3.5 transition-colors active:bg-zinc-50 dark:active:bg-zinc-900",
@@ -1029,6 +1036,9 @@ export function MembersTableComponent({
                   <div className="mb-2.5 flex items-center justify-between gap-2">
                     <div className="flex min-w-0 flex-1 items-center gap-2.5">
                       <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={handleKeyboardClick}
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleSelect(member.id);

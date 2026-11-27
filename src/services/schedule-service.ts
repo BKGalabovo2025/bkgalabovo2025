@@ -2,6 +2,7 @@ import {
   DocumentData,
   DocumentSnapshot,
   getDocs,
+  limit,
   query,
   QueryDocumentSnapshot,
   where,
@@ -154,7 +155,8 @@ export const getEventsByMemberId = async (
 ): Promise<ScheduleEvent[]> => {
   const q = query(
     getEventsQuery(),
-    where("attendeeMemberIds", "array-contains", memberId)
+    where("attendeeMemberIds", "array-contains", memberId),
+    limit(500)
   );
 
   const snapshot = await getDocs(q);
@@ -171,7 +173,7 @@ export const getEventsByMemberId = async (
 };
 
 export const getCamps = async (): Promise<ScheduleEvent[]> => {
-  const q = query(getEventsQuery(), where("type", "==", "camp"));
+  const q = query(getEventsQuery(), where("type", "==", "camp"), limit(200));
 
   const snapshot = await getDocs(q);
 
@@ -187,7 +189,7 @@ export const getCamps = async (): Promise<ScheduleEvent[]> => {
 };
 
 export const getEvents = async (): Promise<ScheduleEvent[]> => {
-  const q = query(getEventsQuery());
+  const q = query(getEventsQuery(), limit(1000));
   const snapshot = await getDocs(q);
   const events = snapshot.docs
     .map(docToScheduleEvent)

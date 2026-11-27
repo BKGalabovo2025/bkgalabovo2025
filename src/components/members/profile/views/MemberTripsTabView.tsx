@@ -39,6 +39,7 @@ import {
   getTripDecisionNumber,
   getTripOrderNumber,
 } from "@/lib/business-trip-numbers";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 import { BusinessTrip } from "@/types/business-trip.types";
@@ -190,9 +191,9 @@ export function MemberTripsTabView() {
 
   const handleClearStoredSignature = async () => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да премахнете съхранения подпис от профила на състезателя?"
-      )
+      ))
     ) {
       return;
     }

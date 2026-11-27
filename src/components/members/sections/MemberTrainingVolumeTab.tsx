@@ -1,18 +1,19 @@
 "use client";
 
 import { Activity, Loader2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useCallback, useEffect, useState } from "react";
+
+const MemberTrainingVolumeChart = dynamic(
+  () => import("@/components/members/sections/MemberTrainingVolumeChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[250px] w-full animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-800/50" />
+    ),
+  }
+);
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,12 +31,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
   const [sessions, setSessions] = useState<Record<string, PlannerSession>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memberId, activeBranch]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const atts = await plannerService.getMemberAttendance(
@@ -60,7 +56,11 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeBranch, memberId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   if (isLoading) {
     return (
@@ -187,71 +187,7 @@ export function MemberTrainingVolumeTab({ memberId }: Props) {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 sm:p-6">
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-              minWidth={1}
-              minHeight={1}
-            >
-              <LineChart
-                data={chartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  className="stroke-zinc-200 dark:stroke-zinc-800"
-                />
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: "#71717a" }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  domain={[0, 10]}
-                  tick={{ fontSize: 10, fill: "#71717a" }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "1px solid var(--border, #e4e4e7)",
-                    backgroundColor: "var(--card, #ffffff)",
-                    color: "var(--card-foreground, #18181b)",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  }}
-                  labelStyle={{
-                    fontWeight: "bold",
-                    color: "var(--card-foreground, #18181b)",
-                    marginBottom: "4px",
-                  }}
-                />
-                <ReferenceLine
-                  y={8}
-                  stroke="#ef4444"
-                  strokeDasharray="3 3"
-                  label={{
-                    position: "top",
-                    value: "Зона на преумора",
-                    fill: "#ef4444",
-                    fontSize: 10,
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="rpe"
-                  stroke="#4f46e5"
-                  strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: "#4f46e5" }}
-                  name="Ниво на умора (RPE)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <MemberTrainingVolumeChart data={chartData} />
         </CardContent>
       </Card>
 

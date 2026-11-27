@@ -11,20 +11,27 @@ const MATCHES_COLLECTION = "tournament_matches";
 
 import { computeRankingsCore } from "@/lib/ranking-utils";
 
-export async function computeGlobalRankingsServer(dateFilter?: {
-  start: Date;
-  end: Date;
-}): Promise<RankingEntry[]> {
+export async function computeGlobalRankingsServer(
+  dateFilter?: {
+    start: Date;
+    end: Date;
+  },
+  siteId?: string
+): Promise<RankingEntry[]> {
   try {
     const db = getAdminDb();
 
     // 1. All completed tournaments that count for ranking
-    const query = db
+    let query: FirebaseFirestore.Query = db
       .collection(TOURNAMENTS_COLLECTION)
       .where("countsForRanking", "==", true)
       .where("status", "==", "completed");
 
-    const tourSnap = await query.get();
+    if (siteId) {
+      query = query.where("siteId", "==", siteId);
+    }
+
+    const tourSnap = await query.limit(500).get();
     let tournaments = tourSnap.docs.map((doc) => ({
       ...(doc.data() as Tournament),
       id: doc.id,
@@ -46,19 +53,20 @@ export async function computeGlobalRankingsServer(dateFilter?: {
     if (tournaments.length === 0) return [];
 
     const fetchTournamentData = async (tournamentId: string) => {
-      const entriesSnap = await db
-        .collection(ENTRIES_COLLECTION)
-        .where("tournamentId", "==", tournamentId)
-        .get();
+      const [entriesSnap, matchesSnap] = await Promise.all([
+        db
+          .collection(ENTRIES_COLLECTION)
+          .where("tournamentId", "==", tournamentId)
+          .get(),
+        db
+          .collection(MATCHES_COLLECTION)
+          .where("tournamentId", "==", tournamentId)
+          .get(),
+      ]);
       const entries = entriesSnap.docs.map((doc) => ({
         ...(doc.data() as TournamentEntry),
         id: doc.id,
       }));
-
-      const matchesSnap = await db
-        .collection(MATCHES_COLLECTION)
-        .where("tournamentId", "==", tournamentId)
-        .get();
       const matches = matchesSnap.docs.map((doc) => ({
         ...(doc.data() as Match),
         id: doc.id,

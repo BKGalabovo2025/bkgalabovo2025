@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Подписване на документ | БК Гълъбово",
   description:
     "Система за онлайн електронно подписване на официални клубни документи в СНЦ Бадминтон клуб Гълъбово.",
+  robots: { index: false, follow: false },
 };
 
 export default async function SignDocumentPage({ params }: SignPageProps) {

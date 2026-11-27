@@ -707,6 +707,27 @@ export function RecoveryInquiryDialog({
                   </div>
                 )}
 
+                <label className="flex cursor-pointer items-start gap-2.5 pt-1 text-[11px] leading-relaxed text-zinc-400">
+                  <input
+                    type="checkbox"
+                    required
+                    className="mt-0.5 size-4 shrink-0 rounded border-zinc-700 bg-zinc-900 accent-emerald-500"
+                  />
+                  <span>
+                    Съгласен/а съм данните ми да бъдат обработвани за целите на
+                    запитването съгласно{" "}
+                    <a
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-emerald-400 underline hover:text-emerald-300"
+                    >
+                      Политиката за поверителност
+                    </a>
+                    . *
+                  </span>
+                </label>
+
                 <div className="pt-2">
                   <Button
                     type="submit"

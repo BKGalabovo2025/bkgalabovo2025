@@ -126,11 +126,21 @@ export async function generatePdfReport(
   container.style.padding = "40px";
   container.style.fontFamily = "sans-serif";
 
+  function escapeHtml(val: unknown): string {
+    if (val === null || val === undefined) return "";
+    return String(val)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   // Генериране на <thead>
   const theadHtml = options.columns
     .map(
       (c) =>
-        `<th style="padding: 10px; border: 1px solid #ddd; text-align: ${c.align || "left"};">${c.header}</th>`
+        `<th style="padding: 10px; border: 1px solid #ddd; text-align: ${c.align || "left"};">${escapeHtml(c.header)}</th>`
     )
     .join("");
 
@@ -144,7 +154,7 @@ export async function generatePdfReport(
           if (c.isCurrency && typeof val === "number") {
             val = val.toFixed(2);
           }
-          return `<td style="padding: 10px; border: 1px solid #ddd; text-align: ${c.align || "left"};">${val}</td>`;
+          return `<td style="padding: 10px; border: 1px solid #ddd; text-align: ${c.align || "left"};">${escapeHtml(val)}</td>`;
         })
         .join("");
       return `<tr style="background-color: ${trBg};">${cellsHtml}</tr>`;
@@ -157,16 +167,16 @@ export async function generatePdfReport(
     const colspan = options.columns.length - 1;
     totalHtml = `
       <tr style="background-color: #e2e8f0; font-weight: bold; font-size: 14px;">
-        <td colspan="${colspan}" style="padding: 10px; border: 1px solid #ddd; text-align: right;">${options.totalLabel}</td>
+        <td colspan="${colspan}" style="padding: 10px; border: 1px solid #ddd; text-align: right;">${escapeHtml(options.totalLabel)}</td>
         <td style="padding: 10px; border: 1px solid #ddd; text-align: right; color: #16a34a;">${options.totalValue.toFixed(2)} лв.</td>
       </tr>
     `;
   }
 
   container.innerHTML = `
-    <h1 style="font-size: 24px; margin-bottom: 5px; color: #1a1a1a;">${options.title}</h1>
-    ${options.subtitle ? `<p style="font-size: 14px; color: #666; margin-bottom: 5px;">${options.subtitle}</p>` : ""}
-    ${options.metaData ? `<p style="font-size: 16px; color: #3e40c8; margin-bottom: 20px;">${options.metaData}</p>` : ""}
+    <h1 style="font-size: 24px; margin-bottom: 5px; color: #1a1a1a;">${escapeHtml(options.title)}</h1>
+    ${options.subtitle ? `<p style="font-size: 14px; color: #666; margin-bottom: 5px;">${escapeHtml(options.subtitle)}</p>` : ""}
+    ${options.metaData ? `<p style="font-size: 16px; color: #3e40c8; margin-bottom: 20px;">${escapeHtml(options.metaData)}</p>` : ""}
     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
       <thead>
         <tr style="background-color: #1e40af; color: white;">

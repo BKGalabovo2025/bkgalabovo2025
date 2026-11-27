@@ -28,6 +28,7 @@ import { useAuth } from "@/context/auth-context";
 import { useFamily } from "@/hooks/useFamily";
 import { removeMemberFromFamilyAction } from "@/lib/actions/families";
 import { updateFamilyNameAction } from "@/lib/actions/families";
+import { confirmDialog } from "@/lib/confirm-dialog";
 
 const FamilyDetailsPage = () => {
   const params = useParams();
@@ -81,9 +82,9 @@ const FamilyDetailsPage = () => {
   const handleRemoveMember = async (memberId: string) => {
     if (!user) return;
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да премахнете този член от семейството?"
-      )
+      ))
     )
       return;
 

@@ -420,7 +420,10 @@ async function propagateAthleteSignatureInternal(
   // 2. Query all business trips and filter by participant or coach/chairman roles
   let updatedTripsCount = 0;
   try {
-    const tripsSnap = await adminDb.collection("business_trips").get();
+    const tripsSnap = await adminDb
+      .collection("business_trips")
+      .limit(500)
+      .get();
 
     if (!tripsSnap.empty) {
       const BATCH_SIZE = 400;
@@ -1044,7 +1047,10 @@ export async function syncMemberSignatureFromTripsAction(input: {
 
     // 3. Fallback: search all trips where memberId is in participantsIds/participantIds OR explicitly keyed under memberId
     if (!foundSig) {
-      const allTripsSnap = await adminDb.collection("business_trips").get();
+      const allTripsSnap = await adminDb
+        .collection("business_trips")
+        .limit(500)
+        .get();
       const normId = memberId.trim().toLowerCase();
       for (const doc of allTripsSnap.docs) {
         const data = doc.data();
@@ -1135,7 +1141,10 @@ export async function backfillAllAthleteSignaturesFromTripsAction(
   try {
     await ensureAdmin();
     const adminDb = getAdminDb();
-    const tripsSnap = await adminDb.collection("business_trips").get();
+    const tripsSnap = await adminDb
+      .collection("business_trips")
+      .limit(500)
+      .get();
 
     if (tripsSnap.empty) {
       return {

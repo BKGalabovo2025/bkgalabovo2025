@@ -3,6 +3,7 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
+import { ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import {
   calcTournamentStandings,
@@ -78,6 +79,7 @@ export async function syncRankingsAction(siteId?: string): Promise<{
   message: string;
 }> {
   try {
+    await ensureAdminWithSite(undefined, siteId);
     const db = getAdminDb();
 
     let tourQuery: FirebaseFirestore.Query = db
@@ -89,9 +91,14 @@ export async function syncRankingsAction(siteId?: string): Promise<{
       tourQuery = tourQuery.where("siteId", "==", siteId);
     }
 
+    let membersQuery: FirebaseFirestore.Query = db.collection("members");
+    if (siteId && siteId !== "bkgalabovo") {
+      membersQuery = membersQuery.where("siteId", "==", siteId);
+    }
+
     const [tourSnap, membersSnap] = await Promise.all([
-      tourQuery.get(),
-      db.collection("members").get(),
+      tourQuery.limit(500).get(),
+      membersQuery.limit(2000).get(),
     ]);
 
     const tournaments = tourSnap.docs.map((doc) => ({

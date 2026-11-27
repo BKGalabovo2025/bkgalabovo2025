@@ -1,6 +1,6 @@
 Developer setup
 
-- Node: use Node 25.x (match CI). Use nvm or nvm-windows to pin.
+- Node: use Node 24.x LTS (match CI). Use nvm or nvm-windows to pin.
 - Install dependencies: `npm ci`
 - Local env: create `.env.local` and set required vars; do NOT commit it.
   - Example vars: `FIREBASE_SERVICE_ACCOUNT_JSON`, `RECOVERY_ZONE_PRIVATE_KEY`, `EMAIL_PASS`

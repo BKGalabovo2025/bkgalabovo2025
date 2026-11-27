@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import {
   MarketingTemplate,
   MarketingTemplateCategory,
@@ -75,7 +76,7 @@ export function MarketingTemplatesTab({
 
   const handleDelete = async (id: string, title: string) => {
     if (
-      window.confirm(
+      await confirmDialog(
         `Сигурни ли сте, че искате да изтриете шаблона "${title}"?`
       )
     ) {

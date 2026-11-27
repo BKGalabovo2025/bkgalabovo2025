@@ -2,7 +2,7 @@
 import "server-only";
 
 import { logAuditEvent } from "@/lib/audit-logger";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { SignedDeclaration } from "@/types";
 
@@ -19,7 +19,7 @@ export async function getMemberDeclarationsAction(
   memberId: string
 ): Promise<DeclarationActionResponse<SignedDeclaration[]>> {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       return { success: false, message: "Неоторизиран достъп." };
     }
@@ -61,17 +61,25 @@ export async function getMemberDeclarationsAction(
 /**
  * Get all signed declarations across the platform using Admin SDK.
  */
-export async function getAllDeclarationsAction(): Promise<
-  DeclarationActionResponse<SignedDeclaration[]>
-> {
+export async function getAllDeclarationsAction(
+  siteId?: string
+): Promise<DeclarationActionResponse<SignedDeclaration[]>> {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = siteId
+      ? await ensureAdminWithSite(undefined, siteId)
+      : await ensureAdminFromSession();
     if (!user) {
       return { success: false, message: "Неоторизиран достъп." };
     }
 
     const adminDb = getAdminDb();
-    const snapshot = await adminDb.collection("member_declarations").get();
+    const baseQuery = siteId
+      ? adminDb
+          .collection("member_declarations")
+          .where("siteId", "==", siteId)
+          .limit(500)
+      : adminDb.collection("member_declarations").limit(500);
+    const snapshot = await baseQuery.get();
 
     const list: SignedDeclaration[] = snapshot.docs.map((docSnap) => {
       const data = docSnap.data();
@@ -108,7 +116,7 @@ export async function deleteDeclarationAction(
   declarationId: string
 ): Promise<DeclarationActionResponse<void>> {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       return { success: false, message: "Неоторизиран достъп." };
     }

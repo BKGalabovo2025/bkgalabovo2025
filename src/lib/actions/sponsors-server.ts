@@ -3,7 +3,8 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
-import { ensureAdminFromSession } from "@/lib/auth-utils";
+import { parseActionInput, siteIdSchema } from "@/lib/actions/zod-helpers";
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { readWithFallback, writeWithFallback } from "@/lib/db-failover";
 import {
   DEFAULT_INITIAL_SPONSORS,
@@ -38,6 +39,7 @@ function setMemoryCache(siteId: string, data: SponsorPartner[]): void {
 
 /** Изчиства сървърния кеш (при промяна на спонсор) */
 export async function invalidateSponsorsCache(siteId: string): Promise<void> {
+  await ensureAdminWithSite(undefined, siteId);
   sponsorsMemoryCache.delete(siteId);
 }
 
@@ -51,6 +53,10 @@ export async function getSponsorsAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; data: SponsorPartner[]; error?: string }> {
   try {
+    const parsed = parseActionInput(siteIdSchema, siteId);
+    if (!parsed.ok) {
+      return { success: false, data: [], error: parsed.error };
+    }
     // Провери сървърния in-memory кеш първо
     const memoryCached = getMemoryCached(siteId);
     if (memoryCached) {

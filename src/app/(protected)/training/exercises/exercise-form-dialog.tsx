@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { plannerService } from "@/services/planner-service";
 import { useAppStore } from "@/store/use-app-store";
 import {
@@ -148,7 +149,11 @@ export default function ExerciseFormDialog({
 
   const handleDelete = async () => {
     if (!exercise) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете това упражнение?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете това упражнение?"
+      ))
+    )
       return;
     setIsDeleting(true);
     try {

@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Официален сертификат | БК Гълъбово",
   description:
     "Дигитална проверка на клубен сертификат, грамота или ваучер от Бадминтон Клуб Гълъбово.",
+  robots: { index: false, follow: false },
 };
 
 export default async function CertificateDetailPage({

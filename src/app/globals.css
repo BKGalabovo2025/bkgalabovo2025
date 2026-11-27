@@ -476,6 +476,10 @@ html:not(.dark)
   :is(.text-white, .text-zinc-100, .text-zinc-200):not(
     .keep-dark,
     .keep-dark *,
+    [class*="bg-zinc-9"],
+    [class*="bg-slate-9"],
+    [class*="bg-blue-9"],
+    [class*="bg-emerald-9"],
     [class*="bg-blue-600"],
     [class*="bg-blue-700"],
     [class*="bg-emerald-600"],

@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { sponsorService } from "@/services/sponsor-service";
 import {
   getSponsorCategoryLabel,
@@ -159,7 +160,9 @@ export function SponsorsTab({
 
   const handleDelete = async (id: string, nameToDelete: string) => {
     if (
-      !confirm(`Сигурни ли сте, че искате да премахнете "${nameToDelete}"?`)
+      !(await confirmDialog(
+        `Сигурни ли сте, че искате да премахнете "${nameToDelete}"?`
+      ))
     ) {
       return;
     }

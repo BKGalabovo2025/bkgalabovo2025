@@ -1,9 +1,33 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from "firebase-admin";
 
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import { Sale } from "@/types";
+
+function convertTimestamps(val: unknown): unknown {
+  if (!val) return val;
+  if (
+    typeof val === "object" &&
+    "toDate" in val &&
+    typeof (val as { toDate?: unknown }).toDate === "function"
+  ) {
+    return (val as { toDate: () => Date }).toDate().toISOString();
+  }
+  if (val instanceof admin.firestore.Timestamp) {
+    return val.toDate().toISOString();
+  }
+  if (Array.isArray(val)) {
+    return val.map(convertTimestamps);
+  }
+  if (typeof val === "object") {
+    const copy: Record<string, unknown> = {};
+    for (const key of Object.keys(val as Record<string, unknown>)) {
+      copy[key] = convertTimestamps((val as Record<string, unknown>)[key]);
+    }
+    return copy;
+  }
+  return val;
+}
 
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
@@ -12,30 +36,9 @@ function snapToData<T>(
   const data = doc.data();
   if (!data) return null;
 
-  const convertTimestamps = (val: any): any => {
-    if (!val) return val;
-    if (typeof val.toDate === "function") {
-      return val.toDate().toISOString();
-    }
-    if (val instanceof admin.firestore.Timestamp) {
-      return val.toDate().toISOString();
-    }
-    if (Array.isArray(val)) {
-      return val.map(convertTimestamps);
-    }
-    if (typeof val === "object") {
-      const copy: any = {};
-      for (const key of Object.keys(val)) {
-        copy[key] = convertTimestamps(val[key]);
-      }
-      return copy;
-    }
-    return val;
-  };
-
   return {
     id: doc.id,
-    ...convertTimestamps(data),
+    ...(convertTimestamps(data) as Record<string, unknown>),
   } as T;
 }
 

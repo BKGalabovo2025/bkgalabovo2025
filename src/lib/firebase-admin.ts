@@ -238,4 +238,16 @@ export const getSiteIdForCamp = async (
   }
 };
 
-export { getAdminAuth, getAdminDb, getAdminStorage };
+const getRawAdminDb = () => {
+  if (!adminDb) {
+    initializeFirebaseAdmin();
+  }
+  if (!adminDb) {
+    throw new Error(
+      "Primary Firebase Admin Firestore is not initialized. Check your credentials."
+    );
+  }
+  return adminDb;
+};
+
+export { getAdminAuth, getAdminDb, getAdminStorage, getRawAdminDb };

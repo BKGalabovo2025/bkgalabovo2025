@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "Интерактивен тест по бадминтон | БК Гълъбово",
   description:
     "Тест за бадминтон тактика, правила и теория за състезатели и любители на Бадминтон Клуб Гълъбово.",
+  robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";

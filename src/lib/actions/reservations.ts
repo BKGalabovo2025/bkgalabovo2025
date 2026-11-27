@@ -12,7 +12,11 @@ import { z } from "zod";
 
 import { DonationReceiptEmail } from "@/components/emails/donation-receipt-email";
 import { clubInfo } from "@/config/club";
-import { ensureAdmin, getAuthUser } from "@/lib/auth-utils";
+import {
+  ensureAdmin,
+  ensureAdminWithSite,
+  getAuthUser,
+} from "@/lib/auth-utils";
 import { formatPrice } from "@/lib/currency";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
@@ -936,7 +940,7 @@ export async function sendDonationReceiptEmailAction(
   reservationId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
 
     const reservationDoc = await db
@@ -1357,7 +1361,7 @@ export async function getPackageReservationsAction(
   packageGroupId: string
 ) {
   try {
-    await getAuthUser(idToken);
+    await ensureAdmin(idToken);
     const db = getAdminDb();
     const snap = await db
       .collection("reservations")
@@ -1414,13 +1418,19 @@ export async function checkRecoveryInventoryAction(
     const maxArms = siteInfo.inventory.attachments?.arms || 0;
     const maxHips = siteInfo.inventory.attachments?.hips || 0;
 
-    const startTime = Timestamp.fromDate(new Date(startTimeIso));
+    const startDateObj = new Date(startTimeIso);
+    const startTime = Timestamp.fromDate(startDateObj);
     const endTime = Timestamp.fromDate(new Date(endTimeIso));
+    const lookbackStart = Timestamp.fromDate(
+      new Date(startDateObj.getTime() - 24 * 60 * 60 * 1000)
+    );
 
     const overlappingRes = await db
       .collection("reservations")
       .where("siteId", "==", "recoveryzone")
+      .where("startTime", ">=", lookbackStart)
       .where("startTime", "<", endTime)
+      .limit(200)
       .get();
 
     let usedComp = 0;
@@ -1477,6 +1487,7 @@ export async function getReservationsFeedAction(params: {
   dateIso?: string;
 }) {
   try {
+    await ensureAdminWithSite(undefined, params.siteId);
     const db = getAdminDb();
     const { siteId, dateIso } = params;
     let reservationsQuery = db
@@ -1495,10 +1506,12 @@ export async function getReservationsFeedAction(params: {
         .where("startTime", "<=", Timestamp.fromDate(endOfDay))
         .orderBy("startTime", "asc");
     } else {
-      reservationsQuery = reservationsQuery.orderBy("startTime", "desc");
+      reservationsQuery = reservationsQuery
+        .orderBy("startTime", "desc")
+        .limit(500);
     }
 
-    const snap = await reservationsQuery.get();
+    const snap = await reservationsQuery.limit(500).get();
     const reservations = snap.docs.map((docSnap) => {
       const data = docSnap.data();
       return {

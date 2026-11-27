@@ -12,6 +12,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -385,7 +386,7 @@ export default function AnnualPlansClient() {
                                           if (foundEx)
                                             handleOpenExercisePreview(foundEx);
                                           else
-                                            alert(
+                                            toast.error(
                                               "Упражнението не е намерено в базата данни."
                                             );
                                         }}

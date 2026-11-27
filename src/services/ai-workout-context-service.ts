@@ -727,6 +727,7 @@ export async function getAthleteGeminiContext(
     const beepSnap = await db
       .collection("beep_test_results")
       .where("memberId", "==", memberId)
+      .limit(50)
       .get();
     if (!beepSnap.empty) {
       const sorted = beepSnap.docs
@@ -743,6 +744,7 @@ export async function getAthleteGeminiContext(
     const assessSnap = await db
       .collection("member_assessments")
       .where("memberId", "==", memberId)
+      .limit(100)
       .get();
     assessments = assessSnap.docs
       .map((doc) => doc.data() as MemberAssessment)
@@ -760,6 +762,7 @@ export async function getAthleteGeminiContext(
     const trainingsSnap = await db
       .collection("trainings")
       .where("memberIds", "array-contains", memberId)
+      .limit(100)
       .get();
     trainingsLast14Days = trainingsSnap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }) as TrainingSession)
@@ -796,7 +799,7 @@ export async function getAthleteGeminiContext(
       annualPlan = planSnap.docs[0].data() as AnnualPlan;
     }
     const campSnap = await db
-      .collection("schedule")
+      .collection("events")
       .where("siteId", "==", siteId)
       .where("type", "==", "camp")
       .limit(3)
@@ -836,7 +839,11 @@ export async function getAthleteGeminiContext(
 
   try {
     // A. Tournaments collection
-    const tourSnap = await db.collection("tournaments").get();
+    const tourSnap = await db
+      .collection("tournaments")
+      .where("siteId", "==", siteId)
+      .limit(200)
+      .get();
     const allTournaments = tourSnap.docs.map(
       (d) => ({ id: d.id, ...d.data() }) as Tournament
     );
@@ -847,6 +854,7 @@ export async function getAthleteGeminiContext(
       const entriesSnap = await db
         .collection("tournament_entries")
         .where("memberId", "==", memberId)
+        .limit(200)
         .get();
       registeredTournamentIds = new Set(
         entriesSnap.docs.map((d) => String(d.data().tournamentId || ""))
@@ -858,7 +866,11 @@ export async function getAthleteGeminiContext(
     // C. Check calendar events for competition/tournament type & extract events in period
     let calendarCompetitions: Tournament[] = [];
     try {
-      const eventsSnap = await db.collection("events").get();
+      const eventsSnap = await db
+        .collection("events")
+        .where("siteId", "==", siteId)
+        .limit(500)
+        .get();
       const rawEventsList = eventsSnap.docs.map((d) => {
         const e = (d.data() || {}) as Record<string, any>;
         return { id: d.id, ...e };
@@ -993,6 +1005,7 @@ export async function getAthleteGeminiContext(
     const quizSnap = await db
       .collection("theory_results")
       .where("playerId", "==", memberId)
+      .limit(50)
       .get();
     theoryResults = quizSnap.docs
       .map((d) => d.data() as TheoryResult)

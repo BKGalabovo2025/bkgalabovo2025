@@ -25,6 +25,7 @@ import {
   submitParentAbsenceAction,
   uploadParentMedicalCertificateAction,
 } from "@/lib/actions/parent-portal";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import {
   ParentAbsenceReason,
   ParentFinancialTransactionItem,
@@ -664,7 +665,11 @@ export function ParentPortalProvider({
   };
 
   const handleCancelAbsence = async (absenceId: string) => {
-    if (!confirm("Сигурни ли сте, че искате да отмените това уведомление?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да отмените това уведомление?"
+      ))
+    )
       return;
     try {
       const res = await cancelParentAbsenceAction(absenceId);

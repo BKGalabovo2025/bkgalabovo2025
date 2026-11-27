@@ -2,9 +2,11 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 import PublicCatalogTabs from "@/components/club/PublicCatalogTabs";
 import { RecoveryFooter } from "@/components/recovery/RecoveryFooter";
+import { RecoveryInquiryDialog } from "@/components/recovery/RecoveryInquiryDialog";
 import { RecoveryNav } from "@/components/recovery/RecoveryNav";
 import { Site } from "@/types/site.types";
 
@@ -21,9 +23,11 @@ export function RecoveryCatalogClient({
   phone,
   contraindications,
 }: RecoveryCatalogClientProps) {
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+
   return (
     <div className="public-portal-shell min-h-screen bg-zinc-950 font-sans text-white selection:bg-emerald-500 selection:text-white">
-      <RecoveryNav />
+      <RecoveryNav site={site} onBookClick={() => setIsBookingOpen(true)} />
 
       {/* Main Content */}
       <main id="main-content" className="px-6 py-24">
@@ -77,6 +81,14 @@ export function RecoveryCatalogClient({
       </main>
 
       <RecoveryFooter site={site} />
+
+      <RecoveryInquiryDialog
+        isOpen={isBookingOpen}
+        onClose={() => setIsBookingOpen(false)}
+        phone={phone}
+        contraindications={contraindications}
+        procedures={recoveryServices as { title?: string }[]}
+      />
     </div>
   );
 }

@@ -26,7 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/context/auth-context";
-import { formatFullName } from "@/lib/utils";
+import { formatFullName, handleKeyboardClick } from "@/lib/utils";
 import { Attendee, Member, ScheduleEvent } from "@/types";
 
 interface CampManagerDialogProps {
@@ -397,6 +397,9 @@ export const CampManagerDialog: React.FC<CampManagerDialogProps> = ({
                     return (
                       <div
                         key={member.id}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={handleKeyboardClick}
                         onClick={() => handleToggleMember(member)}
                         className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-colors ${
                           isPresent

@@ -4,10 +4,7 @@ import "server-only";
 import * as admin from "firebase-admin";
 import { revalidatePath } from "next/cache";
 
-import {
-  ensureAdminFromSession,
-  getAuthUserFromSessionCookie,
-} from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import {
@@ -75,7 +72,7 @@ export async function getFeedbackAdminDataAction(siteId: string): Promise<{
   error?: string;
 }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       return { success: false, error: "Нямате активна сесия." };
     }

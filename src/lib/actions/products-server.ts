@@ -5,10 +5,7 @@ import * as admin from "firebase-admin";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { logAuditEvent } from "@/lib/audit-logger";
-import {
-  ensureAdminFromSession,
-  getAuthUserFromSessionCookie,
-} from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import { sanitizeImageUrl } from "@/lib/utils";
@@ -54,13 +51,26 @@ export async function getProductsServerAction(activeBranch?: string): Promise<{
   error?: string;
 }> {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       throw new Error("Неоторизиран достъп.");
     }
 
     const adminDb = getAdminDb();
-    const snap = await adminDb.collection("products").get();
+    const colRef = adminDb.collection("products");
+    let productsQuery: FirebaseFirestore.Query = colRef;
+    if (
+      activeBranch &&
+      activeBranch !== "all" &&
+      activeBranch !== "bkgalabovo" &&
+      typeof (colRef as { where?: unknown }).where === "function"
+    ) {
+      productsQuery = colRef.where("siteId", "==", activeBranch);
+    }
+    if (typeof (productsQuery as { limit?: unknown }).limit === "function") {
+      productsQuery = productsQuery.limit(500);
+    }
+    const snap = await productsQuery.get();
 
     let items = snap.docs
       .map((doc) => snapToData<Product>(doc))
@@ -129,7 +139,7 @@ export async function createProductAction(data: {
 
     await docRef.set(newProduct);
 
-    await adminDb.collection("inventoryEvents").add({
+    await adminDb.collection("inventory_events").add({
       productId: docRef.id,
       productName: newProduct.name,
       type: "initial",
@@ -211,7 +221,7 @@ async function recordProductEvents(
   const productName = data.name || oldData.name;
 
   if (data.price !== undefined && data.price !== oldData.price) {
-    await adminDb.collection("inventoryEvents").add({
+    await adminDb.collection("inventory_events").add({
       productId: id,
       productName,
       type: "price_update",
@@ -227,7 +237,7 @@ async function recordProductEvents(
 
   if (data.stock !== undefined && data.stock !== oldData.stock) {
     const diff = Number(data.stock) - (oldData.stock || 0);
-    await adminDb.collection("inventoryEvents").add({
+    await adminDb.collection("inventory_events").add({
       productId: id,
       productName,
       type: diff > 0 ? "restock" : "adjustment",
@@ -309,7 +319,7 @@ export async function deleteProductAction(id: string) {
     const oldData = snap.data() as Product;
     await docRef.delete();
 
-    await adminDb.collection("inventoryEvents").add({
+    await adminDb.collection("inventory_events").add({
       productId: id,
       productName: oldData.name,
       type: "delete",

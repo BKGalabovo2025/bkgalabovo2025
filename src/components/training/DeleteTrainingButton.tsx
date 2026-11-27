@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { deleteTrainingSessionAction } from "@/lib/actions/trainings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 
 interface Props {
   trainingId: string;
@@ -22,7 +23,12 @@ export function DeleteTrainingButton({ trainingId, onDeleted }: Props) {
   const handleDelete = async () => {
     const freshToken = user ? await user.getIdToken() : idToken;
     if (!freshToken && !user) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете този запис?")) return;
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този запис?"
+      ))
+    )
+      return;
 
     setIsDeleting(true);
     try {

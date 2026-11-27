@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import SignatureCanvas from "react-signature-canvas";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +9,10 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  SignatureCanvas,
+  type SignatureCanvasHandle,
+} from "@/components/ui/signature-canvas";
 
 export interface SignaturePadDialogProps {
   open: boolean;
@@ -26,7 +29,7 @@ export function SignaturePadDialog({
   onSave,
   penColor = "#1d4ed8",
 }: SignaturePadDialogProps) {
-  const sigCanvas = useRef<SignatureCanvas>(null);
+  const sigCanvas = useRef<SignatureCanvasHandle>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,8 +84,7 @@ export function SignaturePadDialog({
         <div className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4.5 space-y-3 min-h-0">
           <div className="relative touch-none overflow-hidden rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-white">
             <SignatureCanvas
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ref={sigCanvas as any}
+              ref={sigCanvas}
               penColor={penColor}
               canvasProps={{
                 className: "w-full h-44 cursor-crosshair",

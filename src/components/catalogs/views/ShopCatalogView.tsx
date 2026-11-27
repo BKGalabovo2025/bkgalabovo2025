@@ -34,6 +34,7 @@ import {
   deleteProductAction,
   getProductsServerAction,
 } from "@/lib/actions/products-server";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatPrice } from "@/lib/currency";
 import { cn, sanitizeImageUrl } from "@/lib/utils";
 import { Product } from "@/types";
@@ -446,7 +447,11 @@ export function ShopCatalogView({
   }, [products, searchTerm, selectedCategory]);
 
   const handleDelete = async (product: Product) => {
-    if (!confirm(`Сигурни ли сте, че искате да изтриете "${product.name}"?`)) {
+    if (
+      !(await confirmDialog(
+        `Сигурни ли сте, че искате да изтриете "${product.name}"?`
+      ))
+    ) {
       return;
     }
 

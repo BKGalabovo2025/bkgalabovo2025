@@ -26,4 +26,10 @@ ui-debug.log
 firebase-debug.log
 *.pb
 *.sst
+*-firebase-adminsdk-*.json
+serviceAccountKey*.json
+recovery-zone-export.json
+.env*.local
+~/
+
 

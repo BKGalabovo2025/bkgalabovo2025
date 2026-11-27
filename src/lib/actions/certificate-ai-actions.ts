@@ -10,13 +10,14 @@ import {
   translateAndEnhanceBulgarianPrompt,
 } from "@/lib/ai/certificate-ai-service";
 import { logAuditEvent } from "@/lib/audit-logger";
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminStorage } from "@/lib/firebase-admin";
 
 /**
  * Проверява статуса на AI API ключовете от защитена сървърна среда
  */
 export async function getAiApiStatusAction(): Promise<AiApiStatus> {
+  await ensureAdminFromSession();
   return getAiApiStatus();
 }
 
@@ -31,8 +32,8 @@ export async function generateCertificateAiBackgroundAction(
   variantIndex: number = 0
 ): Promise<GenerateCertificateAiBackgroundResult> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    const userEmail = user?.email || "admin@bkgalabovo.bg";
+    const user = await ensureAdminWithSite(undefined, siteId);
+    const userEmail = user.email || "admin";
 
     const result = await generateCertificateAiBackground({
       prompt,
@@ -117,6 +118,7 @@ export async function translateBulgarianPromptAction(params: {
   documentType?: "award" | "certificate" | "voucher";
   orientation?: "landscape" | "portrait";
 }): Promise<{ englishPrompt: string; enhancedKeywords: string[] }> {
+  await ensureAdminFromSession();
   return translateAndEnhanceBulgarianPrompt(params);
 }
 
@@ -132,8 +134,8 @@ export async function generateCertificateAiBackgroundBatchAction(
   provider?: "auto" | "flux_neural" | "gemini_imagen" | "openai_dalle3"
 ): Promise<GenerateCertificateAiBackgroundResult[]> {
   try {
-    const user = await getAuthUserFromSessionCookie();
-    const userEmail = user?.email || "admin@bkgalabovo.bg";
+    const user = await ensureAdminWithSite(undefined, siteId);
+    const userEmail = user.email || "admin";
 
     const results = await generateCertificateAiBackgroundBatch({
       prompt,

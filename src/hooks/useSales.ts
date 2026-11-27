@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/context/auth-context";
 import { deleteSaleAction, updateSaleAction } from "@/lib/actions/sales";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import {
   getSales,
   getSalesByMemberId,
@@ -155,7 +156,7 @@ export const useSales = (memberIdOrIds?: string | string[]) => {
         return;
       }
 
-      const confirmDelete = window.confirm(
+      const confirmDelete = await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този запис? Това действие е необратимо."
       );
       if (!confirmDelete) return;

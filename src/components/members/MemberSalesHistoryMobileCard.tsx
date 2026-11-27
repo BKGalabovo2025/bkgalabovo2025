@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatPrice } from "@/lib/currency";
-import { cn } from "@/lib/utils";
+import { cn, handleKeyboardClick } from "@/lib/utils";
 import { Sale } from "@/types";
 
 import { StatusDetails } from "./MemberSalesHistoryTableRow";
@@ -69,6 +69,9 @@ export function MemberSalesHistoryMobileCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleKeyboardClick}
       onClick={() => handleRowClick(sale.id, sale.isPaid, sale.type)}
       className="active:scale-0.98 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50/40 dark:bg-zinc-900/40 p-4 transition-all"
     >

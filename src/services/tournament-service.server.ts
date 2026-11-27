@@ -6,13 +6,16 @@ import { Tournament } from "@/types/tournament.types";
 
 const TOURNAMENTS_COLLECTION = "tournaments";
 
-export async function getTournamentsServer(): Promise<Tournament[]> {
+export async function getTournamentsServer(
+  siteId?: string
+): Promise<Tournament[]> {
   try {
     const db = getAdminDb();
-    const snapshot = await db
-      .collection(TOURNAMENTS_COLLECTION)
-      .orderBy("startDate", "desc")
-      .get();
+    let q: FirebaseFirestore.Query = db.collection(TOURNAMENTS_COLLECTION);
+    if (siteId) {
+      q = q.where("siteId", "==", siteId);
+    }
+    const snapshot = await q.orderBy("startDate", "desc").limit(500).get();
 
     return snapshot.docs.map((doc) => {
       const data = doc.data();

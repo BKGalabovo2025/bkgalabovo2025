@@ -119,26 +119,33 @@ const templates = {
   },
 };
 
-const EmailSchema = z.object({
-  to: z.string().email(),
-  subject: z.string().min(1),
-  template: z.enum([
-    "reminder",
-    "reservationConfirmation",
-    "deactivated",
-    "marketing",
-  ]),
-  data: z.record(z.string(), z.any()), // Validated separately via EmailDataSchema
-  attachments: z
-    .array(
-      z.object({
-        filename: z.string(),
-        content: z.string(),
-        encoding: z.string().optional(),
-      })
-    )
-    .optional(),
-});
+const EmailSchema = z
+  .object({
+    to: z.string().email(),
+    subject: z.string().min(1).max(200),
+    template: z.enum([
+      "reminder",
+      "reservationConfirmation",
+      "deactivated",
+      "marketing",
+    ]),
+    data: z.record(z.string(), z.unknown()), // Validated separately via EmailDataSchema
+    attachments: z
+      .array(
+        z.object({
+          filename: z
+            .string()
+            .min(1)
+            .max(120)
+            .regex(/^[a-zA-Z0-9._\-\s\u0400-\u04FF]+$/),
+          content: z.string().max(5_000_000),
+          encoding: z.enum(["base64", "utf8", "utf-8"]).optional(),
+        })
+      )
+      .max(5)
+      .optional(),
+  })
+  .strict();
 
 async function renderEmailTemplate<T extends keyof EmailTemplateData>(
   template: T,
@@ -318,9 +325,6 @@ export async function POST(request: Request) {
       errorMessage = e.message;
     }
 
-    return NextResponse.json(
-      { error: errorMessage, details: e.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

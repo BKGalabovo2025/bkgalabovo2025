@@ -29,6 +29,8 @@ export async function getDocumentTemplatesAction(
 ): Promise<ActionResult<DocumentTemplate[]>> {
   const now = new Date().toISOString();
   try {
+    const { ensureAdminWithSite } = await import("@/lib/auth-utils");
+    await ensureAdminWithSite(undefined, siteId);
     const adminDb = getAdminDb();
     let queryRef: FirebaseFirestore.Query =
       adminDb.collection("document_templates");

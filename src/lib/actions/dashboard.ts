@@ -3,7 +3,7 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
 import { checkIsMemberOverdue } from "@/lib/membership-utils";
@@ -114,7 +114,7 @@ function getUnpaidTrainingReminders(
 
 export async function getDashboardDataServerAction(activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) return { success: false, error: "Unauthorized" };
 
     const adminDb = getAdminDb();
@@ -594,6 +594,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
 
 export async function invalidateDashboardCacheAction() {
   try {
+    await ensureAdminFromSession();
     serverCache.invalidatePattern("dashboard:");
     return { success: true };
   } catch (error: unknown) {

@@ -11,10 +11,13 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
-import SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  SignatureCanvas,
+  type SignatureCanvasHandle,
+} from "@/components/ui/signature-canvas";
 import { submitPublicTripSignatureAction } from "@/lib/actions/trip-signatures";
 import type { PublicTripSignDataDTO } from "@/types/business-trip.types";
 
@@ -29,7 +32,7 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
   const [isResigning, setIsResigning] = useState(false);
   const [canvasEmpty, setCanvasEmpty] = useState(true);
 
-  const sigCanvas = useRef<SignatureCanvas>(null);
+  const sigCanvas = useRef<SignatureCanvasHandle>(null);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "—";
@@ -250,8 +253,7 @@ export function TripSignerClient({ initialData }: TripSignerClientProps) {
               {/* Signature Canvas */}
               <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-blue-300 bg-slate-50/60 transition-colors focus-within:border-blue-500 dark:border-blue-700 dark:bg-white">
                 <SignatureCanvas
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  ref={sigCanvas as any}
+                  ref={sigCanvas}
                   penColor="#1d4ed8" // Official Royal Blue ballpoint pen ink
                   onBegin={handleBeginStroke}
                   canvasProps={{

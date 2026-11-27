@@ -21,7 +21,7 @@ import {
   ActiveWorkoutScheduleDay,
   getActiveWorkoutsMapForScheduleAction,
 } from "@/lib/actions/trainings";
-import { formatFullName } from "@/lib/utils";
+import { formatFullName, handleKeyboardClick } from "@/lib/utils";
 import { Attendee, Member, ScheduleEvent } from "@/types";
 
 interface AttendeesDialogProps {
@@ -258,6 +258,9 @@ export const AttendeesDialog: React.FC<AttendeesDialogProps> = ({
                   return (
                     <div
                       key={member.id}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={handleKeyboardClick}
                       onClick={() => {
                         if (!isBeforeRegistration) {
                           handleToggleMember(member);

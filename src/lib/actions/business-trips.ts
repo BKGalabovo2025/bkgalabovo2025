@@ -42,7 +42,10 @@ export async function assignMissingBusinessTripNumbersAction(
   try {
     await ensureAdmin();
     const adminDb = getAdminDb();
-    const tripsSnap = await adminDb.collection("business_trips").get();
+    const tripsSnap = await adminDb
+      .collection("business_trips")
+      .limit(1000)
+      .get();
 
     if (tripsSnap.empty) {
       return { success: true, count: 0 };
@@ -163,7 +166,10 @@ export async function renumberAllBusinessTripsChronologicallyAction(
   try {
     await ensureAdmin();
     const adminDb = getAdminDb();
-    const tripsSnap = await adminDb.collection("business_trips").get();
+    const tripsSnap = await adminDb
+      .collection("business_trips")
+      .limit(1000)
+      .get();
 
     if (tripsSnap.empty) {
       return { success: true, count: 0 };
@@ -856,10 +862,22 @@ export async function getAccountingBootstrapAction(
     await ensureAdmin();
     const adminDb = getAdminDb();
     const [tripsSnap, expSnap, members, eventsSnap] = await Promise.all([
-      adminDb.collection("business_trips").where("siteId", "==", siteId).get(),
-      adminDb.collection("trip_expenses").where("siteId", "==", siteId).get(),
-      getAllMembersServer(),
-      adminDb.collection("events").get(),
+      adminDb
+        .collection("business_trips")
+        .where("siteId", "==", siteId)
+        .limit(500)
+        .get(),
+      adminDb
+        .collection("trip_expenses")
+        .where("siteId", "==", siteId)
+        .limit(2000)
+        .get(),
+      getAllMembersServer(siteId),
+      adminDb
+        .collection("events")
+        .where("siteId", "==", siteId)
+        .limit(2000)
+        .get(),
     ]);
 
     const trips = tripsSnap.docs.map((doc) =>

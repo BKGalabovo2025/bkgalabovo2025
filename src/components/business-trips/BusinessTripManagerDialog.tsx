@@ -54,6 +54,7 @@ import {
   getTripReportNumber,
   getTripStatementNumber,
 } from "@/lib/business-trip-numbers";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatDateShort } from "@/lib/date-utils";
 import { businessTripService } from "@/services/business-trip-service";
 import { getAllMembers } from "@/services/member-service";
@@ -737,7 +738,11 @@ export function BusinessTripManagerDialog({
   };
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (!window.confirm("Сигурни ли сте, че искате да изтриете този разход?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този разход?"
+      ))
+    )
       return;
     try {
       await businessTripService.deleteExpense(expenseId);

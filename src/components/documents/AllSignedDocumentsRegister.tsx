@@ -31,6 +31,7 @@ import { useAuth } from "@/context/auth-context";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { deleteDocumentRequestAction } from "@/lib/actions/document-requests";
 import { getAllClubDocumentRequestsAction } from "@/lib/actions/document-templates";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getCalendarYearValidity } from "@/lib/document-validity";
 import { cn } from "@/lib/utils";
 import {
@@ -119,7 +120,7 @@ export function AllSignedDocumentsRegister() {
     }
 
     const confirmMsg = `Сигурни ли сте, че искате да ИЗТРИЕТЕ този документ от базата данни?\n\nДокумент: ${req.documentTitle}\nСъстезател: ${req.memberName}\nСтатус: ${req.status}\n\nТова действие ще изтрие записа перманентно от системата!`;
-    if (!window.confirm(confirmMsg)) return;
+    if (!(await confirmDialog(confirmMsg))) return;
 
     setDeletingId(req.id);
     try {

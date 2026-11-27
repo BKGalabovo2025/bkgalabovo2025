@@ -11,6 +11,7 @@ import { useRecoveryServices } from "@/hooks/useRecoveryServices";
 import { useTrainingServices } from "@/hooks/useTrainingServices";
 import { deleteGeneralServiceSaleAction } from "@/lib/actions/general-services-server";
 import { deleteSaleAction } from "@/lib/actions/sales";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getAllMembers } from "@/services/member-service";
 import { Member, Sale } from "@/types";
 
@@ -68,7 +69,11 @@ function UnifiedServiceSalesHistory({
 
   const handleDeleteSale = async (saleId: string) => {
     if (serviceType !== "general" && !idToken) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете тази продажба?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете тази продажба?"
+      ))
+    )
       return;
 
     try {

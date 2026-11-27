@@ -413,7 +413,16 @@ export default function ParentRequestPage() {
                 >
                   Запознат съм, че достъпът ще бъде активиран след потвърждение
                   от треньор и че данните за контакт ще бъдат вписани в досието
-                  на детето.
+                  на детето съгласно{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 underline hover:text-blue-300"
+                  >
+                    Политиката за поверителност (GDPR)
+                  </a>
+                  .
                 </label>
               </div>
 

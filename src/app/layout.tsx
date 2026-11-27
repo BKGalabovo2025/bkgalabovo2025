@@ -1,6 +1,5 @@
 import "./globals.css";
 
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
@@ -30,7 +29,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "https://bkgalabovo2025.vercel.app"
   ),
-  title: "BK Galabovo & Recovery Zone",
+  title: {
+    default: "BK Galabovo & Recovery Zone",
+    template: "%s | BK Galabovo & Recovery Zone",
+  },
+  alternates: {
+    canonical: "./",
+  },
   description:
     "Официална спортна платформа и система за управление на Бадминтон клуб Гълъбово и Recovery Zone",
   manifest: "/manifest.json",
@@ -103,9 +108,6 @@ export default function RootLayout({
               <ClientGlobalOverlays />
             </AuthProvider>
           </LanguageProvider>
-          {process.env.NODE_ENV === "production" && process.env.VERCEL && (
-            <Analytics />
-          )}
         </ThemeProvider>
       </body>
     </html>

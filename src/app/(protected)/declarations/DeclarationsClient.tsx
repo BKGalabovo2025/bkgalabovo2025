@@ -29,6 +29,7 @@ import {
   deleteDeclarationAction,
   getAllDeclarationsAction,
 } from "@/lib/actions/declarations";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { SignedDeclaration } from "@/types";
 
@@ -83,7 +84,7 @@ export default function DeclarationsClient({
 
   const handleDelete = async (id: string, name: string) => {
     if (
-      window.confirm(
+      await confirmDialog(
         `Сигурни ли сте, че искате да изтриете декларацията на ${name}? Това действие е необратимо.`
       )
     ) {
@@ -92,11 +93,11 @@ export default function DeclarationsClient({
         if (res.success) {
           setDeclarations((prev) => prev.filter((d) => d.id !== id));
         } else {
-          alert(res.message || "Възникна грешка при изтриването.");
+          toast.error(res.message || "Възникна грешка при изтриването.");
         }
       } catch (error) {
         console.error("Error deleting declaration:", error);
-        alert("Възникна грешка при изтриването.");
+        toast.error("Възникна грешка при изтриването.");
       }
     }
   };

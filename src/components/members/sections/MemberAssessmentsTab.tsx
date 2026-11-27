@@ -3,18 +3,20 @@
 import { format } from "date-fns";
 import { bg } from "date-fns/locale";
 import { Activity, Loader2, TrendingUp } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+
+const MemberAssessmentsChart = dynamic(
+  () => import("@/components/members/sections/MemberAssessmentsChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 w-full animate-pulse rounded-2xl bg-zinc-100 dark:bg-zinc-800/50" />
+    ),
+  }
+);
 
 import { FundamentalMapCard } from "@/components/members/profile/FundamentalMapCard";
 import { QuickTestModal } from "@/components/training/active/QuickTestModal";
@@ -290,59 +292,17 @@ export const MemberAssessmentsTab = ({
             </div>
           </div>
 
-          <div className="h-64 w-full">
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-              minWidth={1}
-              minHeight={1}
-            >
-              <LineChart
-                data={beepResults.map((r) => ({
-                  ...r,
-                  formattedDate: format(new Date(r.date), "dd MMM yy", {
-                    locale: bg,
-                  }),
-                }))}
-                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-              >
-                <Line
-                  type="monotone"
-                  dataKey="vo2max"
-                  stroke="#4f46e5"
-                  strokeWidth={3}
-                  dot={{ r: 6, fill: "#4f46e5" }}
-                  activeDot={{ r: 8 }}
-                  name="VO2 Max"
-                />
-                <CartesianGrid
-                  className="stroke-zinc-200 dark:stroke-zinc-800"
-                  strokeDasharray="5 5"
-                />
-                <XAxis
-                  dataKey="formattedDate"
-                  tick={{ fontSize: 12, fill: "#71717a" }}
-                  tickMargin={10}
-                />
-                <YAxis
-                  tick={{ fontSize: 12, fill: "#71717a" }}
-                  tickMargin={10}
-                  domain={["dataMin - 5", "dataMax + 5"]}
-                />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid var(--border, #e4e4e7)",
-                    backgroundColor: "var(--card, #ffffff)",
-                    color: "var(--card-foreground, #18181b)",
-                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
-                  }}
-                  labelStyle={{ color: "var(--card-foreground, #18181b)" }}
-                  labelFormatter={(label) => `Дата: ${label}`}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <MemberAssessmentsChart
+            data={beepResults.map((r) => ({
+              ...r,
+              formattedDate: format(new Date(r.date), "dd MMM yy", {
+                locale: bg,
+              }),
+            }))}
+            dataKey="vo2max"
+            seriesName="VO2 Max"
+            yDomain={["dataMin - 5", "dataMax + 5"]}
+          />
 
           <div className="mt-6 space-y-4 border-t border-zinc-100 pt-4 dark:border-zinc-800">
             {[...beepResults].reverse().map((entry) => {
@@ -457,60 +417,7 @@ export const MemberAssessmentsTab = ({
             </div>
 
             {/* CHART */}
-            <div className="h-64 w-full">
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-                minWidth={1}
-                minHeight={1}
-              >
-                <LineChart
-                  data={chartData}
-                  margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
-                >
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#4f46e5"
-                    strokeWidth={3}
-                    dot={{ r: 6, fill: "#4f46e5" }}
-                    activeDot={{ r: 8 }}
-                  />
-                  <CartesianGrid
-                    className="stroke-zinc-200 dark:stroke-zinc-800"
-                    strokeDasharray="5 5"
-                  />
-                  <XAxis
-                    dataKey="formattedDate"
-                    tick={{ fontSize: 12, fill: "#71717a" }}
-                    tickMargin={10}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12, fill: "#71717a" }}
-                    tickMargin={10}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid var(--border, #e4e4e7)",
-                      backgroundColor: "var(--card, #ffffff)",
-                      color: "var(--card-foreground, #18181b)",
-                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)",
-                    }}
-                    labelStyle={{ color: "var(--card-foreground, #18181b)" }}
-                    formatter={(
-                      _value: unknown,
-                      _name: unknown,
-                      props: { payload?: { scoreDisplay?: string } }
-                    ) => [
-                      props.payload?.scoreDisplay || String(_value),
-                      "Резултат",
-                    ]}
-                    labelFormatter={(label) => `Дата: ${label}`}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <MemberAssessmentsChart data={chartData} />
 
             {/* HISTORY LIST */}
             <div className="mt-6 space-y-3 border-t border-zinc-100 pt-4 dark:border-zinc-800">

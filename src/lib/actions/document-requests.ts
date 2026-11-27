@@ -306,7 +306,7 @@ export async function createDocumentRequestAction(input: {
       metadata: {
         memberId: input.memberId,
         documentType,
-        token,
+        tokenPreview: `${token.slice(0, 6)}...`,
       },
     });
 

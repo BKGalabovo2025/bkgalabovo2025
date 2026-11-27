@@ -3,11 +3,18 @@ import "server-only";
 
 import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
+import { docIdSchema, parseActionInput } from "@/lib/actions/zod-helpers";
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serializeFirestoreData } from "@/lib/serialize-utils";
 import { serverCache } from "@/lib/server-cache";
+
+const FamilyMemberPairSchema = z.object({
+  familyId: docIdSchema,
+  memberId: docIdSchema,
+});
 
 export async function addMemberToFamilyAction(
   familyId: string,
@@ -16,6 +23,13 @@ export async function addMemberToFamilyAction(
 ) {
   try {
     await ensureAdmin(idToken);
+    const parsed = parseActionInput(FamilyMemberPairSchema, {
+      familyId,
+      memberId,
+    });
+    if (!parsed.ok) {
+      return { success: false, message: parsed.error };
+    }
     const adminDb = getAdminDb();
 
     const familyRef = adminDb.collection("families").doc(familyId);
@@ -58,36 +72,46 @@ export async function removeMemberFromFamilyAction(
 ) {
   try {
     await ensureAdmin(idToken);
+    const parsed = parseActionInput(FamilyMemberPairSchema, {
+      familyId,
+      memberId,
+    });
+    if (!parsed.ok) {
+      return { success: false, message: parsed.error };
+    }
     const adminDb = getAdminDb();
 
     const familyRef = adminDb.collection("families").doc(familyId);
     const memberRef = adminDb.collection("members").doc(memberId);
 
-    // Update family document
-    await familyRef.update({
-      memberIds: FieldValue.arrayRemove(memberId),
-      updatedAt: FieldValue.serverTimestamp(),
+    const familyDeleted = await adminDb.runTransaction(async (tx) => {
+      const familySnap = await tx.get(familyRef);
+      const familyData = familySnap.data();
+      const remaining = Array.isArray(familyData?.memberIds)
+        ? (familyData.memberIds as string[]).filter((id) => id !== memberId)
+        : [];
+
+      let deleted = false;
+      if (familySnap.exists && remaining.length === 0) {
+        tx.delete(familyRef);
+        deleted = true;
+      } else if (familySnap.exists) {
+        tx.update(familyRef, {
+          memberIds: remaining,
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+
+      tx.update(memberRef, {
+        familyId: FieldValue.delete(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return deleted;
     });
 
-    // Check if family is now empty
-    const familySnap = await familyRef.get();
-    const familyData = familySnap.data();
-    let familyDeleted = false;
-
-    if (
-      familyData &&
-      (!familyData.memberIds || familyData.memberIds.length === 0)
-    ) {
-      await familyRef.delete();
-      familyDeleted = true;
+    if (familyDeleted) {
       revalidatePath("/families");
     }
-
-    // Update member document
-    await memberRef.update({
-      familyId: FieldValue.delete(),
-      updatedAt: FieldValue.serverTimestamp(),
-    });
 
     serverCache.invalidatePattern("members:");
     serverCache.invalidatePattern("families:");
@@ -196,10 +220,18 @@ export async function getFamiliesFeedAction(siteId?: string) {
     }
 
     const adminDb = getAdminDb();
+    const cacheKey = siteId ? `families:${siteId}` : "families:all";
     const rawFamilies = await serverCache.get(
-      "families:all",
+      cacheKey,
       async () => {
-        const snap = await adminDb.collection("families").get();
+        const snap = await (
+          siteId
+            ? adminDb
+                .collection("families")
+                .where("siteId", "==", siteId)
+                .limit(500)
+            : adminDb.collection("families").limit(500)
+        ).get();
         return snap.docs.map((d) => ({
           id: d.id,
           memberIds: [],

@@ -6,6 +6,7 @@ import {
   getDocs,
   increment,
   query,
+  runTransaction,
   setDoc,
   updateDoc,
   where,
@@ -617,21 +618,28 @@ export const feedbackService = {
 
     await setDoc(docRef, cleanPayload(submission));
 
-    // 2. Update campaign statistics atomically without requiring admin permissions
+    // 2. Update campaign statistics atomically inside a transaction
     try {
-      const currentAvg = campaign.averageRating || 5;
-      const currentCount = campaign.responseCount || 0;
-      const newCount = currentCount + 1;
-      const newRating = data.overallRating || 5;
-      const newAvg = Number(
-        ((currentAvg * currentCount + newRating) / newCount).toFixed(1)
-      );
-
       const campaignRef = doc(db, CAMPAIGNS_COLLECTION, campaignId);
-      await updateDoc(campaignRef, {
-        responseCount: increment(1) as unknown as number,
-        averageRating: newAvg,
-        updatedAt: now,
+      const newRating = data.overallRating || 5;
+      await runTransaction(db, async (tx) => {
+        const freshSnap = await tx.get(campaignRef);
+        const fresh = freshSnap.data();
+        const currentAvg = Number(
+          fresh?.averageRating ?? campaign.averageRating ?? 5
+        );
+        const currentCount = Number(
+          fresh?.responseCount ?? campaign.responseCount ?? 0
+        );
+        const newCount = currentCount + 1;
+        const newAvg = Number(
+          ((currentAvg * currentCount + newRating) / newCount).toFixed(1)
+        );
+        tx.update(campaignRef, {
+          responseCount: increment(1) as unknown as number,
+          averageRating: newAvg,
+          updatedAt: now,
+        });
       });
     } catch (e) {
       console.warn("Failed to update campaign stats", e);

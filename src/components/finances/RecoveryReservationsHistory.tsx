@@ -36,6 +36,7 @@ import {
   deleteReservationAction,
   markReservationAsPaidAction,
 } from "@/lib/actions/reservations";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatPrice } from "@/lib/currency";
 
 export function RecoveryReservationsHistory() {
@@ -58,7 +59,11 @@ export function RecoveryReservationsHistory() {
 
   const handleDelete = async (id: string) => {
     if (!idToken) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете тази резервация?"))
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете тази резервация?"
+      ))
+    )
       return;
 
     setIsProcessing(id);
@@ -80,7 +85,8 @@ export function RecoveryReservationsHistory() {
 
   const handleMarkAsPaid = async (id: string) => {
     if (!idToken) return;
-    if (!confirm("Маркиране на тази резервация като платена?")) return;
+    if (!(await confirmDialog("Маркиране на тази резервация като платена?")))
+      return;
 
     setIsProcessing(id);
     try {

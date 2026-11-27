@@ -10,7 +10,7 @@
  */
 import { NextResponse } from "next/server";
 
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getRawAdminDb } from "@/lib/firebase-admin";
 import { getBackupDb } from "@/lib/firebase-admin-backup";
 
 export const dynamic = "force-dynamic";
@@ -124,11 +124,36 @@ function getDocTime(data: FirebaseFirestore.DocumentData | undefined): number {
   return 0;
 }
 
+async function getLatestTimestamp(
+  db: FirebaseFirestore.Firestore,
+  collectionName: string
+): Promise<number> {
+  try {
+    const snap = await db
+      .collection(collectionName)
+      .orderBy("updatedAt", "desc")
+      .limit(1)
+      .get();
+    if (!snap.empty) {
+      return getDocTime(snap.docs[0].data());
+    }
+  } catch {
+    // Try createdAt fallback below
+  }
+  const fallbackSnap = await db
+    .collection(collectionName)
+    .orderBy("createdAt", "desc")
+    .limit(1)
+    .get();
+  return fallbackSnap.docs[0] ? getDocTime(fallbackSnap.docs[0].data()) : 0;
+}
+
 async function syncCollection(
   primaryDb: FirebaseFirestore.Firestore,
   backupDb: FirebaseFirestore.Firestore,
   collectionName: string,
-  isFullSync: boolean = false
+  isFullSync: boolean = false,
+  restoreMissing: boolean = false
 ): Promise<{
   syncedToBackup: number;
   syncedToPrimary: number;
@@ -149,27 +174,13 @@ async function syncCollection(
         const bCount = bCountSnap.data().count;
 
         if (pCount === bCount) {
-          // Also check latest updatedAt in both DBs (1 read each) so in-place edits are not skipped
+          // Also check latest updatedAt (with createdAt fallback) so in-place edits are not skipped
           try {
-            const [pLatestSnap, bLatestSnap] = await Promise.all([
-              primaryDb
-                .collection(collectionName)
-                .orderBy("updatedAt", "desc")
-                .limit(1)
-                .get(),
-              backupDb
-                .collection(collectionName)
-                .orderBy("updatedAt", "desc")
-                .limit(1)
-                .get(),
+            const [pLatest, bLatest] = await Promise.all([
+              getLatestTimestamp(primaryDb, collectionName),
+              getLatestTimestamp(backupDb, collectionName),
             ]);
-            const pLatest = pLatestSnap.docs[0]
-              ? getDocTime(pLatestSnap.docs[0].data())
-              : 0;
-            const bLatest = bLatestSnap.docs[0]
-              ? getDocTime(bLatestSnap.docs[0].data())
-              : 0;
-            if (pLatest === bLatest) {
+            if (pLatest === bLatest && pLatest > 0) {
               return {
                 syncedToBackup: 0,
                 syncedToPrimary: 0,
@@ -178,12 +189,7 @@ async function syncCollection(
               };
             }
           } catch {
-            return {
-              syncedToBackup: 0,
-              syncedToPrimary: 0,
-              synced: 0,
-              skipped: true,
-            };
+            // Fall through to full collection read if timestamp check fails
           }
         }
       } catch {
@@ -230,9 +236,14 @@ async function syncCollection(
     }
 
     // 2. Check backup documents missing in primary
+    // Only restore recently written docs (<48h, e.g. created during quota fallback) unless ?restoreMissing=true
+    const recentCutoffMs = Date.now() - 48 * 60 * 60 * 1000;
     for (const [id, bData] of backupDocs.entries()) {
       if (!primaryDocs.has(id)) {
-        toWriteToPrimary.push({ id, data: bData });
+        const bTime = getDocTime(bData);
+        if (restoreMissing || bTime >= recentCutoffMs) {
+          toWriteToPrimary.push({ id, data: bData });
+        }
       }
     }
 
@@ -324,6 +335,10 @@ async function checkAuth(request: Request): Promise<boolean> {
       await ensureAdmin(token);
       return true;
     }
+
+    const { ensureAdminFromSession } = await import("@/lib/auth-utils");
+    await ensureAdminFromSession();
+    return true;
   } catch {
     return false;
   }
@@ -351,7 +366,7 @@ export async function GET(request: Request) {
 
   let primaryDb: FirebaseFirestore.Firestore;
   try {
-    primaryDb = getAdminDb();
+    primaryDb = getRawAdminDb();
     // Проверяваме дали основната база работи с лека заявка
     await primaryDb.collection("members").limit(1).get();
   } catch (err) {
@@ -366,13 +381,16 @@ export async function GET(request: Request) {
           "Основната база е все още изчерпана. Ще опитаме на следващия ден.",
       });
     }
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Primary database unavailable" },
+      { status: 500 }
+    );
   }
 
   const { searchParams } = new URL(request.url);
   const isFullSync =
     searchParams.get("full") === "true" || new Date().getDay() === 0; // Full sync on Sundays or via ?full=true
+  const restoreMissing = searchParams.get("restoreMissing") === "true";
 
   console.log(
     `[sync-backup] 🚀 Стартиране на синхронизация (${isFullSync ? "ПЪЛНА / FULL" : "ЕКО ИНКРЕМЕНТАЛНА / SMART"}) към резервната база...`
@@ -413,7 +431,13 @@ export async function GET(request: Request) {
   );
 
   for (const col of collectionsToProcess) {
-    const result = await syncCollection(primaryDb, backupDb, col, isFullSync);
+    const result = await syncCollection(
+      primaryDb,
+      backupDb,
+      col,
+      isFullSync,
+      restoreMissing
+    );
     results[col] = result;
 
     if (result.skipped && result.error === "RESOURCE_EXHAUSTED") {

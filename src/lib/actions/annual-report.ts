@@ -544,7 +544,14 @@ export async function getAnnualReportAction(
       }
     }
 
-    // 2. Извличаме всички релевантни колекции
+    // 2. Извличаме релевантните колекции с лимит и изолация по siteId (ако е зададен)
+    const scopeQuery = (colName: string, limitCount: number) => {
+      const base = adminDb.collection(colName);
+      return cleanSiteId
+        ? base.where("siteId", "==", cleanSiteId).limit(limitCount)
+        : base.limit(limitCount);
+    };
+
     const [
       eventsSnap,
       tripsSnap,
@@ -553,12 +560,12 @@ export async function getAnnualReportAction(
       plannerSessionsSnap,
       attendanceSnap,
     ] = await Promise.all([
-      adminDb.collection("events").get(),
-      adminDb.collection("business_trips").get(),
-      adminDb.collection("tournaments").get(),
-      adminDb.collection("members").get(),
-      adminDb.collection("planner_sessions").get(),
-      adminDb.collection("training_attendance").get(),
+      scopeQuery("events", 5000).get(),
+      scopeQuery("business_trips", 2000).get(),
+      scopeQuery("tournaments", 1000).get(),
+      scopeQuery("members", 2000).get(),
+      scopeQuery("planner_sessions", 2000).get(),
+      scopeQuery("training_attendance", 5000).get(),
     ]);
 
     // Картотека на членовете (състезатели и треньори)

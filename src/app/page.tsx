@@ -16,8 +16,22 @@ const HomeAdminLink = dynamic(() =>
 );
 
 export default function HomePage() {
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Бадминтон клуб Гълъбово & Recovery Zone by ZM",
+    url: "https://bkgalabovo2025.vercel.app",
+    logo: "https://bkgalabovo2025.vercel.app/icons/icon-512.webp",
+  };
+
   return (
-    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_0%_0%,rgba(37,99,235,0.12),transparent_50%),radial-gradient(ellipse_80%_80%_at_100%_100%,rgba(16,185,129,0.10),transparent_50%)] text-white selection:bg-zinc-800 lg:h-screen lg:overflow-hidden font-[system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
+    <div className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-zinc-950 bg-[radial-gradient(ellipse_80%_80%_at_0%_0%,rgba(37,99,235,0.12),transparent_50%),radial-gradient(ellipse_80%_80%_at_100%_100%,rgba(16,185,129,0.10),transparent_50%)] text-white selection:bg-zinc-800 font-[system-ui,-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,sans-serif]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(orgJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* Background Grid Pattern */}
       <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-size-[32px_32px]" />
 

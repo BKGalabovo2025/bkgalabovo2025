@@ -1,6 +1,9 @@
 "use server";
 import "server-only";
 
+import { z } from "zod";
+
+import { ensureAdminFromSession, ensureAdminWithSite } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import {
   CertificateTemplate,
@@ -10,6 +13,15 @@ import {
 } from "@/types/certificates";
 
 const TEMPLATES_COLLECTION = "certificate_templates";
+const SiteIdSchema = z.enum(["bkgalabovo", "recoveryzone"]);
+const TemplatePayloadSchema = z
+  .object({
+    title: z.string().min(1).max(200).optional(),
+    description: z.string().max(1000).optional(),
+    type: z.enum(["award", "certificate", "voucher"]).optional(),
+    status: z.enum(["draft", "active", "archived"]).optional(),
+  })
+  .passthrough();
 
 /**
  * Извлича всички шаблони за даден клуб (siteId) чрез Admin SDK
@@ -18,10 +30,12 @@ export async function getTemplatesAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; data: CertificateTemplate[]; error?: string }> {
   try {
+    const validSiteId = SiteIdSchema.parse(siteId);
+    await ensureAdminWithSite(undefined, validSiteId);
     const adminDb = getAdminDb();
     const snapshot = await adminDb
       .collection(TEMPLATES_COLLECTION)
-      .where("siteId", "==", siteId)
+      .where("siteId", "==", validSiteId)
       .get();
 
     if (snapshot.empty) {
@@ -88,11 +102,14 @@ export async function createTemplateAction(
   data: CertificateTemplateCreateInput
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   try {
+    const validSiteId = SiteIdSchema.parse(siteId);
+    await ensureAdminWithSite(undefined, validSiteId);
+    const parsedData = TemplatePayloadSchema.parse(data);
     const adminDb = getAdminDb();
     const cleanData = JSON.parse(
       JSON.stringify({
-        ...data,
-        siteId,
+        ...parsedData,
+        siteId: validSiteId,
         createdAt: new Date().toISOString(),
       })
     );
@@ -121,17 +138,21 @@ export async function updateTemplateAction(
   siteId: "bkgalabovo" | "recoveryzone" = "bkgalabovo"
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const validSiteId = SiteIdSchema.parse(siteId);
+    const validId = z.string().min(1).max(128).parse(id);
+    await ensureAdminWithSite(undefined, validSiteId);
+    const parsedData = TemplatePayloadSchema.parse(data);
     const adminDb = getAdminDb();
     const cleanData = JSON.parse(
       JSON.stringify({
-        ...data,
-        siteId,
+        ...parsedData,
+        siteId: validSiteId,
         updatedAt: new Date().toISOString(),
       })
     );
     await adminDb
       .collection(TEMPLATES_COLLECTION)
-      .doc(id)
+      .doc(validId)
       .set(cleanData, { merge: true });
     return { success: true };
   } catch (error) {
@@ -153,11 +174,21 @@ export async function deleteTemplateAction(
   id: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    if (id.includes("_tmpl_default_")) {
+    const validId = z.string().min(1).max(128).parse(id);
+    await ensureAdminFromSession();
+    if (validId.includes("_tmpl_default_")) {
       return { success: true };
     }
     const adminDb = getAdminDb();
-    await adminDb.collection(TEMPLATES_COLLECTION).doc(id).delete();
+    const docRef = adminDb.collection(TEMPLATES_COLLECTION).doc(validId);
+    const existing = await docRef.get();
+    if (existing.exists) {
+      const docSiteId = existing.data()?.siteId as string | undefined;
+      if (docSiteId) {
+        await ensureAdminWithSite(undefined, docSiteId);
+      }
+    }
+    await docRef.delete();
     return { success: true };
   } catch (error) {
     console.error("Грешка при deleteTemplateAction:", error);
@@ -178,16 +209,18 @@ export async function seedInitialTemplatesAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   try {
+    const validSiteId = SiteIdSchema.parse(siteId);
+    await ensureAdminWithSite(undefined, validSiteId);
     const adminDb = getAdminDb();
     const list = DEFAULT_CERTIFICATE_TEMPLATES.filter(
-      (t) => t.siteId === siteId
+      (t) => t.siteId === validSiteId
     );
     const now = new Date().toISOString();
 
     for (const item of list) {
       await adminDb.collection(TEMPLATES_COLLECTION).add({
         ...item,
-        siteId,
+        siteId: validSiteId,
         createdAt: now,
       });
     }

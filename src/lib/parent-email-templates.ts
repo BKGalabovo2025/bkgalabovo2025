@@ -76,7 +76,7 @@ export async function sendParentPortalEmail({
   if (!user || !pass) {
     console.warn(
       "[parent-email] EMAIL_USER or EMAIL_PASS missing. Skipping email send to:",
-      to
+      to.replace(/(?<=.{2}).+(?=@)/, "***")
     );
     return false;
   }
@@ -303,13 +303,13 @@ export async function notifyParentRejected(
   const { hallName } = await getClubSiteInfo();
   const html = await wrapEmailTemplate(`
     <h2 style="color: #dc2626; margin-top: 0;">Относно вашата заявка за родителски достъп</h2>
-    <p>Здравейте, <strong>${parentName}</strong>,</p>
-    <p>Благодарим за интереса към Родителския портал за детето <strong>${childName}</strong>.</p>
+    <p>Здравейте, <strong>${escapeHtml(parentName)}</strong>,</p>
+    <p>Благодарим за интереса към Родителския портал за детето <strong>${escapeHtml(childName)}</strong>.</p>
     <p>За съжаление заявката ви не може да бъде одобрена автоматично поради следната причина:</p>
     <div class="card" style="border-left: 4px solid #dc2626;">
-      <p style="margin: 0; font-style: italic;">"${reason}"</p>
+      <p style="margin: 0; font-style: italic;">"${escapeHtml(reason)}"</p>
     </div>
-    <p>Моля, свържете се с треньора на клуба на място в ${hallName} за уточняване на данните.</p>
+    <p>Моля, свържете се с треньора на клуба на място в ${escapeHtml(hallName)} за уточняване на данните.</p>
   `);
 
   return sendParentPortalEmail({
@@ -326,11 +326,11 @@ export async function notifyParentPasswordReset(
 ) {
   const html = await wrapEmailTemplate(`
     <h2 style="color: #0f172a; margin-top: 0;">Възстановяване на парола 🔐</h2>
-    <p>Здравейте, <strong>${parentName}</strong>,</p>
+    <p>Здравейте, <strong>${escapeHtml(parentName)}</strong>,</p>
     <p>Получихме заявка за нулиране на паролата за вашия родителски профил.</p>
     <p>Кликнете на бутона по-долу, за да въведете нова парола. Линкът е валиден 1 час:</p>
     <div class="button-container">
-      <a href="${resetUrl}" class="button">Задайте нова парола</a>
+      <a href="${escapeHtml(resetUrl)}" class="button">Задайте нова парола</a>
     </div>
     <p style="font-size: 13px; color: #64748b;">Ако не сте заявили промяна на паролата, можете спокойно да пренебрегнете това съобщение.</p>
   `);
@@ -358,11 +358,11 @@ export async function notifyAdminNewAbsence(absence: ParentAbsence) {
 
   const html = await wrapEmailTemplate(`
     <h2 style="color: #ea580c; margin-top: 0;">Заявено отсъствие от родител 🤒</h2>
-    <p>Родителят <strong>${absence.parentName}</strong> заяви отсъствие за <strong>${absence.memberName}</strong>:</p>
+    <p>Родителят <strong>${escapeHtml(absence.parentName)}</strong> заяви отсъствие за <strong>${escapeHtml(absence.memberName)}</strong>:</p>
     <div class="card">
-      <p><strong>Период:</strong> ${dateDisplay}</p>
-      <p><strong>Причина:</strong> ${reasonLabels[absence.reason] || absence.reason}</p>
-      ${absence.note ? `<p><strong>Бележка:</strong> "${absence.note}"</p>` : ""}
+      <p><strong>Период:</strong> ${escapeHtml(dateDisplay)}</p>
+      <p><strong>Причина:</strong> ${escapeHtml(reasonLabels[absence.reason] || absence.reason)}</p>
+      ${absence.note ? `<p><strong>Бележка:</strong> "${escapeHtml(absence.note)}"</p>` : ""}
     </div>
     <p>Можете да отворите админ панела, за да отбележите отсъствието като прегледано.</p>
   `);
@@ -379,12 +379,12 @@ export async function notifyAdminNewCorrection(
 ) {
   const html = await wrapEmailTemplate(`
     <h2 style="color: #2563eb; margin-top: 0;">Предложена корекция на данни ✏️</h2>
-    <p>Родителят <strong>${correction.parentName}</strong> предложи корекция за <strong>${correction.memberName}</strong>:</p>
+    <p>Родителят <strong>${escapeHtml(correction.parentName)}</strong> предложи корекция за <strong>${escapeHtml(correction.memberName)}</strong>:</p>
     <div class="card">
-      <p><strong>Поле:</strong> ${correction.fieldLabel}</p>
-      <p><strong>Текуща стойност:</strong> ${correction.currentValue || "—"}</p>
-      <p><strong>Предложена нова стойност:</strong> <span style="color: #16a34a; font-weight: bold;">${correction.proposedValue}</span></p>
-      ${correction.note ? `<p><strong>Бележка от родител:</strong> "${correction.note}"</p>` : ""}
+      <p><strong>Поле:</strong> ${escapeHtml(correction.fieldLabel)}</p>
+      <p><strong>Текуща стойност:</strong> ${escapeHtml(correction.currentValue || "—")}</p>
+      <p><strong>Предложена нова стойност:</strong> <span style="color: #16a34a; font-weight: bold;">${escapeHtml(correction.proposedValue)}</span></p>
+      ${correction.note ? `<p><strong>Бележка от родител:</strong> "${escapeHtml(correction.note)}"</p>` : ""}
     </div>
     <p>Можете да одобрите или откажете корекцията с 1 клик от Административния панел.</p>
   `);
@@ -404,8 +404,8 @@ export async function notifyParentCorrectionApproved(
 ) {
   const html = await wrapEmailTemplate(`
     <h2 style="color: #16a34a; margin-top: 0;">Корекцията е приета! ✓</h2>
-    <p>Здравейте, <strong>${parentName}</strong>,</p>
-    <p>Вашата предложена корекция за полето <strong>${fieldLabel}</strong> в картона на <strong>${childName}</strong> беше одобрена от треньора.</p>
+    <p>Здравейте, <strong>${escapeHtml(parentName)}</strong>,</p>
+    <p>Вашата предложена корекция за полето <strong>${escapeHtml(fieldLabel)}</strong> в картона на <strong>${escapeHtml(childName)}</strong> беше одобрена от треньора.</p>
     <p>Данните в клубната система бяха успешно актуализирани.</p>
   `);
 
@@ -443,36 +443,40 @@ export async function notifyAdminParentSessionReport(
       ? "под 1 мин."
       : `${report.durationMinutes} мин.`;
 
+  const safeParentName = escapeHtml(report.parentName);
+  const safeStartTime = escapeHtml(report.startTime);
+  const safeEndTime = escapeHtml(report.endTime);
+
   const rowsHtml = report.actions
     .map(
       (act, idx) => `
     <tr style="background: ${idx % 2 === 0 ? "#ffffff" : "#f8fafc"}; border-bottom: 1px solid #e2e8f0;">
-      <td style="padding: 10px 12px; font-weight: 600; color: #475569; white-space: nowrap; vertical-align: top; font-size: 13px;">${act.time}</td>
-      <td style="padding: 10px 12px; color: #1e293b; font-size: 13px; line-height: 1.5;">${act.text}</td>
+      <td style="padding: 10px 12px; font-weight: 600; color: #475569; white-space: nowrap; vertical-align: top; font-size: 13px;">${escapeHtml(act.time)}</td>
+      <td style="padding: 10px 12px; color: #1e293b; font-size: 13px; line-height: 1.5;">${escapeHtml(act.text)}</td>
     </tr>
   `
     )
     .join("");
 
   const childrenLine = report.childrenNames
-    ? `<p style="margin: 4px 0;"><strong>Състезател(и):</strong> ${report.childrenNames}</p>`
+    ? `<p style="margin: 4px 0;"><strong>Състезател(и):</strong> ${escapeHtml(report.childrenNames)}</p>`
     : "";
 
   const emailLine = report.parentEmail
-    ? `<p style="margin: 4px 0;"><strong>Имейл на родителя:</strong> ${report.parentEmail}</p>`
+    ? `<p style="margin: 4px 0;"><strong>Имейл на родителя:</strong> ${escapeHtml(report.parentEmail)}</p>`
     : "";
 
   const html = await wrapEmailTemplate(`
     <h2 style="color: #1e3a8a; margin-top: 0; font-size: 19px;">📋 Отчет за активност в Родителския портал</h2>
-    <p style="margin-bottom: 16px;">Родителят <strong>${report.parentName}</strong> приключи сесия в портала на клуба.</p>
+    <p style="margin-bottom: 16px;">Родителят <strong>${safeParentName}</strong> приключи сесия в портала на клуба.</p>
     
     <div class="card" style="border-left: 4px solid #3b82f6;">
-      <p style="margin: 4px 0;"><strong>Родител:</strong> ${report.parentName}</p>
+      <p style="margin: 4px 0;"><strong>Родител:</strong> ${safeParentName}</p>
       ${emailLine}
       ${childrenLine}
       <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;" />
-      <p style="margin: 4px 0;"><strong>Вход (начало):</strong> ${report.startTime}</p>
-      <p style="margin: 4px 0;"><strong>Край на сесията:</strong> ${report.endTime}</p>
+      <p style="margin: 4px 0;"><strong>Вход (начало):</strong> ${safeStartTime}</p>
+      <p style="margin: 4px 0;"><strong>Край на сесията:</strong> ${safeEndTime}</p>
       <p style="margin: 4px 0;"><strong>Продължителност:</strong> ${durationStr}</p>
       <p style="margin: 4px 0;"><strong>Общо извършени действия:</strong> <strong>${report.actions.length}</strong></p>
     </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { BentoCard } from "@/components/ui/bento-card";
+import { handleKeyboardClick } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 import { Reminder } from "@/types";
 
@@ -113,6 +114,9 @@ export const DashboardNotifications = ({
           {reminders.map((reminder) => (
             <div
               key={reminder.id}
+              role="button"
+              tabIndex={0}
+              onKeyDown={handleKeyboardClick}
               onClick={() => {
                 if (reminder.relatedLink) {
                   router.push(reminder.relatedLink);

@@ -110,7 +110,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               >
                 <Image
                   src={brandLogo}
-                  alt="Logo"
+                  alt={brandTitle}
                   fill
                   sizes="40px"
                   className="object-contain"
@@ -130,6 +130,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </div>
           {open && (
             <button
+              type="button"
+              aria-label="Свий страничната лента"
               onClick={() => setOpen(!open)}
               className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-zinc-100 lg:hidden dark:hover:bg-zinc-800"
             >

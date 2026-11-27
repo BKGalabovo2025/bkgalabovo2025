@@ -16,7 +16,7 @@ jobs:
   lighthouse-audit:
     name: Lighthouse Audit (Shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +48,7 @@ jobs:
             lighthouse-reports-v1-${{ runner.os }}-
 
       - name: Install Dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Run Lighthouse Audit (Shard ${{ matrix.shard }}/4)
         # Passing required environment variables as secrets for the custom script

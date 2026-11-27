@@ -4,11 +4,24 @@ import "server-only";
 import { format, getYear } from "date-fns";
 import { bg } from "date-fns/locale";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { ensureAdmin } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import { Attendee } from "@/types";
+
+const EventPayloadSchema = z
+  .object({
+    title: z.string().trim().min(1).max(200),
+    siteId: z.enum(["bkgalabovo", "recoveryzone"]).optional(),
+    type: z.string().max(60).optional(),
+    startTime: z.union([z.string(), z.date()]).optional(),
+    endTime: z.union([z.string(), z.date()]).optional(),
+    description: z.string().max(5000).optional(),
+    location: z.string().max(250).optional(),
+  })
+  .passthrough();
 
 function invalidateClubScheduleCaches() {
   serverCache.invalidate("club:public-data");
@@ -191,6 +204,8 @@ export async function getEventsFeedAction(params: {
   timeframe?: "today" | "upcoming" | "past" | "all";
 }) {
   try {
+    const { ensureAdminWithSite } = await import("@/lib/auth-utils");
+    await ensureAdminWithSite(undefined, params.siteId);
     const db = getAdminDb();
     const { siteId, timeframe = "all" } = params;
     let eventsQuery = db.collection("events").where("siteId", "==", siteId);
@@ -240,9 +255,13 @@ export async function createEventAction(
 ) {
   try {
     await ensureAdmin(idToken);
+    const parsed = EventPayloadSchema.safeParse(eventData);
+    if (!parsed.success) {
+      return { success: false, message: "Невалидни данни за събитие." };
+    }
     const db = getAdminDb();
     const ref = await db.collection("events").add({
-      ...eventData,
+      ...parsed.data,
       createdAt: new Date().toISOString(),
     });
     invalidateClubScheduleCaches();
@@ -267,12 +286,17 @@ export async function updateEventAction(
 ) {
   try {
     await ensureAdmin(idToken);
+    const idParsed = z.string().min(1).max(128).safeParse(eventId);
+    const parsed = EventPayloadSchema.partial().safeParse(eventData);
+    if (!idParsed.success || !parsed.success) {
+      return { success: false, message: "Невалидни данни за обновяване." };
+    }
     const db = getAdminDb();
     await db
       .collection("events")
-      .doc(eventId)
+      .doc(idParsed.data)
       .update({
-        ...eventData,
+        ...parsed.data,
         updatedAt: new Date().toISOString(),
       });
     invalidateClubScheduleCaches();

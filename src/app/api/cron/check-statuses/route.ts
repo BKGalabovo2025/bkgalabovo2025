@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type FirestoreDateValue = { toDate?: () => Date } | string | Date | null;
 
@@ -212,7 +213,7 @@ export const processMembersBatch = async (
     batchCount: 0,
   };
   const MAX_BATCH_SIZE = 450;
-  const batch = adminDb.batch();
+  let batch = adminDb.batch();
 
   // Process members in concurrent chunks of 10 to eliminate N+1 bottlenecks
   const CHUNK_SIZE = 10;
@@ -229,6 +230,7 @@ export const processMembersBatch = async (
 
     if (counts.batchCount >= MAX_BATCH_SIZE) {
       await batch.commit();
+      batch = adminDb.batch();
       counts.batchCount = 0;
     }
   }
@@ -312,7 +314,9 @@ export async function GET(request: Request) {
     });
   } catch (error: unknown) {
     console.error("Cron Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Status check execution failed" },
+      { status: 500 }
+    );
   }
 }

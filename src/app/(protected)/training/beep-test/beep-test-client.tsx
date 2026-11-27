@@ -37,6 +37,7 @@ import {
   evaluateBadmintonScore,
   getTotalShuttles,
 } from "@/lib/beep-test-norms";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getAgeGroup } from "@/lib/utils";
 import { beepTestService } from "@/services/beep-test-service";
 import { getAllMembers } from "@/services/member-service";
@@ -167,9 +168,9 @@ export default function BeepTestClient({
 
   const handleDeleteResult = async (resultId: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този резултат? Той ще бъде премахнат и от досието на състезателя."
-      )
+      ))
     ) {
       return;
     }
@@ -310,9 +311,9 @@ export default function BeepTestClient({
     const activeLeft = participants.filter((p) => !p.hasDroppedOut);
     if (
       activeLeft.length > 0 &&
-      !confirm(
+      !(await confirmDialog(
         `Има ${activeLeft.length} състезатели, които не са отпаднали. Да прекратя ли теста им с текущия резултат (Ниво ${beepState.level})?`
-      )
+      ))
     ) {
       return;
     }

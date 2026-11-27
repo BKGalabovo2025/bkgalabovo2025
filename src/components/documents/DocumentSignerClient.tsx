@@ -15,7 +15,6 @@ import {
   User,
 } from "lucide-react";
 import React, { useRef, useState } from "react";
-import type SignatureCanvas from "react-signature-canvas";
 import { toast } from "sonner";
 
 import { OfficialDocumentRenderer } from "@/components/documents/OfficialDocumentRenderer";
@@ -23,6 +22,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  SignatureCanvas,
+  type SignatureCanvasHandle,
+} from "@/components/ui/signature-canvas";
 import { useClubFeeServices } from "@/hooks/useClubFeeServices";
 import { submitSignedDocumentAction } from "@/lib/actions/document-requests";
 import { isMatchingParticipation } from "@/lib/services-fees";
@@ -67,19 +70,9 @@ export function DocumentSignerClient({
   );
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [agreedToGdpr, setAgreedToGdpr] = useState(false);
-  const [SigCanvasComp, setSigCanvasComp] = useState<
-    typeof SignatureCanvas | null
-  >(null);
-
-  React.useEffect(() => {
-    import("react-signature-canvas").then((mod) => {
-      setSigCanvasComp(() => mod.default);
-    });
-  }, []);
-
-  const sigCanvasRef = useRef<SignatureCanvas>(null);
-  const secondParentSigCanvasRef = useRef<SignatureCanvas>(null);
-  const athleteSigCanvasRef = useRef<SignatureCanvas>(null);
+  const sigCanvasRef = useRef<SignatureCanvasHandle>(null);
+  const secondParentSigCanvasRef = useRef<SignatureCanvasHandle>(null);
+  const athleteSigCanvasRef = useRef<SignatureCanvasHandle>(null);
 
   // Live signatures for instant preview on the official document
   const [liveParentSig, setLiveParentSig] = useState<string | null>(null);
@@ -694,21 +687,15 @@ export function DocumentSignerClient({
             </div>
 
             <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
-              {SigCanvasComp ? (
-                <SigCanvasComp
-                  ref={sigCanvasRef}
-                  penColor="#09090b"
-                  velocityFilterWeight={0.7}
-                  onEnd={handleParentSigEnd}
-                  canvasProps={{
-                    className: "w-full h-40 touch-none cursor-crosshair",
-                  }}
-                />
-              ) : (
-                <div className="w-full h-40 flex items-center justify-center text-xs text-zinc-600">
-                  Зареждане на полето за подпис...
-                </div>
-              )}
+              <SignatureCanvas
+                ref={sigCanvasRef}
+                penColor="#09090b"
+                velocityFilterWeight={0.7}
+                onEnd={handleParentSigEnd}
+                canvasProps={{
+                  className: "w-full h-40 touch-none cursor-crosshair",
+                }}
+              />
               <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                 Подпис на родител 1
               </div>
@@ -739,21 +726,15 @@ export function DocumentSignerClient({
             </div>
 
             <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
-              {SigCanvasComp ? (
-                <SigCanvasComp
-                  ref={athleteSigCanvasRef}
-                  penColor="#09090b"
-                  velocityFilterWeight={0.7}
-                  onEnd={handleAthleteSigEnd}
-                  canvasProps={{
-                    className: "w-full h-36 touch-none cursor-crosshair",
-                  }}
-                />
-              ) : (
-                <div className="w-full h-36 flex items-center justify-center text-xs text-zinc-600">
-                  Зареждане на полето за подпис...
-                </div>
-              )}
+              <SignatureCanvas
+                ref={athleteSigCanvasRef}
+                penColor="#09090b"
+                velocityFilterWeight={0.7}
+                onEnd={handleAthleteSigEnd}
+                canvasProps={{
+                  className: "w-full h-36 touch-none cursor-crosshair",
+                }}
+              />
               <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                 Подпис на състезател
               </div>
@@ -785,21 +766,15 @@ export function DocumentSignerClient({
               </div>
 
               <div className="relative touch-none overflow-hidden rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50/50 hover:bg-white transition-colors dark:border-zinc-700 dark:bg-white">
-                {SigCanvasComp ? (
-                  <SigCanvasComp
-                    ref={secondParentSigCanvasRef}
-                    penColor="#09090b"
-                    velocityFilterWeight={0.7}
-                    onEnd={handleSecondParentSigEnd}
-                    canvasProps={{
-                      className: "w-full h-36 touch-none cursor-crosshair",
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-36 flex items-center justify-center text-xs text-zinc-600">
-                    Зареждане на полето за подпис...
-                  </div>
-                )}
+                <SignatureCanvas
+                  ref={secondParentSigCanvasRef}
+                  penColor="#09090b"
+                  velocityFilterWeight={0.7}
+                  onEnd={handleSecondParentSigEnd}
+                  canvasProps={{
+                    className: "w-full h-36 touch-none cursor-crosshair",
+                  }}
+                />
                 <div className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-zinc-500 italic">
                   Подпис на втори родител
                 </div>

@@ -22,6 +22,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useDeepLinkHighlight } from "@/hooks/useDeepLinkHighlight";
 import { generateAssessmentAnalysis } from "@/lib/assessment-analysis";
 import { BADMINTON_TESTS } from "@/lib/badminton-tests";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { cn } from "@/lib/utils";
 import {
   deleteAssessment,
@@ -153,9 +154,9 @@ export default function AssessmentsClient({
 
   const handleDeleteResult = async (resultId: string) => {
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете този резултат? Той ще бъде премахнат и от досието на състезателя."
-      )
+      ))
     ) {
       return;
     }

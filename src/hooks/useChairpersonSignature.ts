@@ -9,6 +9,7 @@ import {
   getChairpersonSignatureAction,
   saveChairpersonSignatureAction,
 } from "@/lib/actions/chairperson-signature";
+import { confirmDialog } from "@/lib/confirm-dialog";
 
 const LOCAL_STORAGE_KEY = "bkgalabovo_chairperson_signature_v1";
 
@@ -95,9 +96,9 @@ export function useChairpersonSignature() {
 
   const handleRemoveSignature = async () => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да премахнете запазения подпис на Председателя?"
-      )
+      ))
     ) {
       return;
     }

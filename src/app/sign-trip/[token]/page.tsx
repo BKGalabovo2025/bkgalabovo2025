@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Подписване на ведомост за командировка | БК Гълъбово",
   description:
     "Онлайн подписване на финансова ведомост за командировка на състезатели от СНЦ Бадминтон клуб Гълъбово.",
+  robots: { index: false, follow: false },
 };
 
 export default async function SignTripPage({ params }: SignTripPageProps) {

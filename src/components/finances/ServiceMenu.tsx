@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/auth-context";
 import { deleteClubService } from "@/lib/actions/services";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
@@ -85,7 +86,9 @@ export function ServiceMenu({
 
   const handleDelete = async (id: string, name: string) => {
     if (!idToken) return;
-    if (confirm(`Сигурни ли сте, че искате да изтриете "${name}"?`)) {
+    if (
+      await confirmDialog(`Сигурни ли сте, че искате да изтриете "${name}"?`)
+    ) {
       const result = await deleteClubService(idToken, id);
       if (result.success) {
         toast.success(result.message);

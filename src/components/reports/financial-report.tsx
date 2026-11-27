@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import {
@@ -16,18 +15,25 @@ import {
   Trash2,
   TrendingUp,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
 import { toast } from "sonner";
+
+import { confirmDialog } from "@/lib/confirm-dialog";
+
+const FinancialReportPieChart = dynamic(
+  () => import("@/components/reports/FinancialReportPieChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-zinc-300" />
+      </div>
+    ),
+  }
+);
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -126,9 +132,9 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
   const handleDelete = async (saleId: string) => {
     if (!idToken) return;
     if (
-      !confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете тази продажба? Наличностите ще бъдат възстановени."
-      )
+      ))
     )
       return;
 
@@ -408,53 +414,10 @@ const FinancialReport = ({ initialData }: FinancialReportProps) => {
                 <Loader2 className="size-8 animate-spin text-zinc-300" />
               </div>
             ) : data.chartData.length > 0 ? (
-              <ResponsiveContainer
-                width="100%"
-                height="100%"
-                minWidth={1}
-                minHeight={1}
-              >
-                <PieChart>
-                  <Pie
-                    data={data.chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={80}
-                    outerRadius={120}
-                    paddingAngle={8}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {data.chartData.map((entry: any, index: number) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        opacity={0.8}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "16px",
-                      border: "1px solid #f4f4f5",
-                      boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.05)",
-                      fontSize: "12px",
-                      fontWeight: "300",
-                    }}
-                    formatter={(value: unknown) => formatPrice(Number(value))}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    iconType="circle"
-                    formatter={(value) => (
-                      <span className="text-[10px] font-medium tracking-widest text-zinc-400 uppercase">
-                        {value}
-                      </span>
-                    )}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <FinancialReportPieChart
+                data={data.chartData}
+                formatPrice={formatPrice}
+              />
             ) : (
               <div className="flex h-full items-center justify-center text-[11px] font-medium tracking-[0.2em] text-zinc-300 uppercase">
                 Няма данни за графиката

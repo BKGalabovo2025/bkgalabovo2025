@@ -3,14 +3,21 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { z } from "zod";
 
-import {
-  ensureAdminFromSession,
-  getAuthUserFromSessionCookie,
-} from "@/lib/auth-utils";
+import { parseActionInput, siteIdSchema } from "@/lib/actions/zod-helpers";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { serverCache } from "@/lib/server-cache";
 import { GeneralService, GeneralServiceEvent, Sale } from "@/types";
+
+const CreateGeneralServiceSchema = z
+  .object({
+    name: z.string().trim().min(1).max(150),
+    siteId: siteIdSchema,
+    price: z.number().min(0).optional(),
+  })
+  .passthrough();
 
 function snapToData<T>(
   doc: admin.firestore.DocumentSnapshot | admin.firestore.QueryDocumentSnapshot
@@ -48,7 +55,7 @@ function snapToData<T>(
 
 export async function getGeneralServicesServerAction(activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       throw new Error("Неоторизиран достъп.");
     }
@@ -91,6 +98,10 @@ export async function createGeneralServiceAction(
 ) {
   try {
     const user = await ensureAdminFromSession();
+    const parsed = parseActionInput(CreateGeneralServiceSchema, data);
+    if (!parsed.ok) {
+      return { success: false, error: parsed.error };
+    }
 
     const adminDb = getAdminDb();
     const now = new Date().toISOString();
@@ -231,7 +242,7 @@ export async function deleteGeneralServiceAction(id: string) {
 
 export async function getGeneralServiceHistoryAction(activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();

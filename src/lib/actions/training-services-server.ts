@@ -3,25 +3,31 @@ import "server-only";
 
 import * as admin from "firebase-admin";
 
-import { getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdminFromSession } from "@/lib/auth-utils";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export async function getTrainingServiceHistoryAction(_activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
 
     // Fetch all training service IDs so we can filter the shared serviceHistory collection
-    const trainingSnapshot = await adminDb.collection("clubServices").get();
+    const branchId =
+      _activeBranch && _activeBranch !== "all" ? _activeBranch : "bkgalabovo";
+    const trainingSnapshot = await adminDb
+      .collection("clubServices")
+      .where("siteId", "==", branchId)
+      .limit(200)
+      .get();
     const validIds = new Set(trainingSnapshot.docs.map((d) => d.id));
 
     // serviceHistory does not currently use siteId consistently, but we can query by it if needed in the future.
     const query: admin.firestore.Query = adminDb.collection("serviceHistory");
 
-    const snapshot = await query.orderBy("timestamp", "desc").get();
+    const snapshot = await query.orderBy("timestamp", "desc").limit(500).get();
     // Since serviceHistory uses 'timestamp' instead of 'createdAt' for old records, we map it properly
     const history = snapshot.docs
       .filter((doc) => validIds.has(doc.data().serviceId))

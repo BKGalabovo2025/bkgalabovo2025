@@ -11,7 +11,6 @@ import {
   ensureAdmin,
   ensureAdminFromSession,
   ensureAdminWithSite,
-  getAuthUserFromSessionCookie,
 } from "@/lib/auth-utils";
 import { getCachedSalesForBranch } from "@/lib/db/sales";
 import { writeWithFallback } from "@/lib/db-failover";
@@ -97,6 +96,7 @@ export async function createSaleAction(
           const eventRef = db.collection("inventory_events").doc();
           transaction.set(eventRef, {
             id: eventRef.id,
+            siteId: data.siteId || "bkgalabovo",
             productId: update.item.productId,
             productName: update.item.name,
             type: "sale",
@@ -323,6 +323,9 @@ export async function updateSaleAction(
           const eventRef = adminDb.collection("inventory_events").doc();
           transaction.set(eventRef, {
             id: eventRef.id,
+            siteId:
+              (freshSaleSnap.data()?.siteId as string | undefined) ||
+              "bkgalabovo",
             productId: upd.productId,
             productName: upd.productName,
             type: "correction",
@@ -359,17 +362,17 @@ export async function updateSaleAction(
         const chunkSize = 100;
         for (let i = 0; i < paidEventIds.length; i += chunkSize) {
           const chunk = paidEventIds.slice(i, i + chunkSize);
+          const eventRefs = chunk.map((id) =>
+            adminDb.collection("events").doc(id)
+          );
+          const eventSnaps = await adminDb.getAll(...eventRefs);
           const attendanceBatch = adminDb.batch();
+          const nowIso = new Date().toISOString();
 
-          for (const eventId of chunk) {
-            const eventRef = adminDb.collection("events").doc(eventId);
-            const eventSnap = await eventRef.get();
-
+          for (const eventSnap of eventSnaps) {
             if (!eventSnap.exists) continue;
-
             const eventData = eventSnap.data();
             const attendees: any[] = eventData?.attendees || [];
-            const nowIso = new Date().toISOString();
 
             const updatedAttendees = attendees.map((attendee: any) => {
               if (targetMemberIds.includes(attendee.memberId)) {
@@ -384,25 +387,37 @@ export async function updateSaleAction(
               return attendee;
             });
 
-            attendanceBatch.update(eventRef, { attendees: updatedAttendees });
+            attendanceBatch.update(eventSnap.ref, {
+              attendees: updatedAttendees,
+            });
           }
 
           await attendanceBatch.commit();
         }
       }
 
-      // Update lastPaymentDate
-      for (const tId of targetMemberIds) {
-        if (tId !== "GUEST_EXTERNAL") {
-          const mRef = adminDb.collection("members").doc(tId);
-          const mSnap = await mRef.get();
+      // Update lastPaymentDate in a single batch
+      const validMemberIds = targetMemberIds.filter(
+        (tId) => tId !== "GUEST_EXTERNAL"
+      );
+      if (validMemberIds.length > 0) {
+        const mRefs = validMemberIds.map((tId) =>
+          adminDb.collection("members").doc(tId)
+        );
+        const mSnaps = await adminDb.getAll(...mRefs);
+        const memberBatch = adminDb.batch();
+        const paymentIso = new Date(
+          (dataToUpdate.saleDate as any)?.toDate() || new Date()
+        ).toISOString();
+        let hasUpdates = false;
+        for (const mSnap of mSnaps) {
           if (mSnap.exists) {
-            await mRef.update({
-              lastPaymentDate: new Date(
-                (dataToUpdate.saleDate as any)?.toDate() || new Date()
-              ).toISOString(),
-            });
+            memberBatch.update(mSnap.ref, { lastPaymentDate: paymentIso });
+            hasUpdates = true;
           }
+        }
+        if (hasUpdates) {
+          await memberBatch.commit();
         }
       }
     } else if (!dataToUpdate.isPaid && existingSale && existingSale.isPaid) {
@@ -558,6 +573,7 @@ export async function deleteSaleAction(
         const eventRef = adminDb.collection("inventory_events").doc();
         transaction.set(eventRef, {
           id: eventRef.id,
+          siteId: saleData?.siteId || "bkgalabovo",
           productId: update.item.productId,
           productName: update.item.name,
           type: "correction",
@@ -768,7 +784,7 @@ function snapToData<T>(
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getInventorySalesServerAction(activeBranch: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       throw new Error("Неоторизиран достъп.");
     }
@@ -796,7 +812,7 @@ async function getInventorySalesServerAction(activeBranch: string) {
 
 export async function getReceiptDetailsServerAction(saleId: string) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) {
       throw new Error("Неоторизиран достъп.");
     }
@@ -936,7 +952,7 @@ export async function getServiceSalesAction(
   activeBranch: string
 ) {
   try {
-    const user = await getAuthUserFromSessionCookie();
+    const user = await ensureAdminFromSession();
     if (!user) throw new Error("Неоторизиран достъп.");
 
     const adminDb = getAdminDb();
@@ -1044,6 +1060,7 @@ export async function getSaleByIdAction(saleId: string): Promise<{
   }
 
   try {
+    await ensureAdminFromSession();
     const adminDb = getAdminDb();
     const saleSnap = await adminDb.collection("sales").doc(saleId).get();
 

@@ -4,6 +4,7 @@ import {
   DocumentSnapshot,
   getDoc,
   getDocs,
+  limit,
   query,
   Timestamp,
   updateDoc,
@@ -77,7 +78,7 @@ export const docToSale = (doc: DocumentSnapshot): Sale | null => {
 };
 
 export const getSales = async (): Promise<Sale[]> => {
-  const q = query(getSalesQuery());
+  const q = query(getSalesQuery(), limit(1000));
   const querySnapshot = await getDocs(q);
   const sales = querySnapshot.docs.map(docToSale).filter(Boolean) as Sale[];
   return sales.sort(
@@ -126,10 +127,15 @@ export const getSalesByMemberIds = async (
 export const getSalesByMemberId = async (memberId: string): Promise<Sale[]> => {
   if (!memberId) return [];
 
-  const q1 = query(getSalesQuery(), where("memberId", "==", memberId));
+  const q1 = query(
+    getSalesQuery(),
+    where("memberId", "==", memberId),
+    limit(500)
+  );
   const q2 = query(
     getSalesQuery(),
-    where("memberIdsForAttendance", "array-contains", memberId)
+    where("memberIdsForAttendance", "array-contains", memberId),
+    limit(500)
   );
 
   const [snapshot1, snapshot2] = await Promise.all([getDocs(q1), getDocs(q2)]);

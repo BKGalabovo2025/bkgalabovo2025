@@ -252,6 +252,8 @@ export async function getIssuedCertificatesAction(
   siteId: "bkgalabovo" | "recoveryzone"
 ): Promise<{ success: boolean; data: IssuedCertificate[]; error?: string }> {
   try {
+    const { ensureAdminWithSite } = await import("@/lib/auth-utils");
+    await ensureAdminWithSite(undefined, siteId);
     const adminDb = getAdminDb();
     const backupDb = getBackupDb();
 

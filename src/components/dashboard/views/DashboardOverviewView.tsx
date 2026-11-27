@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/context/language-context";
 import { formatPrice } from "@/lib/currency";
-import { cn } from "@/lib/utils";
+import { cn, handleKeyboardClick } from "@/lib/utils";
 
 import { BirthdayReminder } from "../BirthdayReminder";
 import { CourtsOccupancyCard } from "../CourtsOccupancyCard";
@@ -239,6 +239,9 @@ export function DashboardOverviewView() {
             {stats.todayEventsList.length > 3 && (
               <div
                 className="mt-1 cursor-pointer text-center text-[10px] font-medium text-emerald-600/70 hover:underline dark:text-emerald-400/70"
+                role="button"
+                tabIndex={0}
+                onKeyDown={handleKeyboardClick}
                 onClick={(e) => {
                   e.stopPropagation();
                   router.push("/schedule");

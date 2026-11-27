@@ -33,6 +33,17 @@ export default defineConfig({
         inline: [/server-only/],
       },
     },
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["src/lib/**", "src/services/**", "src/app/api/**"],
+      thresholds: {
+        lines: 25,
+        functions: 25,
+        branches: 20,
+        statements: 25,
+      },
+    },
   },
   resolve: {
     tsconfigPaths: true,

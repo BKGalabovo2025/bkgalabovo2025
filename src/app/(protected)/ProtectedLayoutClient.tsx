@@ -67,9 +67,11 @@ function GlobalHeader() {
             const isActive = activeBranch === site.id;
             return (
               <button
+                type="button"
                 key={site.id}
                 onClick={() => handleBranchSwitch(site.id)}
                 aria-pressed={isActive}
+                aria-label={`Превключи към ${site.title}`}
                 className={`group flex items-center gap-1.5 sm:gap-2 rounded-xl p-1 sm:p-1.5 transition-all duration-300 ${
                   isActive
                     ? "bg-white opacity-100 shadow-xs sm:shadow-md ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"

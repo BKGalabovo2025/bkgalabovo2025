@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { syncRankingsAction } from "@/lib/actions/rankings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { tournamentService } from "@/services/tournament-service";
 import { Tournament } from "@/types/tournament.types";
 const TournamentForm = dynamic(
@@ -179,7 +180,12 @@ export default function TournamentsClient({
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Сигурни ли сте, че искате да изтриете този турнир?")) return;
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този турнир?"
+      ))
+    )
+      return;
     try {
       await tournamentService.deleteTournament(id);
       toast.success("Турнирът е изтрит.");

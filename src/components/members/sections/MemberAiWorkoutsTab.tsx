@@ -36,6 +36,7 @@ import {
   getMemberWorkoutProgramsAction,
   updateWorkoutProgramProgressAction,
 } from "@/lib/actions/trainings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { exportWorkoutProgramPdf } from "@/lib/pdf/workout-program-pdf";
 import {
   WorkoutDay,
@@ -525,9 +526,9 @@ export function MemberAiWorkoutsTab({
 
   const handleDeleteProgram = async (programId: string) => {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         "Сигурни ли сте, че искате да изтриете тази тренировъчна програма?"
-      )
+      ))
     ) {
       return;
     }

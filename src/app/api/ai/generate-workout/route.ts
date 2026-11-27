@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+export const maxDuration = 60;
+
 import { logSystemError } from "@/lib/actions/error-logging";
-import { getAuthUser, getAuthUserFromSessionCookie } from "@/lib/auth-utils";
+import { ensureAdmin, ensureAdminWithSite } from "@/lib/auth-utils";
 import {
   AthleteGeminiContext,
   getAthleteGeminiContext,
@@ -26,7 +28,7 @@ const RequestSchema = z.object({
   cycleDurationDays: z.number().int().min(3).max(30).optional().default(7),
   sessionsPerWeek: z.number().int().min(1).max(7).optional().default(4),
   courtAccess: z.boolean().optional().default(true),
-  notes: z.string().optional(),
+  notes: z.string().max(1000).optional(),
   startDate: z.string().optional(),
 });
 
@@ -1884,16 +1886,17 @@ export function generateFallbackProgram(
   };
 }
 
-async function verifyRequestUser(req: NextRequest) {
+async function verifyAdminTokenFromRequest(
+  req: NextRequest
+): Promise<string | undefined> {
   const authHeader = req.headers.get("authorization");
   if (authHeader && authHeader.startsWith("Bearer ")) {
-    try {
-      return await getAuthUser(authHeader.substring(7));
-    } catch {
-      // Fall through to cookie
-    }
+    const token = authHeader.substring(7);
+    await ensureAdmin(token);
+    return token;
   }
-  return await getAuthUserFromSessionCookie();
+  await ensureAdmin(undefined);
+  return undefined;
 }
 
 async function tryModelGenerate(
@@ -1902,7 +1905,7 @@ async function tryModelGenerate(
   prompt: string
 ): Promise<WorkoutProgram | null> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
       headers: {
@@ -1999,8 +2002,10 @@ function resolveGeminiApiKey(): string | undefined {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await verifyRequestUser(req);
-    if (!user) {
+    let bearerToken: string | undefined;
+    try {
+      bearerToken = await verifyAdminTokenFromRequest(req);
+    } catch {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -2033,12 +2038,9 @@ export async function POST(req: NextRequest) {
 
     const memberData = memberDoc.data();
     const memberSiteId = memberData?.siteId || "bkgalabovo";
-    const allowedSites = (user as { allowedSites?: string[] }).allowedSites;
-    if (
-      allowedSites &&
-      allowedSites.length > 0 &&
-      !allowedSites.includes(memberSiteId)
-    ) {
+    try {
+      await ensureAdminWithSite(bearerToken, memberSiteId);
+    } catch {
       return NextResponse.json(
         { error: "Forbidden: No access to this member's branch" },
         { status: 403 }
@@ -2138,6 +2140,9 @@ export async function POST(req: NextRequest) {
       stack: error instanceof Error ? error.stack : undefined,
       path: "/api/ai/generate-workout",
     });
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

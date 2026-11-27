@@ -46,6 +46,7 @@ import {
 import { getMemberDocumentRequestsAction } from "@/lib/actions/document-requests";
 import { getDocumentTemplatesAction } from "@/lib/actions/document-templates";
 import { uploadAdminMedicalCertificateAction } from "@/lib/actions/members";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { getCalendarYearValidity } from "@/lib/document-validity";
 import { isMatchingParticipation } from "@/lib/services-fees";
 import { cn } from "@/lib/utils";
@@ -695,18 +696,20 @@ export const MemberDocumentsTab = ({
 
   const handleDeleteDeclaration = async (id: string) => {
     if (
-      window.confirm("Сигурни ли сте, че искате да изтриете тази декларация?")
+      await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете тази декларация?"
+      )
     ) {
       try {
         const res = await deleteDeclarationAction(id);
         if (res.success) {
           setDeclarations((prev) => prev.filter((d) => d.id !== id));
         } else {
-          alert(res.message || "Грешка при изтриването.");
+          toast.error(res.message || "Грешка при изтриването.");
         }
       } catch (error) {
         console.error("Error deleting declaration:", error);
-        alert("Възникна грешка при изтриването.");
+        toast.error("Възникна грешка при изтриването.");
       }
     }
   };

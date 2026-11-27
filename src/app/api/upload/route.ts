@@ -9,6 +9,40 @@ import { getAdminStorage } from "@/lib/firebase-admin";
 const FIRESTORE_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB max per file using Firestore chunking
 const FIRESTORE_CHUNK_SIZE = 600 * 1024; // 600KB binary per chunk (~800KB base64, safe under 1MB Firestore doc limit)
 
+const ALLOWED_UPLOAD_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "text/plain",
+]);
+
+const SAFE_INLINE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+  "application/pdf",
+]);
+
+function isUserAdmin(user: {
+  admin?: unknown;
+  email?: string | null;
+}): boolean {
+  return Boolean(
+    user.admin ||
+    user.email === "bkgalabovo2014@gmail.com" ||
+    user.email === "recoveryzonebyzm@gmail.com"
+  );
+}
+
 function sanitizeAndValidateStoragePath(
   rawPath: string,
   allowedPrefixes: string[]
@@ -191,6 +225,7 @@ export async function GET(request: NextRequest) {
       searchParams.get("type") === "image";
 
     const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
+    let resolvedSiteId = siteId;
     let docSnap = await adminDb
       .collection("sites")
       .doc(siteId)
@@ -209,6 +244,7 @@ export async function GET(request: NextRequest) {
           .get();
         if (fallbackSnap.exists) {
           docSnap = fallbackSnap;
+          resolvedSiteId = "default";
         }
       } catch {
         // ignore
@@ -225,6 +261,7 @@ export async function GET(request: NextRequest) {
           .get();
         if (galabovoSnap.exists) {
           docSnap = galabovoSnap;
+          resolvedSiteId = "bkgalabovo";
         }
       } catch {
         // ignore
@@ -245,6 +282,7 @@ export async function GET(request: NextRequest) {
             .get();
           if (bSnap.exists) {
             docSnap = bSnap;
+            resolvedSiteId = siteId;
           } else if (siteId !== "bkgalabovo") {
             const bGalabovoSnap = await backupDb
               .collection("sites")
@@ -254,6 +292,7 @@ export async function GET(request: NextRequest) {
               .get();
             if (bGalabovoSnap.exists) {
               docSnap = bGalabovoSnap;
+              resolvedSiteId = "bkgalabovo";
             }
           }
         }
@@ -281,8 +320,11 @@ export async function GET(request: NextRequest) {
     const fileDoc = docSnap.data();
     const filePath = (fileDoc?.path || "").toLowerCase();
     const fileNameLower = (fileDoc?.name || fileName || "").toLowerCase();
+    const resolvedMime = (
+      fileDoc?.contentType || "application/octet-stream"
+    ).toLowerCase();
     const isPublicMedia =
-      fileDoc?.contentType?.startsWith("image/") ||
+      (resolvedMime.startsWith("image/") && resolvedMime !== "image/svg+xml") ||
       filePath.includes("avatars") ||
       filePath.includes("sponsors") ||
       filePath.includes("media") ||
@@ -291,9 +333,7 @@ export async function GET(request: NextRequest) {
       filePath.includes("events") ||
       filePath.includes("schedule") ||
       filePath.includes("tournaments") ||
-      filePath.includes("attachments") ||
       filePath.includes("protocols") ||
-      filePath.includes("business-trips") ||
       fileNameLower.includes("наредба") ||
       fileNameLower.includes("naredba") ||
       fileNameLower.includes("протокол") ||
@@ -320,7 +360,7 @@ export async function GET(request: NextRequest) {
         !isSuperAdmin &&
         allowedSites &&
         allowedSites.length > 0 &&
-        !allowedSites.includes(siteId)
+        !allowedSites.includes(resolvedSiteId)
       ) {
         return NextResponse.json(
           { error: "Forbidden: Нямате достъп до файловете на този клон." },
@@ -344,11 +384,15 @@ export async function GET(request: NextRequest) {
       buffer = Buffer.from(fileDoc?.data || "", "base64");
     }
     const safeFileName = encodeURIComponent(fileDoc?.name || "document");
+    const disposition = SAFE_INLINE_MIMES.has(resolvedMime)
+      ? "inline"
+      : "attachment";
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": fileDoc?.contentType || "application/octet-stream",
-        "Content-Disposition": `inline; filename="${safeFileName}"; filename*=UTF-8''${safeFileName}`,
+        "Content-Disposition": `${disposition}; filename="${safeFileName}"; filename*=UTF-8''${safeFileName}`,
+        "X-Content-Type-Options": "nosniff",
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
@@ -371,7 +415,7 @@ export async function GET(request: NextRequest) {
         },
       });
     }
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Error reading file" }, { status: 500 });
   }
 }
 
@@ -395,6 +439,112 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Support JSON signed-url mode for direct client-to-Cloud-Storage uploads (>4.5MB)
+    const contentTypeHeader = request.headers.get("content-type") || "";
+    const { searchParams } = new URL(request.url);
+    if (
+      searchParams.get("mode") === "signed-url" ||
+      contentTypeHeader.includes("application/json")
+    ) {
+      const body = (await request.json().catch(() => null)) as {
+        path?: string;
+        contentType?: string;
+        size?: number;
+      } | null;
+
+      const rawPath = body?.path;
+      const mimeType = (body?.contentType || "").toLowerCase();
+      const size = typeof body?.size === "number" ? body.size : 0;
+
+      if (!rawPath || !mimeType) {
+        return NextResponse.json(
+          { success: false, error: "Missing path or contentType" },
+          { status: 400 }
+        );
+      }
+
+      if (size > 50 * 1024 * 1024) {
+        return NextResponse.json(
+          { success: false, error: "File exceeds 50MB signed upload limit" },
+          { status: 400 }
+        );
+      }
+
+      if (!ALLOWED_UPLOAD_MIMES.has(mimeType)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Непозволен файлов формат (${mimeType}).`,
+          },
+          { status: 400 }
+        );
+      }
+
+      const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
+      const decodedToken = await adminAuth.verifyIdToken(token);
+      const adminUser = isUserAdmin(decodedToken);
+      const userSiteId =
+        (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
+        getSiteConfig().id;
+      const userSites = Array.from(
+        new Set(
+          [
+            userSiteId,
+            ...((decodedToken as { allowedSites?: string[] }).allowedSites ||
+              []),
+          ].filter(Boolean) as string[]
+        )
+      );
+      const allowedPaths = [
+        `avatars/${decodedToken.uid}/`,
+        `avatars/${decodedToken.uid}`,
+        ...(adminUser
+          ? [...userSites.map((s) => `sites/${s}/`), `certificates/`]
+          : []),
+      ];
+      const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
+        rawPath,
+        allowedPaths
+      );
+      if (!valid) {
+        return NextResponse.json(
+          { success: false, error: "Invalid path for your site" },
+          { status: 403 }
+        );
+      }
+
+      const bucket = await checkCloudStorageBucket();
+      if (!bucket) {
+        return NextResponse.json(
+          {
+            success: false,
+            fallbackRequired: true,
+            error: "Cloud Storage bucket unavailable for signed upload",
+          },
+          { status: 503 }
+        );
+      }
+
+      const fileRef = bucket.file(normalizedPath);
+      const [signedUrl] = await fileRef.getSignedUrl({
+        version: "v4",
+        action: "write",
+        expires: Date.now() + 15 * 60 * 1000,
+        contentType: mimeType,
+      });
+
+      const downloadToken = crypto.randomUUID();
+      const encodedPath = encodeURIComponent(normalizedPath);
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
+
+      return NextResponse.json({
+        success: true,
+        signedUrl,
+        path: normalizedPath,
+        publicUrl,
+      });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const rawPath = formData.get("path") as string;
@@ -406,9 +556,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate file size and MIME type before processing
+    if (file.size > FIRESTORE_MAX_FILE_SIZE) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Файлът надвишава максималния размер от 15MB за директно качване. Моля, използвайте по-малък файл или външен линк.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const mimeType = (file.type || "application/octet-stream").toLowerCase();
+    if (!ALLOWED_UPLOAD_MIMES.has(mimeType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Непозволен файлов формат (${mimeType}). Позволени са изображения, PDF и Office документи.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate that the path belongs strictly to the user's allowed scope
     const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(token);
+    const adminUser = isUserAdmin(decodedToken);
     const userSiteId =
       (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
       getSiteConfig().id;
@@ -418,9 +592,6 @@ export async function POST(request: NextRequest) {
         [
           userSiteId,
           ...((decodedToken as { allowedSites?: string[] }).allowedSites || []),
-          getSiteConfig().id,
-          "bkgalabovo",
-          "recoveryzone",
         ].filter(Boolean) as string[]
       )
     );
@@ -428,8 +599,9 @@ export async function POST(request: NextRequest) {
     const allowedPaths = [
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
-      ...userSites.map((s) => `sites/${s}/`),
-      `certificates/`,
+      ...(adminUser
+        ? [...userSites.map((s) => `sites/${s}/`), `certificates/`]
+        : []),
     ];
 
     const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
@@ -457,18 +629,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, downloadUrl });
     }
 
-    // Free Firestore storage fallback (Spark plan - 0.00 лв, with automatic chunking up to 15MB)
-    if (file.size > FIRESTORE_MAX_FILE_SIZE) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Файлът надвишава максималния размер от 15MB за директно качване. Моля, използвайте по-малък файл или външен линк.",
-        },
-        { status: 400 }
-      );
-    }
-
     const downloadUrl = await saveFileToFirestore(
       file,
       normalizedPath,
@@ -476,10 +636,9 @@ export async function POST(request: NextRequest) {
     );
     return NextResponse.json({ success: true, downloadUrl });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Server-side upload error:", error);
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: "Upload failed" },
       { status: 500 }
     );
   }
@@ -512,11 +671,18 @@ export async function DELETE(request: NextRequest) {
     // Validate that the path belongs to the user's site
     const adminAuth = (await import("@/lib/firebase-admin")).getAdminAuth();
     const decodedToken = await adminAuth.verifyIdToken(token);
+    const adminUser = isUserAdmin(decodedToken);
     const userSiteId =
       (decodedToken as { siteId?: string; allowedSites?: string[] }).siteId ||
       getSiteConfig().id;
 
     if (fileId) {
+      if (!adminUser) {
+        return NextResponse.json(
+          { success: false, error: "Forbidden: Admin access required" },
+          { status: 403 }
+        );
+      }
       const adminDb = (await import("@/lib/firebase-admin")).getAdminDb();
       const targetDocRef = adminDb
         .collection("sites")
@@ -554,8 +720,6 @@ export async function DELETE(request: NextRequest) {
           (decodedToken as { siteId?: string }).siteId,
           ...((decodedToken as { allowedSites?: string[] }).allowedSites || []),
           getSiteConfig().id,
-          "bkgalabovo",
-          "recoveryzone",
         ].filter(Boolean) as string[]
       )
     );
@@ -563,8 +727,9 @@ export async function DELETE(request: NextRequest) {
     const allowedPaths = [
       `avatars/${decodedToken.uid}/`,
       `avatars/${decodedToken.uid}`,
-      ...userSites.map((s) => `sites/${s}/`),
-      `certificates/`,
+      ...(adminUser
+        ? [...userSites.map((s) => `sites/${s}/`), `certificates/`]
+        : []),
     ];
 
     const { valid, normalizedPath } = sanitizeAndValidateStoragePath(
@@ -587,10 +752,9 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("Server-side delete error:", error);
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: "Delete failed" },
       { status: 500 }
     );
   }

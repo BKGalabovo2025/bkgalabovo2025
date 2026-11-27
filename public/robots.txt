@@ -67,4 +67,16 @@ Allow: /catalogs
 Allow: /tournaments
 Allow: /rankings
 Allow: /club
+Allow: /recovery-zone
+
+Disallow: /accounting/
+Disallow: /certificates/
+Disallow: /declarations/
+Disallow: /documents/
+Disallow: /feedback/
+Disallow: /inquiries/
+Disallow: /marketing/
+Disallow: /login
+
+Sitemap: https://bkgalabovo2025.vercel.app/sitemap.xml
 

@@ -75,43 +75,39 @@ function serializeDoc(data: unknown): unknown {
   return data;
 }
 
-const getCachedSessions = unstable_cache(
-  async (): Promise<Record<string, unknown>[]> => {
-    return serverCache.get(
-      "recovery:sessions",
-      async () => {
-        try {
-          const adminDb = getAdminDb();
-          const snap = await adminDb.collection("sessions").get();
-          return snap.docs
-            .filter((doc) => {
-              const data = doc.data();
-              return (
-                data.isActive !== false &&
-                (!data.siteId || data.siteId === "recoveryzone")
-              );
-            })
-            .map(
-              (doc) =>
-                serializeDoc({ id: doc.id, ...doc.data() }) as Record<
-                  string,
-                  unknown
-                >
+async function getCachedSessions(): Promise<Record<string, unknown>[]> {
+  return serverCache.get(
+    "recovery:sessions",
+    async () => {
+      try {
+        const adminDb = getAdminDb();
+        const snap = await adminDb.collection("sessions").get();
+        return snap.docs
+          .filter((doc) => {
+            const data = doc.data();
+            return (
+              data.isActive !== false &&
+              (!data.siteId || data.siteId === "recoveryzone")
             );
-        } catch (error) {
-          console.error(
-            "Failed to fetch sessions for recovery catalog page:",
-            error
+          })
+          .map(
+            (doc) =>
+              serializeDoc({ id: doc.id, ...doc.data() }) as Record<
+                string,
+                unknown
+              >
           );
-          return [];
-        }
-      },
-      300_000 // 5 minutes in-memory TTL
-    );
-  },
-  ["recovery-sessions"],
-  { revalidate: 300, tags: ["sessions"] }
-);
+      } catch (error) {
+        console.error(
+          "Failed to fetch sessions for recovery catalog page:",
+          error
+        );
+        return [];
+      }
+    },
+    300_000 // 5 minutes in-memory TTL
+  );
+}
 
 const getCachedSite = unstable_cache(
   async (): Promise<Site | null> => {

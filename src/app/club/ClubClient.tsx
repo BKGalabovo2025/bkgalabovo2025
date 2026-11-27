@@ -29,6 +29,7 @@ import {
 } from "@/components/icons/social-icons";
 import { PublicFooter } from "@/components/layout/public-footer";
 import { PublicNav } from "@/components/layout/public-nav";
+import { EventInquiryDialog } from "@/components/shared/schedule/EventInquiryDialog";
 import { PublicEventCard } from "@/components/shared/schedule/PublicEventCard";
 import { Translate } from "@/components/shared/Translate";
 import { Button } from "@/components/ui/button";
@@ -65,12 +66,12 @@ const activities = [
   {
     icon: CalendarDays,
     title: "Организиране на летни спортни лагери",
-    desc: "Един от акцентите в годишната ни програма е провеждането на специализирани летни спортни лагери за членовете на клуба. Тези лагери съчетават интензивни тренировки извън стандартната зала с активности, които засилват екипния дух и приятелството в общността ни. (Забележка: Летните лагери са официална част от нашия актуален спортен график и календар за сезона).",
+    desc: "Един от акцентите в годишната ни програма е провеждането на специализирани летни спортни лагери за членовете на клуба. Тези лагери съчетават интензивни тренировки извън стандартната зала с активности, които засилват екипния дух и приятелството в общността ни, като са официална част от нашия спортен календар за сезона.",
   },
   {
     icon: Target,
     title: "Организиране на турнири",
-    desc: "Турнири от Национална верига „Млади таланти“ турнири от Национална верига по бадминтон, турнири за всички възрасти – от деца до ветерани, любители , както и вътрешни клубни турнири и Общински турнири.",
+    desc: "Турнири от Национална верига „Млади таланти“, турнири за всички възрасти – от деца до ветерани и любители, както и вътрешни клубни и общински турнири.",
   },
 ];
 
@@ -106,6 +107,7 @@ export default function ClubClient({
   const [isWidgetVisible, setIsWidgetVisible] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<ScheduleFilter>("all");
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
@@ -335,8 +337,9 @@ export default function ClubClient({
             </h1>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-xs sm:max-w-none mx-auto">
-              <a
-                href="#contacts"
+              <button
+                type="button"
+                onClick={() => setJoinModalOpen(true)}
                 className="group flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-xs font-bold tracking-widest text-white uppercase shadow-[0_0_25px_rgba(30,58,138,0.35)] transition-all hover:-translate-y-1 hover:bg-blue-500 hover:shadow-[0_0_35px_rgba(59,130,246,0.6)] sm:px-9 sm:py-4 sm:text-sm dark:shadow-[0_0_25px_rgba(30,58,138,0.7)] dark:hover:shadow-[0_0_35px_rgba(59,130,246,0.9)]"
               >
                 Стани Член{" "}
@@ -344,7 +347,7 @@ export default function ClubClient({
                   size={18}
                   className="transition-transform group-hover:translate-x-1"
                 />
-              </a>
+              </button>
               <a
                 href="#schedule"
                 className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 text-xs font-bold tracking-widest text-slate-900 uppercase transition-all hover:-translate-y-1 hover:border-blue-500 hover:bg-blue-50 hover:shadow-[0_0_20px_rgba(30,58,138,0.15)] sm:px-9 sm:py-4 sm:text-sm dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:border-blue-400 dark:hover:bg-white/20 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] backdrop-blur-md"
@@ -1178,6 +1181,23 @@ export default function ClubClient({
 
       {/* Footer */}
       <PublicFooter clubSite={clubSite} />
+
+      <EventInquiryDialog
+        isOpen={joinModalOpen}
+        onClose={() => setJoinModalOpen(false)}
+        clubPhone={clubSite?.phone || undefined}
+        event={
+          joinModalOpen
+            ? {
+                id: "club-membership",
+                title: "Членство и записване в БК Гълъбово",
+                startTime: new Date().toISOString(),
+                endTime: new Date().toISOString(),
+                location: clubSite?.hallName || 'Спортна зала „Енергетик"',
+              }
+            : null
+        }
+      />
     </div>
   );
 }

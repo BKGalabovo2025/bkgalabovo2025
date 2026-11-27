@@ -33,6 +33,7 @@ import {
 import { useAuth } from "@/context/auth-context";
 import { useRecoveryServices } from "@/hooks/useRecoveryServices";
 import { deleteRecoveryPackageAction } from "@/lib/actions/recovery-services-server";
+import { confirmDialog } from "@/lib/confirm-dialog";
 
 export function RecoveryClientPackages() {
   const { clientPackages, isLoading, refetch } = useRecoveryServices();
@@ -54,7 +55,12 @@ export function RecoveryClientPackages() {
 
   const handleDelete = async (id: string) => {
     if (!idToken) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете този пакет?")) return;
+    if (
+      !(await confirmDialog(
+        "Сигурни ли сте, че искате да изтриете този пакет?"
+      ))
+    )
+      return;
 
     setIsProcessing(id);
     try {

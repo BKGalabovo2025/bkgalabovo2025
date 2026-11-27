@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type CacheEntry<T> = {
   data: T;
   expiry: number;
@@ -9,11 +8,23 @@ type ErrorEntry = {
   expiry: number;
 };
 
+const MAX_CACHE_ENTRIES = 500;
+
 class ServerCache {
-  private cache = new Map<string, CacheEntry<any>>();
-  private stale = new Map<string, any>(); // последни добри данни (stale-while-revalidate)
+  private cache = new Map<string, CacheEntry<unknown>>();
+  private stale = new Map<string, unknown>(); // последни добри данни (stale-while-revalidate)
   private errors = new Map<string, ErrorEntry>();
-  private pendingPromises = new Map<string, Promise<any>>();
+  private pendingPromises = new Map<string, Promise<unknown>>();
+
+  private setBounded<V>(map: Map<string, V>, key: string, value: V) {
+    if (map.has(key)) {
+      map.delete(key);
+    } else if (map.size >= MAX_CACHE_ENTRIES) {
+      const oldestKey = map.keys().next().value;
+      if (oldestKey !== undefined) map.delete(oldestKey);
+    }
+    map.set(key, value);
+  }
 
   /**
    * Retrieves data from cache or runs fetchFn if not cached or expired.
@@ -33,7 +44,7 @@ class ServerCache {
     const now = Date.now();
 
     // Върни кешираните данни ако са свежи
-    const entry = this.cache.get(key);
+    const entry = this.cache.get(key) as CacheEntry<T> | undefined;
     if (entry && entry.expiry > now) {
       return entry.data;
     }
@@ -42,7 +53,7 @@ class ServerCache {
     const errorEntry = this.errors.get(key);
     if (errorEntry && errorEntry.expiry > now) {
       // ★ КЛЮЧОВО: ако имаме stale данни → върни ги вместо да хвърляме грешка
-      const staleData = this.stale.get(key);
+      const staleData = this.stale.get(key) as T | undefined;
       if (staleData !== undefined) {
         console.warn(
           `[ServerCache] Quota/error backoff for "${key}" — serving stale data`
@@ -58,8 +69,11 @@ class ServerCache {
     if (!pending) {
       pending = fetchFn()
         .then((data) => {
-          this.cache.set(key, { data, expiry: Date.now() + ttlMs });
-          this.stale.set(key, data); // запази като stale за бъдещи грешки
+          this.setBounded(this.cache, key, {
+            data,
+            expiry: Date.now() + ttlMs,
+          });
+          this.setBounded(this.stale, key, data); // запази като stale за бъдещи грешки
           this.errors.delete(key);
           this.pendingPromises.delete(key);
           return data;
@@ -92,7 +106,7 @@ class ServerCache {
       this.pendingPromises.set(key, pending);
     }
 
-    return pending;
+    return pending as Promise<T>;
   }
 
   /** Инвалидира конкретен ключ (и stale данните му). */

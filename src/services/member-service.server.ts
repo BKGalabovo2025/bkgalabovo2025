@@ -31,7 +31,11 @@ export const getAllMembersServer = cache(async function getAllMembersServer(
           query = query.where("siteId", "==", siteId);
         }
 
-        const snapshot = await query.get();
+        const boundedQuery =
+          typeof (query as { limit?: unknown }).limit === "function"
+            ? query.limit(2000)
+            : query;
+        const snapshot = await boundedQuery.get();
 
         const members = snapshot.docs.map((doc) => {
           const data = doc.data();

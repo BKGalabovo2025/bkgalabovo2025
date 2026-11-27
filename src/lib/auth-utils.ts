@@ -37,16 +37,20 @@ export async function ensureAdmin(idToken?: string) {
   return await ensureAdminFromSession();
 }
 
-export async function getAuthUserFromSessionCookie() {
+export async function getAuthUserFromSessionCookie(
+  checkRevoked: boolean = false
+) {
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get("session")?.value;
     if (!session) return null;
 
     const adminAuth = getAdminAuth();
-    // Verify session cookie locally without remote revocation checks to prevent network latency/crashes
     try {
-      const decodedToken = await adminAuth.verifySessionCookie(session, false);
+      const decodedToken = await adminAuth.verifySessionCookie(
+        session,
+        checkRevoked
+      );
       return decodedToken;
     } catch (sessionErr) {
       const useEmulator =

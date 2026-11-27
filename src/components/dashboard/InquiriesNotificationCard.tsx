@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { handleKeyboardClick } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
 import { EventInquiry } from "@/types/inquiry.types";
 
@@ -164,6 +165,9 @@ export function InquiriesNotificationCard() {
             {stats.newItems.map((item) => (
               <div
                 key={item.id}
+                role="button"
+                tabIndex={0}
+                onKeyDown={handleKeyboardClick}
                 onClick={() => router.push("/inquiries")}
                 className="group flex cursor-pointer flex-col gap-1.5 rounded-xl border border-amber-200/70 bg-amber-50/30 p-3 transition-colors hover:border-amber-400 dark:border-zinc-800 dark:bg-zinc-800/40"
               >

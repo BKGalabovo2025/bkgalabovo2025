@@ -25,15 +25,46 @@ function formatDayCalendarDate(dateStr?: string) {
   }
 }
 
+function escapeHtml(val: unknown): string {
+  if (val === null || val === undefined) return "";
+  return String(val)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function escapeProgramStrings<T>(input: T): T {
+  if (typeof input === "string") {
+    return escapeHtml(input) as unknown as T;
+  }
+  if (Array.isArray(input)) {
+    return input.map(escapeProgramStrings) as unknown as T;
+  }
+  if (input && typeof input === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+      out[k] = escapeProgramStrings(v);
+    }
+    return out as T;
+  }
+  return input;
+}
+
 /**
  * Builds a styled, branded multi-page HTML string representing the workout program
  * and progress tracking journal for Badminton Club Galabovo.
  * Each page is an A4 container with class `pdf-page`.
  */
 export function renderWorkoutProgramHtml(
-  program: Partial<WorkoutProgram>,
-  athleteFallbackName?: string
+  rawProgram: Partial<WorkoutProgram>,
+  rawAthleteFallbackName?: string
 ): string {
+  const program = escapeProgramStrings(rawProgram);
+  const athleteFallbackName = rawAthleteFallbackName
+    ? escapeHtml(rawAthleteFallbackName)
+    : undefined;
   const progRecord = program as unknown as Record<string, unknown>;
   const rawAthlete = program.targetAthlete;
   const athleteName =

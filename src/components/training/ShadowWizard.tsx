@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useShadowTrainer";
 import { syncShadowAttendanceToScheduleAction } from "@/lib/actions/events";
 import { createTrainingSessionAction } from "@/lib/actions/trainings";
+import { confirmDialog } from "@/lib/confirm-dialog";
 import { preloadAudioForSettings } from "@/lib/shadow-training/audio-map";
 import type { TrainingSession } from "@/types/training.types";
 
@@ -178,7 +179,7 @@ export function ShadowWizard({
 
     const elapsedSeconds = (trainer.actualElapsedMs || 0) / 1000;
     if (elapsedSeconds < 10) {
-      const confirmSave = confirm(
+      const confirmSave = await confirmDialog(
         `Внимание: Тренировката е продължила само ${Math.round(elapsedSeconds)} секунди. Сигурни ли сте, че искате да я запишете в историята?`
       );
       if (!confirmSave) return;
