@@ -140,7 +140,7 @@ export function DashboardProvider({
       ) {
         handleRefresh(true);
       }
-    }, 300000); // 5 minutes, only when tab is visible
+    }, 900000); // 15 minutes, only when tab is visible (matches server cache TTL)
 
     return () => clearInterval(interval);
   }, [handleRefresh, quotaExhausted]);

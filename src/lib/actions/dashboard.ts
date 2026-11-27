@@ -2,6 +2,7 @@
 import "server-only";
 
 import * as admin from "firebase-admin";
+import { revalidateTag, unstable_cache } from "next/cache";
 
 import { ensureAdminFromSession } from "@/lib/auth-utils";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -205,8 +206,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
       cacheKey,
 
       async () => {
-        // ВЪТРЕШЕН try/catch — никога не хвърляме нагоре от fetchFn
-        try {
+        const fetchDashboardRaw = async () => {
           // Base collection references
           const siteFilter = activeBranch && activeBranch !== "bkgalabovo";
 
@@ -303,6 +303,7 @@ export async function getDashboardDataServerAction(activeBranch: string) {
               .where("startDate", ">=", sixtyDaysAgoStr)
               .where("startDate", "<=", endStr)
               .where("type", "==", "training")
+              .limit(150)
               .get(),
           ]);
 
@@ -558,6 +559,24 @@ export async function getDashboardDataServerAction(activeBranch: string) {
               todayTrainings: events.filter((e) => e.type === "training"),
             },
           };
+        };
+
+        const fetchDashboardCached = unstable_cache(
+          fetchDashboardRaw,
+          ["dashboard-data", activeBranch, todayKey],
+          { revalidate: 900, tags: ["dashboard-data"] }
+        );
+
+        // ВЪТРЕШЕН try/catch — никога не хвърляме нагоре от fetchFn (и не кешираме грешки при quota exhaustion)
+        try {
+          try {
+            return await fetchDashboardCached();
+          } catch (cacheErr) {
+            if (String(cacheErr).includes("incrementalCache")) {
+              return await fetchDashboardRaw();
+            }
+            throw cacheErr;
+          }
         } catch (fetchErr: unknown) {
           // Хващаме quota и всякакви Firestore грешки — НИКОГА не хвърляме нагоре
           const errMsg =
@@ -596,6 +615,11 @@ export async function invalidateDashboardCacheAction() {
   try {
     await ensureAdminFromSession();
     serverCache.invalidatePattern("dashboard:");
+    try {
+      revalidateTag("dashboard-data", "max");
+    } catch {
+      // Ignore outside Next.js cache context (e.g. unit tests)
+    }
     return { success: true };
   } catch (error: unknown) {
     console.error("Error invalidating dashboard cache:", error);

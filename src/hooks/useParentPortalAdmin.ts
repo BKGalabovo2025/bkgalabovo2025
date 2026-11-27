@@ -97,10 +97,10 @@ export function useParentPortalAdmin() {
     "admin-parent-portal-data",
     fetcher,
     {
-      refreshInterval: 180000, // 3 minutes background poll: preserves quota while keeping notifications fresh
+      refreshInterval: 300000, // 5 minutes background poll: preserves quota while keeping notifications fresh
       revalidateOnFocus: false, // Prevents quota-draining refetches on every browser tab / window switch
       revalidateOnReconnect: false, // Prevents burst queries on momentary connection drops
-      dedupingInterval: 60000, // 1 minute deduplication interval across layout components
+      dedupingInterval: 120000, // 2 minutes deduplication interval across layout components
     }
   );
 

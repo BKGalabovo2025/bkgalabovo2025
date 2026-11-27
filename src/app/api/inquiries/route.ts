@@ -1,3 +1,4 @@
+import { revalidateTag, unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
@@ -258,6 +259,12 @@ export async function POST(request: Request) {
       }
     }
 
+    try {
+      revalidateTag("inquiries", "max");
+    } catch {
+      // Ignore outside Next.js cache context
+    }
+
     return NextResponse.json({
       success: true,
       id: docRef.id,
@@ -298,15 +305,15 @@ export async function GET(request: Request) {
       await ensureAdminFromSession();
     }
 
-    const adminDb = getAdminDb();
-    let query: FirebaseFirestore.Query = adminDb.collection("inquiries");
+    const fetchInquiriesRaw = async (targetSiteId: string) => {
+      const adminDb = getAdminDb();
+      let query: FirebaseFirestore.Query = adminDb.collection("inquiries");
 
-    if (siteId && siteId !== "all") {
-      query = query.where("siteId", "==", siteId);
-    }
+      if (targetSiteId && targetSiteId !== "all") {
+        query = query.where("siteId", "==", targetSiteId);
+      }
 
-    try {
-      const snapshot = await query.get();
+      const snapshot = await query.limit(250).get();
 
       const inquiries = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -320,6 +327,27 @@ export async function GET(request: Request) {
           new Date(b.createdAt || 0).getTime() -
           new Date(a.createdAt || 0).getTime()
       );
+
+      return inquiries;
+    };
+
+    const fetchInquiriesCached = unstable_cache(
+      fetchInquiriesRaw,
+      ["inquiries-list"],
+      { revalidate: 180, tags: ["inquiries"] }
+    );
+
+    try {
+      let inquiries;
+      try {
+        inquiries = await fetchInquiriesCached(siteId);
+      } catch (cacheErr) {
+        if (String(cacheErr).includes("incrementalCache")) {
+          inquiries = await fetchInquiriesRaw(siteId);
+        } else {
+          throw cacheErr;
+        }
+      }
 
       return NextResponse.json({ inquiries, siteId });
     } catch (dbError: unknown) {
@@ -431,6 +459,12 @@ export async function PATCH(request: Request) {
 
     await adminDb.collection("inquiries").doc(id).update(updateData);
 
+    try {
+      revalidateTag("inquiries", "max");
+    } catch {
+      // Ignore outside Next.js cache context
+    }
+
     return NextResponse.json({
       success: true,
       message: "Запитването е обновено успешно.",
@@ -493,6 +527,12 @@ export async function DELETE(request: Request) {
       await ensureAdminWithSite(token, docSiteId);
     }
     await docRef.delete();
+
+    try {
+      revalidateTag("inquiries", "max");
+    } catch {
+      // Ignore outside Next.js cache context
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle2, Clock, Inbox, Phone } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { handleKeyboardClick } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
@@ -16,9 +16,11 @@ export function InquiriesNotificationCard() {
   const siteId = isRecovery ? "recoveryzone" : "all";
 
   const [inquiries, setInquiries] = useState<EventInquiry[]>([]);
+  const lastFetchAtRef = useRef<number>(0);
 
   const fetchInquiries = useCallback(async () => {
     try {
+      lastFetchAtRef.current = Date.now();
       const res = await fetch(`/api/inquiries?siteId=${siteId}`);
       if (res.ok) {
         const data = await res.json();
@@ -32,7 +34,7 @@ export function InquiriesNotificationCard() {
   useEffect(() => {
     fetchInquiries();
 
-    // Auto-refresh only when the tab is actively visible to preserve CDN request quota
+    // Auto-refresh only when the tab is actively visible to preserve Firestore & CDN quota
     const interval = setInterval(() => {
       if (
         typeof document !== "undefined" &&
@@ -40,10 +42,13 @@ export function InquiriesNotificationCard() {
       ) {
         fetchInquiries();
       }
-    }, 180000); // 3 minutes
+    }, 300000); // 5 minutes
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() - lastFetchAtRef.current >= 180000
+      ) {
         fetchInquiries();
       }
     };

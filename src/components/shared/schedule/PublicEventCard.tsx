@@ -225,7 +225,7 @@ export function PublicEventCard({
     <div
       className={`group overflow-hidden rounded-2xl border transition-all duration-300 ${
         event.isCancelled
-          ? "border-rose-900/40 bg-rose-950/20"
+          ? "border-rose-300 bg-rose-50 dark:border-rose-900/40 dark:bg-rose-950/20"
           : `border-zinc-800 bg-black/70 ${typeConfig.cardBorderHover} hover:bg-black ${typeConfig.cardShadowHover}`
       }`}
     >
@@ -260,7 +260,7 @@ export function PublicEventCard({
               )}
 
               {event.isCancelled && (
-                <span className="rounded-md border border-rose-500/30 bg-rose-500/15 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-700 uppercase dark:bg-rose-500/20 dark:text-rose-300">
+                <span className="rounded-md border border-rose-400 bg-rose-100 px-2.5 py-1 text-[10px] font-bold tracking-widest text-rose-950 uppercase dark:border-rose-500/30 dark:bg-rose-500/20 dark:text-rose-300">
                   Отменена
                 </span>
               )}

@@ -3,7 +3,7 @@ import "server-only";
 
 // Cache invalidation trigger
 import crypto from "crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 import { buildParentDashboardData } from "@/lib/actions/parent-portal-dashboard";
 import { ensureAdmin } from "@/lib/auth-utils";
@@ -91,6 +91,11 @@ let cachedAdminParentPortalData: {
 function invalidateAdminParentPortalCache(): void {
   cachedAdminParentPortalData = null;
   cachedMembersData = null;
+  try {
+    revalidateTag("admin-parent-portal-data", "max");
+  } catch {
+    // Ignore outside Next.js request/cache context (e.g. unit tests)
+  }
 }
 
 function invalidateParentDashboardCache(parentUserId?: string): void {
@@ -1778,154 +1783,181 @@ export async function getAdminParentPortalDataAction() {
       };
     }
 
-    const adminDb = getAdminDb();
-    let members: CachedMemberSummary[];
+    const fetchRaw = async () => {
+      const adminDb = getAdminDb();
+      let members: CachedMemberSummary[];
 
-    if (cachedMembersData && cachedMembersData.expiresAt > now) {
-      members = cachedMembersData.data;
-    } else {
-      const membersSnap = await adminDb
-        .collection(MEMBERS_COLLECTION)
-        .where("siteId", "==", "bkgalabovo")
-        .get();
+      if (cachedMembersData && cachedMembersData.expiresAt > Date.now()) {
+        members = cachedMembersData.data;
+      } else {
+        const membersSnap = await adminDb
+          .collection(MEMBERS_COLLECTION)
+          .where("siteId", "==", "bkgalabovo")
+          .limit(1000)
+          .get();
 
-      members = membersSnap.docs.map((d) => {
-        const m = d.data();
-        return {
-          id: d.id,
-          firstName: m.firstName || "",
-          lastName: m.lastName || "",
-          fullName: `${m.firstName || ""} ${m.lastName || ""}`.trim(),
-          dateOfBirth: formatDobString(m.dateOfBirth),
-          phone: m.phone || "",
-          parentPhone: m.parentPhone || "",
-          motherPhone: m.motherPhone || "",
-          fatherPhone: m.fatherPhone || "",
-          motherName: m.motherName || "",
-          fatherName: m.fatherName || "",
-          familyId: m.familyId || null,
-          avatarUrl: m.avatarUrl || null,
+        members = membersSnap.docs.map((d) => {
+          const m = d.data();
+          return {
+            id: d.id,
+            firstName: m.firstName || "",
+            lastName: m.lastName || "",
+            fullName: `${m.firstName || ""} ${m.lastName || ""}`.trim(),
+            dateOfBirth: formatDobString(m.dateOfBirth),
+            phone: m.phone || "",
+            parentPhone: m.parentPhone || "",
+            motherPhone: m.motherPhone || "",
+            fatherPhone: m.fatherPhone || "",
+            motherName: m.motherName || "",
+            fatherName: m.fatherName || "",
+            familyId: m.familyId || null,
+            avatarUrl: m.avatarUrl || null,
+          };
+        });
+
+        cachedMembersData = {
+          data: members,
+          expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes cache
         };
-      });
+      }
 
-      cachedMembersData = {
-        data: members,
-        expiresAt: now + 5 * 60 * 1000, // 5 minutes cache
-      };
-    }
+      const [reqsSnap, usersSnap, absSnap, corrsSnap, docReqsSnap] =
+        await Promise.all([
+          adminDb
+            .collection(PARENT_REQUESTS_COLLECTION)
+            .where("siteId", "==", "bkgalabovo")
+            .limit(500)
+            .get(),
+          adminDb
+            .collection(PARENT_USERS_COLLECTION)
+            .where("siteId", "==", "bkgalabovo")
+            .limit(500)
+            .get(),
+          adminDb
+            .collection(PARENT_ABSENCES_COLLECTION)
+            .where("siteId", "==", "bkgalabovo")
+            .limit(500)
+            .get(),
+          adminDb
+            .collection(PARENT_CORRECTIONS_COLLECTION)
+            .where("siteId", "==", "bkgalabovo")
+            .limit(500)
+            .get(),
+          adminDb
+            .collection("document_requests")
+            .where("siteId", "==", "bkgalabovo")
+            .limit(500)
+            .get(),
+        ]);
 
-    const [reqsSnap, usersSnap, absSnap, corrsSnap, docReqsSnap] =
-      await Promise.all([
-        adminDb
-          .collection(PARENT_REQUESTS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_USERS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_ABSENCES_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection(PARENT_CORRECTIONS_COLLECTION)
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-        adminDb
-          .collection("document_requests")
-          .where("siteId", "==", "bkgalabovo")
-          .get(),
-      ]);
-
-    const requests: ParentAccessRequest[] = reqsSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as ParentAccessRequest)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-    const parents: ParentUser[] = usersSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as ParentUser)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-    const absences: ParentAbsence[] = absSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as ParentAbsence)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-    const corrections: DataCorrectionRequest[] = corrsSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as DataCorrectionRequest)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-    const documentRequests: DocumentRequest[] = docReqsSnap.docs
-      .map((d) => ({ ...d.data(), id: d.id }) as DocumentRequest)
-      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-    let communications: ParentCommunicationLog[] = [];
-    try {
-      const commsSnap = await adminDb
-        .collection("parent_communications")
-        .where("siteId", "==", "bkgalabovo")
-        .limit(60)
-        .get();
-      communications = commsSnap.docs
-        .map((d) => ({ ...d.data(), id: d.id }) as ParentCommunicationLog)
+      const requests: ParentAccessRequest[] = reqsSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as ParentAccessRequest)
         .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-    } catch (commErr) {
-      console.warn("Failed to load parent communications:", commErr);
-    }
 
-    const activityLogs: ParentActivityLog[] = [];
+      const parents: ParentUser[] = usersSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as ParentUser)
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-    const pendingRequestsCount = requests.filter(
-      (r) => r.status === "pending"
-    ).length;
-    const pendingAbsencesCount = absences.filter(
-      (a) => a.status === "submitted"
-    ).length;
-    const pendingCorrectionsCount = corrections.filter(
-      (c) => c.status === "pending"
-    ).length;
+      const absences: ParentAbsence[] = absSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as ParentAbsence)
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-    const sevenDaysAgoMs = now - 7 * 24 * 60 * 60 * 1000;
-    const recentlySignedDocsCount = documentRequests.filter(
-      (dr) =>
-        dr.status === "completed" &&
-        dr.signedAt &&
-        new Date(dr.signedAt).getTime() >= sevenDaysAgoMs
-    ).length;
-    const pendingSentDocsCount = documentRequests.filter(
-      (dr) => dr.status === "pending"
-    ).length;
+      const corrections: DataCorrectionRequest[] = corrsSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as DataCorrectionRequest)
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-    const onlineParentsCount = parents.filter(
-      (p) =>
-        p.lastActiveAt &&
-        now - new Date(p.lastActiveAt).getTime() < 4 * 60 * 1000
-    ).length;
+      const documentRequests: DocumentRequest[] = docReqsSnap.docs
+        .map((d) => ({ ...d.data(), id: d.id }) as DocumentRequest)
+        .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
-    const responseData = serializeFirestoreData({
-      requests,
-      parents,
-      absences,
-      corrections,
-      documentRequests,
-      members,
-      activityLogs,
-      communications,
-      onlineParentsCount,
-      stats: {
-        pendingRequestsCount,
-        pendingAbsencesCount,
-        pendingCorrectionsCount,
-        recentlySignedDocsCount,
-        pendingSentDocsCount,
+      let communications: ParentCommunicationLog[] = [];
+      try {
+        const commsSnap = await adminDb
+          .collection("parent_communications")
+          .where("siteId", "==", "bkgalabovo")
+          .limit(60)
+          .get();
+        communications = commsSnap.docs
+          .map((d) => ({ ...d.data(), id: d.id }) as ParentCommunicationLog)
+          .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+      } catch (commErr) {
+        console.warn("Failed to load parent communications:", commErr);
+      }
+
+      const activityLogs: ParentActivityLog[] = [];
+
+      const pendingRequestsCount = requests.filter(
+        (r) => r.status === "pending"
+      ).length;
+      const pendingAbsencesCount = absences.filter(
+        (a) => a.status === "submitted"
+      ).length;
+      const pendingCorrectionsCount = corrections.filter(
+        (c) => c.status === "pending"
+      ).length;
+
+      const calcNow = Date.now();
+      const sevenDaysAgoMs = calcNow - 7 * 24 * 60 * 60 * 1000;
+      const recentlySignedDocsCount = documentRequests.filter(
+        (dr) =>
+          dr.status === "completed" &&
+          dr.signedAt &&
+          new Date(dr.signedAt).getTime() >= sevenDaysAgoMs
+      ).length;
+      const pendingSentDocsCount = documentRequests.filter(
+        (dr) => dr.status === "pending"
+      ).length;
+
+      const onlineParentsCount = parents.filter(
+        (p) =>
+          p.lastActiveAt &&
+          calcNow - new Date(p.lastActiveAt).getTime() < 4 * 60 * 1000
+      ).length;
+
+      return serializeFirestoreData({
+        requests,
+        parents,
+        absences,
+        corrections,
+        documentRequests,
+        members,
+        activityLogs,
+        communications,
         onlineParentsCount,
-        totalPending:
-          pendingRequestsCount + pendingAbsencesCount + pendingCorrectionsCount,
-      },
+        stats: {
+          pendingRequestsCount,
+          pendingAbsencesCount,
+          pendingCorrectionsCount,
+          recentlySignedDocsCount,
+          pendingSentDocsCount,
+          onlineParentsCount,
+          totalPending:
+            pendingRequestsCount +
+            pendingAbsencesCount +
+            pendingCorrectionsCount,
+        },
+      });
+    };
+
+    const fetchCached = unstable_cache(fetchRaw, ["admin-parent-portal-data"], {
+      revalidate: 180,
+      tags: ["admin-parent-portal-data"],
     });
+
+    let responseData;
+    try {
+      responseData = await fetchCached();
+    } catch (cacheErr) {
+      if (String(cacheErr).includes("incrementalCache")) {
+        responseData = await fetchRaw();
+      } else {
+        throw cacheErr;
+      }
+    }
 
     cachedAdminParentPortalData = {
       data: responseData,
-      expiresAt: now + 60 * 1000, // 60 seconds server cache TTL
+      expiresAt: now + 180 * 1000, // 3 minutes server cache TTL
     };
 
     return {
