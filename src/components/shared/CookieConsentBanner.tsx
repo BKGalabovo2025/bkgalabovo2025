@@ -44,16 +44,16 @@ export function CookieConsentBanner() {
   return (
     <aside
       aria-label="Съгласие за бисквитки"
-      className="fixed bottom-4 z-50 mx-auto max-w-2xl rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-2xl backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-950/95 inset-x-4"
+      className="fixed bottom-4 z-50 mx-auto max-w-2xl rounded-2xl border border-zinc-200 bg-white p-4 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 inset-x-4"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
+        <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
           Използваме само необходими бисквитки за работата на портала, а с ваше
           съгласие — и аналитика (Vercel Analytics) и превод (Google Translate).
           Вижте нашата{" "}
           <Link
             href="/privacy-policy"
-            className="font-semibold text-blue-600 underline hover:text-blue-500 dark:text-blue-400"
+            className="font-semibold text-blue-700 underline hover:text-blue-600 dark:text-blue-400"
           >
             Политика за поверителност
           </Link>
@@ -73,7 +73,7 @@ export function CookieConsentBanner() {
             type="button"
             size="sm"
             onClick={() => saveChoice("accepted")}
-            className="h-8 rounded-xl bg-blue-600 text-xs text-white hover:bg-blue-500"
+            className="h-8 rounded-xl bg-blue-700 text-xs text-white hover:bg-blue-600"
           >
             Приемам всички
           </Button>

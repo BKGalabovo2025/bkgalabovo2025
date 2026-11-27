@@ -266,12 +266,20 @@ function discoverRoutes(sampleParams = {}) {
 
         const isProtected =
           fullPath.includes("(protected)") || route.startsWith("/club/parents");
+        const isNoIndex =
+          route.startsWith("/quiz/") ||
+          route.startsWith("/cert/") ||
+          route.startsWith("/feedback/") ||
+          route.startsWith("/sign/") ||
+          route.startsWith("/sign-trip/") ||
+          route === "/login";
 
         routes.push({
           rawRoute: route,
           urlRoute: testRoute,
           isDynamic,
           isProtected,
+          isNoIndex,
           filePath: fullPath,
           name: (route === "/"
             ? "home"
@@ -885,11 +893,12 @@ async function run() {
         // ignore warm-up errors
       }
 
-      // Защитените административни и родителски страници умишлено са блокирани в robots.txt от индексация.
-      // Пропускаме 'is-crawlable' и 'redirects', за да не намаляват необосновано SEO оценката за вътрешни страници.
-      const skipAuditsFlag = page.isProtected
-        ? "--skip-audits=is-crawlable,redirects"
-        : "";
+      // Защитените административни, родителски и noindex токен страници умишлено не се индексират.
+      // Пропускаме 'is-crawlable' и 'redirects', за да не намаляват необосновано SEO оценката за вътрешни/токен страници.
+      const skipAuditsFlag =
+        page.isProtected || page.isNoIndex
+          ? "--skip-audits=is-crawlable,redirects"
+          : "";
       const cmd = `npx lighthouse "${fullUrl}" --output=html,json --output-path="${outputBase}" --chrome-flags="--headless --no-sandbox --disable-gpu" ${presetFlag} ${extraHeaders} ${skipAuditsFlag} --quiet`;
 
       let actualJson = null;
