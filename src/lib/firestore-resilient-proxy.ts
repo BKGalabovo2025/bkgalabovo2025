@@ -405,11 +405,22 @@ async function tryInMemoryIndexFallback(
   }
 }
 
+function isNotFoundError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: unknown; message?: unknown };
+  return (
+    e.code === 5 ||
+    e.code === "not-found" ||
+    (typeof e.message === "string" && e.message.includes("NOT_FOUND"))
+  );
+}
+
 async function executeOnBackup(
   backupDb: admin.firestore.Firestore,
   steps: ChainStep[],
   prop: string,
-  args: unknown[]
+  args: unknown[],
+  primaryTarget?: object
 ): Promise<unknown> {
   try {
     const backupTarget = replayChain(backupDb, steps) as Record<
@@ -425,6 +436,34 @@ async function executeOnBackup(
     if (prop === "get" && isIndexRequiredError(err)) {
       const fallbackSnap = await tryInMemoryIndexFallback(backupDb, steps, err);
       if (fallbackSnap) return fallbackSnap;
+    }
+    if (prop === "update" && isNotFoundError(err)) {
+      const backupTarget = replayChain(backupDb, steps) as {
+        set?: (data: unknown, opts?: unknown) => Promise<unknown>;
+      };
+      if (typeof backupTarget?.set === "function") {
+        // Self-heal: copy full doc from primary if available, else upsert update payload
+        const primaryDoc = primaryTarget as
+          | { get?: () => Promise<{ exists?: boolean; data?: () => unknown }> }
+          | undefined;
+        if (typeof primaryDoc?.get === "function") {
+          try {
+            const snap = await primaryDoc.get();
+            const docData =
+              snap?.exists && typeof snap.data === "function"
+                ? snap.data()
+                : undefined;
+            if (docData) {
+              return await backupTarget.set(docData, { merge: true });
+            }
+          } catch {
+            // Fall through to payload upsert
+          }
+        }
+        if (args.length === 1 && args[0] && typeof args[0] === "object") {
+          return await backupTarget.set(args[0], { merge: true });
+        }
+      }
     }
     throw err;
   }
@@ -553,7 +592,7 @@ async function handleExecutionMethod(
       invalidateCacheForSteps(steps);
       const backupDb = getBackupDb();
       if (backupDb) {
-        executeOnBackup(backupDb, steps, prop, args).catch((repErr) => {
+        executeOnBackup(backupDb, steps, prop, args, obj).catch((repErr) => {
           console.warn(
             `[firestore-replication] ⚠️ Dual-write replication of ${prop}() to backup DB failed:`,
             repErr instanceof Error ? repErr.message : String(repErr)
@@ -653,9 +692,10 @@ interface RecordedBatchOp {
   type: "set" | "update" | "delete";
   path: string;
   args: unknown[];
+  primaryRef?: admin.firestore.DocumentReference;
 }
 
-function replayBatchOps(
+async function replayBatchOps(
   backupDb: admin.firestore.Firestore,
   ops: RecordedBatchOp[]
 ): Promise<admin.firestore.WriteResult[]> {
@@ -665,7 +705,47 @@ function replayBatchOps(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (backupBatch as any)[op.type](backupRef, ...op.args);
   }
-  return backupBatch.commit();
+  try {
+    return await backupBatch.commit();
+  } catch (err) {
+    if (!isNotFoundError(err)) throw err;
+    // Self-heal missing documents in backup during batch update()
+    const healBatch = backupDb.batch();
+    for (const op of ops) {
+      const backupRef = backupDb.doc(op.path);
+      if (op.type === "update") {
+        let healed = false;
+        if (op.primaryRef && typeof op.primaryRef.get === "function") {
+          try {
+            const snap = await op.primaryRef.get();
+            if (snap?.exists && snap.data()) {
+              healBatch.set(backupRef, snap.data()!, { merge: true });
+              healed = true;
+            }
+          } catch {
+            // Fallback below
+          }
+        }
+        if (
+          !healed &&
+          op.args.length === 1 &&
+          op.args[0] &&
+          typeof op.args[0] === "object"
+        ) {
+          healBatch.set(backupRef, op.args[0] as admin.firestore.DocumentData, {
+            merge: true,
+          });
+        } else if (!healed) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (healBatch as any).update(backupRef, ...op.args);
+        }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (healBatch as any)[op.type](backupRef, ...op.args);
+      }
+    }
+    return await healBatch.commit();
+  }
 }
 
 /**
@@ -696,7 +776,12 @@ function wrapWriteBatch(
       );
     },
     update(documentRef: admin.firestore.DocumentReference, ...args: unknown[]) {
-      ops.push({ type: "update", path: documentRef.path, args });
+      ops.push({
+        type: "update",
+        path: documentRef.path,
+        args,
+        primaryRef: documentRef,
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (primaryBatch.update as any)(documentRef, ...args);
     },
