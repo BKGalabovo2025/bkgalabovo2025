@@ -6,16 +6,18 @@ import { createHmac } from "node:crypto";
 import { cookies } from "next/headers";
 
 const PARENT_SESSION_COOKIE_NAME = "parent_session";
-const RESOLVED_SECRET =
-  process.env.AUTH_SECRET ||
-  process.env.JWT_SECRET ||
-  process.env.NEXTAUTH_SECRET;
-if (!RESOLVED_SECRET && process.env.NODE_ENV === "production") {
-  throw new Error(
-    "AUTH_SECRET (or JWT_SECRET / NEXTAUTH_SECRET) must be configured in production."
-  );
+function getSecretKey(): string {
+  const resolved =
+    process.env.AUTH_SECRET ||
+    process.env.JWT_SECRET ||
+    process.env.NEXTAUTH_SECRET;
+  if (!resolved && process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET (or JWT_SECRET / NEXTAUTH_SECRET) must be configured in production."
+    );
+  }
+  return resolved || "dev-only-parent-portal-secret";
 }
-const SECRET_KEY = RESOLVED_SECRET || "dev-only-parent-portal-secret";
 
 /**
  * Hashes a plaintext password using crypto scrypt with a unique random salt.
@@ -60,7 +62,7 @@ export function signParentToken(
   const encodedPayload = Buffer.from(JSON.stringify(fullPayload)).toString(
     "base64url"
   );
-  const signature = createHmac("sha256", SECRET_KEY)
+  const signature = createHmac("sha256", getSecretKey())
     .update(encodedPayload)
     .digest("base64url");
   return `${encodedPayload}.${signature}`;
@@ -74,7 +76,7 @@ export function verifyParentToken(token: string): ParentSessionPayload | null {
     const [encodedPayload, signature] = token.split(".");
     if (!encodedPayload || !signature) return null;
 
-    const expectedSignature = createHmac("sha256", SECRET_KEY)
+    const expectedSignature = createHmac("sha256", getSecretKey())
       .update(encodedPayload)
       .digest("base64url");
 
@@ -144,7 +146,7 @@ export function generatePasswordResetToken(parentId: string): string {
   const exp = Math.floor(Date.now() / 1000) + 3600; // 1 hour
   const payload = JSON.stringify({ parentId, type: "password_reset", exp });
   const encoded = Buffer.from(payload).toString("base64url");
-  const signature = createHmac("sha256", SECRET_KEY)
+  const signature = createHmac("sha256", getSecretKey())
     .update(encoded)
     .digest("base64url");
   return `${encoded}.${signature}`;
@@ -158,7 +160,7 @@ export function verifyPasswordResetToken(token: string): string | null {
     const [encoded, signature] = token.split(".");
     if (!encoded || !signature) return null;
 
-    const expectedSignature = createHmac("sha256", SECRET_KEY)
+    const expectedSignature = createHmac("sha256", getSecretKey())
       .update(encoded)
       .digest("base64url");
 
